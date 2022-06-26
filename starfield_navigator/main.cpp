@@ -80,6 +80,10 @@ auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
    g.add_connection("B", "C", 5.0f);
    g.add_connection("E", "C", 5.0f);
 
+   // printf(std::format("neighbors: {}\n", g.are_neighbors(0, 2)).c_str());
+
+   const auto dijkstra = g.get_dijkstra(g.get_node_index_by_name("A"));
+
 
    try {
       const engine engine(

@@ -97,9 +97,9 @@ engine::engine(const config& config, const draw_fun_type& draw_fun)
    , m_imgui_context(config, m_window_wrapper.m_window)
    , m_draw_fun(draw_fun)
 {
-   // if (engine_ptr != nullptr)
-   //    std::terminate();
-   // engine_ptr = this;
+   if (engine_ptr != nullptr)
+      std::terminate();
+   engine_ptr = this;
    glfwSetFramebufferSizeCallback(get_window(), engine::static_resize_callback);
 }
 
