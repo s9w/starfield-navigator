@@ -47,6 +47,7 @@ auto sfn::shortest_path_tree::get_distance_from_source(const int node_index) con
 
 
 sfn::graph::graph(const universe& universe, const float jump_range)
+   : m_jump_range(jump_range)
 {
    const float jump_range2 = jump_range * jump_range;
    for(const system& system : universe.m_systems)
@@ -205,4 +206,58 @@ auto sfn::graph::get_neighbor_info(const int node_index_0, const int node_index_
       }
    }
    std::terminate();
+}
+
+
+auto sfn::graph::get_jump_path(const std::string& start, const std::string& destination) const -> std::optional<jump_path>
+{
+   const int start_index = this->get_node_index_by_name(start);
+   const int destination_index = this->get_node_index_by_name(destination);
+   const shortest_path_tree tree = this->get_dijkstra(start_index);
+
+   jump_path result;
+   int position = destination_index;
+
+   while(position != start_index)
+   {
+      result.m_stops.push_back(position);
+      position = tree.m_entries[position].m_previous_vertex_index;
+      if(position == -1)
+      {
+         return std::nullopt;
+      }
+   }
+   result.m_stops.push_back(start_index);
+   std::ranges::reverse(result.m_stops);
+
+   return result;
+}
+
+
+auto sfn::graph::print_path(const jump_path& path) const -> void
+{
+   printf(std::format(
+      "Calculating jump from {} to {} with jump_range of {} LY. Total distance: {:.1f} LY\n",
+      m_nodes[path.m_stops.front()].m_name,
+      m_nodes[path.m_stops.back()].m_name,
+      m_jump_range,
+      glm::distance(m_nodes[path.m_stops.front()].m_position, m_nodes[path.m_stops.back()].m_position)
+   ).c_str());
+
+   float travelled_distance = 0.0f;
+   for(int i=0; i<path.m_stops.size()-1; ++i)
+   {
+      const int this_stop_system = path.m_stops[i];
+      const int next_stop_system = path.m_stops[i+1];
+      const float dist = glm::distance(m_nodes[this_stop_system].m_position, m_nodes[next_stop_system].m_position);
+      travelled_distance += dist;
+      printf(std::format(
+         "Jump {}: {} to {}. Distance: {:.1f} LY\n",
+         i,
+         m_nodes[this_stop_system].m_name,
+         m_nodes[next_stop_system].m_name,
+         dist
+      ).c_str());
+   }
+   printf(std::format("Travelled {:.1f} LY\n", travelled_distance).c_str());
 }

@@ -2,11 +2,14 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 #include <glm/vec3.hpp>
 
 
 namespace sfn {
+
+   enum class factions{uc, freestar, crimson};
 
    struct system{
       std::string m_name;
@@ -16,6 +19,7 @@ namespace sfn {
       // std::string m_spectral_class;
       // int m_planet_count;
       // int m_moon_count;
+      // factions m_faction;
    };
 
    struct universe{
@@ -51,8 +55,7 @@ namespace sfn {
       int m_previous_vertex_index = -1;
    };
    [[nodiscard]] auto operator==(const shortest_path& a, const shortest_path& b) -> bool;
-
-   struct graph;
+   
 
    struct shortest_path_tree{
       int m_source_node_index;
@@ -68,8 +71,13 @@ namespace sfn {
       int m_other_index;
    };
 
+   struct jump_path{
+      std::vector<int> m_stops;
+   };
+
    struct graph
    {
+      float m_jump_range = 0.0f;
       std::vector<node> m_nodes;
       std::vector<connection> m_connections;
 
@@ -81,6 +89,8 @@ namespace sfn {
       [[nodiscard]] auto get_dijkstra(const int source_node_index) const -> shortest_path_tree;
       [[nodiscard]] auto are_neighbors(const int node_index_0, const int node_index_1) const -> bool;
       [[nodiscard]] auto get_neighbor_info(const int node_index_0, const int node_index_1) const -> neighbor_info;
+      [[nodiscard]] auto get_jump_path(const std::string& start, const std::string& destination) const -> std::optional<jump_path>;
+      auto print_path(const jump_path& path) const -> void;
    };
 
 

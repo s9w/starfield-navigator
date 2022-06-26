@@ -72,9 +72,18 @@ auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
    universe starfield_world;
    starfield_world.m_systems.push_back( sfn::system{.m_name = "SOL", .m_position = glm::vec3{0, 0, 0} } );
    starfield_world.m_systems.push_back( sfn::system{.m_name = "NARION", .m_position = glm::vec3{5, -2, 0} } );
+   starfield_world.m_systems.push_back( sfn::system{.m_name = "JAFFA", .m_position = glm::vec3{45, -10, 0} } );
    starfield_world.m_systems.push_back( sfn::system{.m_name = "PORRIMA", .m_position = glm::vec3{100, 0, 0} } );
 
-   graph starfield_graph(starfield_world, 15);
+   const graph starfield_graph(starfield_world, 60);
+
+   const std::optional<jump_path> path = starfield_graph.get_jump_path("SOL", "PORRIMA");
+   if(path.has_value() == false)
+   {
+      printf("Jump range not large enough\n");
+      return 0;
+   }
+   starfield_graph.print_path(*path);
 
    try {
       const engine engine(
