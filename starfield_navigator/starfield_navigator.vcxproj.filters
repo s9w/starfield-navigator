@@ -51,12 +51,18 @@
     <ClCompile Include="..\libs\src\imgui_draw.cpp">
       <Filter>external_libs</Filter>
     </ClCompile>
+    <ClCompile Include="graph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="setup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="graph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

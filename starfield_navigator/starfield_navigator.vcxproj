@@ -95,10 +95,12 @@
     <ClCompile Include="..\libs\src\imgui_stdlib.cpp" />
     <ClCompile Include="..\libs\src\imgui_tables.cpp" />
     <ClCompile Include="..\libs\src\imgui_widgets.cpp" />
+    <ClCompile Include="graph.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="setup.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="graph.h" />
     <ClInclude Include="setup.h" />
     <ClInclude Include="tools.h" />
   </ItemGroup>
