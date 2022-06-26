@@ -26,6 +26,7 @@ namespace sfn {
       float m_shortest_distance = no_distance;
       int m_previous_vertex_index = -1;
    };
+   [[nodiscard]] auto operator==(const shortest_path& a, const shortest_path& b) -> bool;
 
    struct graph;
 
@@ -35,6 +36,7 @@ namespace sfn {
 
       explicit shortest_path_tree(const int source_node_index, const int node_count);
       [[nodiscard]] auto get_distance_from_source(const int node_index) -> float;
+      friend auto operator<=>(const shortest_path_tree&, const shortest_path_tree&) = default;
    };
 
    struct neighbor_info{

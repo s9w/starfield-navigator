@@ -1,5 +1,7 @@
 #include "graph.h"
 
+#include "tools.h"
+
 #include <algorithm>
 
 
@@ -14,6 +16,13 @@ auto sfn::operator==(const connection& a, const connection& b) -> bool
    const bool equal = a.m_node_index0 == b.m_node_index0 && a.m_node_index1 == b.m_node_index1;
    const bool equal_reversed = a.m_node_index0 == b.m_node_index1 && a.m_node_index1 == b.m_node_index0;
    return equal || equal_reversed;
+}
+
+
+auto sfn::operator==(const shortest_path& a, const shortest_path& b) -> bool
+{
+   return a.m_previous_vertex_index == b.m_previous_vertex_index &&
+      equal(a.m_shortest_distance, b.m_shortest_distance);
 }
 
 

@@ -27,4 +27,11 @@ namespace sfn
          printf(std::format("timer: {} ns\n", static_cast<int>(duration.count())).c_str()) ;
       }
    };
+
+   template<std::floating_point T>
+   [[nodiscard]] auto equal(const T a, const T b) -> bool
+   {
+      const T diff = std::abs(a - b);
+      return diff < static_cast<T>(0.001);
+   }
 }
