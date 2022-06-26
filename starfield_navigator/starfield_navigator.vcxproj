@@ -95,14 +95,21 @@
     <ClCompile Include="..\libs\src\imgui_stdlib.cpp" />
     <ClCompile Include="..\libs\src\imgui_tables.cpp" />
     <ClCompile Include="..\libs\src\imgui_widgets.cpp" />
+    <ClCompile Include="buffer.cpp" />
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="setup.cpp" />
+    <ClCompile Include="shader.cpp" />
+    <ClCompile Include="tools.cpp" />
+    <ClCompile Include="type_support.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="buffer.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="setup.h" />
+    <ClInclude Include="shader.h" />
     <ClInclude Include="tools.h" />
+    <ClInclude Include="type_support.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

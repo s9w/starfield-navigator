@@ -35,7 +35,7 @@ namespace sfn {
       std::vector<shortest_path> m_entries;
 
       explicit shortest_path_tree(const int source_node_index, const int node_count);
-      [[nodiscard]] auto get_distance_from_source(const int node_index) -> float;
+      [[nodiscard]] auto get_distance_from_source(const int node_index) const -> float;
       friend auto operator<=>(const shortest_path_tree&, const shortest_path_tree&) = default;
    };
 

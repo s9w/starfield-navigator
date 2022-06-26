@@ -34,7 +34,7 @@ sfn::shortest_path_tree::shortest_path_tree(const int source_node_index, const i
 }
 
 
-auto sfn::shortest_path_tree::get_distance_from_source(const int node_index) -> float
+auto sfn::shortest_path_tree::get_distance_from_source(const int node_index) const -> float
 {
    return m_entries[node_index].m_shortest_distance;
 }
@@ -81,7 +81,6 @@ auto sfn::graph::get_dijkstra(const int source_node_index) const -> shortest_pat
 {
    shortest_path_tree tree(source_node_index, static_cast<int>(std::ssize(m_nodes)));
 
-   // init
    std::vector<int> visited;
    std::vector<int> unvisited;
    unvisited.reserve(std::ssize(m_nodes));
