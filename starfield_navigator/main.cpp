@@ -60,8 +60,6 @@ auto test_djkstra() -> void
 }
 
 
-
-
 // Disable console window in release mode
 #if defined(_DEBUG) || defined(SHOW_CONSOLE)
 auto main(int /*argc*/, char* /*argv*/) -> int
@@ -70,6 +68,13 @@ auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
 #endif
 {
    test_djkstra();
+
+   universe starfield_world;
+   starfield_world.m_systems.push_back( sfn::system{.m_name = "SOL", .m_position = glm::vec3{0, 0, 0} } );
+   starfield_world.m_systems.push_back( sfn::system{.m_name = "NARION", .m_position = glm::vec3{5, -2, 0} } );
+   starfield_world.m_systems.push_back( sfn::system{.m_name = "PORRIMA", .m_position = glm::vec3{100, 0, 0} } );
+
+   graph starfield_graph(starfield_world, 15);
 
    try {
       const engine engine(

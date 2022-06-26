@@ -4,6 +4,12 @@
 
 #include <algorithm>
 
+#pragma warning(push, 0)    
+#include <glm/geometric.hpp>
+#include <glm/gtx/norm.hpp>
+#pragma warning(pop)
+
+
 
 auto sfn::connection::contains_node_index(const int node_index) const -> bool
 {
@@ -37,6 +43,43 @@ sfn::shortest_path_tree::shortest_path_tree(const int source_node_index, const i
 auto sfn::shortest_path_tree::get_distance_from_source(const int node_index) const -> float
 {
    return m_entries[node_index].m_shortest_distance;
+}
+
+
+sfn::graph::graph(const universe& universe, const float jump_range)
+{
+   const float jump_range2 = jump_range * jump_range;
+   for(const system& system : universe.m_systems)
+   {
+      m_nodes.push_back(
+         node{
+            .m_name = system.m_name,
+            .m_position = system.m_position
+         }
+      );
+   }
+
+   for(int i=0; i<universe.m_systems.size(); ++i)
+   {
+      for (int j = i+1; j < universe.m_systems.size(); ++j)
+      {
+         const float distance2 = glm::distance2(universe.m_systems[i].m_position, universe.m_systems[j].m_position);
+         if(distance2 > jump_range2)
+            continue;
+
+         m_connections.push_back(
+            connection{
+               .m_node_index0 = i,
+               .m_node_index1 = j,
+               .m_weight = std::sqrt(distance2)
+            }
+         );
+         const int connection_index = static_cast<int>(std::size(m_connections)) - 1;
+
+         m_nodes[i].m_connections.push_back(connection_index);
+         m_nodes[j].m_connections.push_back(connection_index);
+      }
+   }
 }
 
 

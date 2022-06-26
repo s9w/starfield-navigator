@@ -3,12 +3,36 @@
 #include <string>
 #include <vector>
 
+#include <glm/vec3.hpp>
+
 
 namespace sfn {
+
+   struct system{
+      std::string m_name;
+      glm::vec3 m_position;
+
+      // int m_level = 1;
+      // std::string m_spectral_class;
+      // int m_planet_count;
+      // int m_moon_count;
+   };
+
+   struct universe{
+      std::vector<system> m_systems;
+   };
+
+
+
+
+
+
+
 
    struct node{
       std::string m_name;
       std::vector<int> m_connections;
+      glm::vec3 m_position;
    };
 
    struct connection{
@@ -48,6 +72,9 @@ namespace sfn {
    {
       std::vector<node> m_nodes;
       std::vector<connection> m_connections;
+
+      explicit graph() = default;
+      explicit graph(const universe& universe, const float jump_range);
 
       [[nodiscard]] auto get_node_index_by_name(const std::string& name) const -> int;
       auto add_connection(const std::string& name_a, const std::string& name_b, const float weight) -> void;
