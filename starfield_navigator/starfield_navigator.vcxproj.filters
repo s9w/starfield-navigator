@@ -16,6 +16,9 @@
     <Filter Include="external_libs">
       <UniqueIdentifier>{21e195d3-4de7-4779-90e5-51eb3bb0ea7a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{02b092f6-5c6b-4b5b-a814-ddba0f12928f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -66,6 +69,18 @@
     <ClCompile Include="type_support.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="framebuffers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\canvas.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="implementations.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools.h">
@@ -85,6 +100,15 @@
     </ClInclude>
     <ClInclude Include="type_support.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="framebuffers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\canvas.h">
+      <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

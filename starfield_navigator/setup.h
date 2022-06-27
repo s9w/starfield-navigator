@@ -3,6 +3,8 @@
 #include <exception>
 #include <format>
 
+#include "buffer.h"
+#include "framebuffers.h"
 #include "graph.h"
 
 
@@ -71,6 +73,27 @@ namespace sfn
       imgui_context& operator=(imgui_context&&) = delete;
    };
 
+   struct alignas(256) ubo_type {};
+
+   struct ubo_star
+   {
+      alignas(sizeof(glm::vec4)) glm::mat4 m_model_matrix;
+      alignas(sizeof(glm::vec4)) glm::vec3 m_position;
+   };
+
+   struct mvp_type : ubo_type
+   {
+      alignas(sizeof(glm::vec4)) glm::vec3 m_lookat_pos;
+      alignas(sizeof(glm::vec4)) glm::mat4 m_view{ 1.0f };
+      alignas(sizeof(glm::vec4)) glm::mat4 m_projection{ 1.0f };
+      alignas(sizeof(glm::vec4)) glm::mat4 m_pv{ 1.0f };
+      alignas(sizeof(glm::vec4)) glm::mat4 m_pv_inverse{ 1.0f };
+      alignas(glm::vec4) glm::vec3 m_cam_pos;
+
+      constexpr static inline int size = 128;
+      ubo_star m_array[size];
+   };
+
 
    struct engine
    {
@@ -85,6 +108,13 @@ namespace sfn
 
       universe m_universe;
       float m_jump_range = 0.0f;
+
+      buffers m_buffers2;
+      id m_mvp_ubo_id{ no_init{} };
+      id m_main_fb{ no_init{} };
+      binding_point_man m_binding_point_man;
+      texture_manager m_textures{};
+      framebuffer_manager m_framebuffers; // needs to be after texture manager
 
       explicit engine(const config& config, const universe& universe);
       ~engine() = default;

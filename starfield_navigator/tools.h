@@ -4,6 +4,8 @@
 #include <string_view>
 #include <chrono>
 
+#include <s9w_core.h>
+
 using dbl_ms = std::chrono::duration<double, std::milli>;
 
 namespace sfn
@@ -57,6 +59,36 @@ namespace sfn
 
    template <typename T, typename pred_type>
    auto find_obj(const std::vector<T>& vec, const pred_type& pred, const std::string& error_msg) -> const T&;
+
+   template <std::floating_point T>
+   constexpr auto srgb_to_linear_fp(const T x)->T;
+   auto constexpr srgb_to_linear_ui8(const uint8_t in)->uint8_t;
+
+   struct image_metrics
+   {
+      int m_width{};
+      int m_height{};
+      int m_bpp{};
+      [[nodiscard]] constexpr auto get_byte_count() const -> int
+      {
+         return m_width * m_height * m_bpp;
+      }
+   };
+}
+
+
+template<std::floating_point T>
+constexpr auto sfn::srgb_to_linear_fp(const T x) -> T
+{
+   if (x <= static_cast<T>(0.04045))
+      return x / static_cast<T>(12.92);
+   return s9w::pow((x + static_cast<T>(0.055)) / static_cast<T>(1.055), static_cast<T>(2.4));
+}
+
+
+auto constexpr sfn::srgb_to_linear_ui8(const uint8_t in) -> uint8_t
+{
+   return static_cast<uint8_t>(s9w::round(srgb_to_linear_fp(in / 255.0) * 255.0));
 }
 
 

@@ -14,6 +14,7 @@
 #include <optional>
 
 
+
 sfn::glfw_wrapper::glfw_wrapper()
 {
    if (glfwInit() == GLFW_FALSE)
@@ -97,11 +98,20 @@ sfn::engine::engine(const config& config, const universe& universe)
    : m_window_wrapper(config)
    , m_imgui_context(config, m_window_wrapper.m_window)
    , m_universe(universe)
+   , m_buffers2(mvp_type::size)
+   , m_framebuffers(m_textures)
 {
    if (engine_ptr != nullptr)
       std::terminate();
    engine_ptr = this;
    glfwSetFramebufferSizeCallback(get_window(), engine::static_resize_callback);
+
+   std::vector<segment_type> buffer_layout;
+   buffer_layout.emplace_back(ubo_segment(sizeof(mvp_type), "ubo_mvp"));
+   const std::vector<id> segment_ids = m_buffers2.create_buffer(std::move(buffer_layout), usage_pattern::dynamic_draw);
+   m_mvp_ubo_id = segment_ids[0];
+   m_binding_point_man.add(m_mvp_ubo_id);
+   m_main_fb = m_framebuffers.get_efault_fb();
 }
 
 
