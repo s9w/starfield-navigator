@@ -1,4 +1,6 @@
 #include <vector>
+#include <fstream>
+#include <regex>
 
 #include <glm/vec3.hpp>
 #include <glm/geometric.hpp>
@@ -11,23 +13,9 @@
 
 #include <imgui.h>
 
-
-auto inner_draw(GLFWwindow* window) -> void
-{
-
-   // ImGui::ShowDemoWindow();
-
-   {
-      normal_imgui_window w("a");
-      ImGui::Text("abc");
-   }
-   {
-      normal_imgui_window w("b");
-      ImGui::Text("abc");
-   }
-}
-
 using namespace sfn;
+
+
 
 auto test_djkstra() -> void
 {
@@ -59,6 +47,66 @@ auto test_djkstra() -> void
       std::terminate();
 }
 
+[[nodiscard]] constexpr auto c4d_convert(const glm::vec3& in) -> glm::vec3
+{
+   return glm::vec3{ in[0], -in[2], in[1] };
+}
+
+auto get_starfield_universe() -> universe
+{
+   universe starfield_universe;
+   std::ifstream input("c4d.txt");
+   const std::regex regex(R"(name: (.*?), position: Vector\((-?\d*.\d*), (-?\d*.\d*), (-?\d*.\d*)\))");
+   for (std::string line; getline(input, line); )
+   {
+      std::smatch color_match;
+      if (std::regex_search(line, color_match, regex) == false)
+         std::terminate();
+      const std::string name = color_match[1];
+      if(name.contains("Camera"))
+      {
+         continue;
+      }
+      
+      const float x = static_cast<float>(std::stod(color_match[2]));
+      const float y = static_cast<float>(std::stod(color_match[3]));
+      const float z = static_cast<float>(std::stod(color_match[4]));
+      starfield_universe.m_systems.emplace_back(c4d_convert(glm::vec3{ x, y, z }), name);
+   }
+
+   // sort from left to right
+   const auto pred = [](const sfn::system& a, const sfn::system& b){
+      return a.m_position.x < b.m_position.x;
+   };
+   std::ranges::sort(starfield_universe.m_systems, pred);
+
+   // rename unknowns
+   for(sfn::system& sys : starfield_universe.m_systems)
+   {
+      if (sys.m_name.contains("User"))
+      {
+         static int unknown_count = 0;
+         sys.m_name = std::format("UNKNOWN {}", unknown_count++);
+      }
+   }
+
+   // correction
+   const float norm_dist = glm::distance(starfield_universe.get_position_by_name("ALPHA CENTAURI"), starfield_universe.get_position_by_name("PORRIMA"));
+   constexpr float target_dist = 38.11f;
+   const float correction_factor = target_dist / norm_dist;
+   for(sfn::system& sys : starfield_universe.m_systems)
+   {
+      sys.m_position *= correction_factor;
+   }
+
+   const float binary_distance = glm::distance(
+      starfield_universe.get_position_by_name("binaryA0"),
+      starfield_universe.get_position_by_name("binaryA1")
+   );
+
+   return starfield_universe;
+}
+
 
 // Disable console window in release mode
 #if defined(_DEBUG) || defined(SHOW_CONSOLE)
@@ -69,31 +117,26 @@ auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
 {
    test_djkstra();
 
-   universe starfield_world;
-   starfield_world.m_systems.push_back( sfn::system{.m_name = "SOL", .m_position = glm::vec3{0, 0, 0} } );
-   starfield_world.m_systems.push_back( sfn::system{.m_name = "NARION", .m_position = glm::vec3{5, -2, 0} } );
-   starfield_world.m_systems.push_back( sfn::system{.m_name = "JAFFA", .m_position = glm::vec3{45, -10, 0} } );
-   starfield_world.m_systems.push_back( sfn::system{.m_name = "PORRIMA", .m_position = glm::vec3{100, 0, 0} } );
+   
 
-   const graph starfield_graph(starfield_world, 60);
-
-   const std::optional<jump_path> path = starfield_graph.get_jump_path("SOL", "PORRIMA");
-   if(path.has_value() == false)
-   {
-      printf("Jump range not large enough\n");
-      return 0;
-   }
-   starfield_graph.print_path(*path);
+   // const graph starfield_graph(starfield_world, 60);
+   // const std::optional<jump_path> path = starfield_graph.get_jump_path("SOL", "PORRIMA");
+   // if(path.has_value() == false)
+   // {
+   //    printf("Jump range not large enough\n");
+   //    return 0;
+   // }
+   // starfield_graph.print_path(*path);
 
    try {
-      const engine engine(
+      engine engine(
          config{
             .res_x = 800, .res_y = 400,
             .opengl_major_version = 4, .opengl_minor_version = 5,
             .vsync = true,
             .window_title = "Starfield navigator"
          },
-         inner_draw
+         get_starfield_universe()
       );
       engine.draw_loop();
    }

@@ -10,6 +10,24 @@
 #pragma warning(pop)
 
 
+sfn::system::system(const glm::vec3& pos, const std::string& name)
+   : m_name(name)
+   , m_position(pos)
+{
+   static int unnamed_count = 0;
+   if (name.empty())
+      m_name = std::format("UNNAMED {}", unnamed_count++);
+}
+
+
+auto sfn::universe::get_position_by_name(const std::string& name) -> glm::vec3
+{
+   const auto pred = [&](const system& system){
+      return system.m_name == name;
+   };
+   return std::ranges::find_if(m_systems, pred)->m_position;
+}
+
 
 auto sfn::connection::contains_node_index(const int node_index) const -> bool
 {

@@ -20,10 +20,14 @@ namespace sfn {
       // int m_planet_count;
       // int m_moon_count;
       // factions m_faction;
+
+      explicit system(const glm::vec3& pos, const std::string& name = "");
    };
 
    struct universe{
       std::vector<system> m_systems;
+
+      [[nodiscard]] auto get_position_by_name(const std::string& name) -> glm::vec3;
    };
 
 
