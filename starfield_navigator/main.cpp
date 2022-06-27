@@ -90,19 +90,32 @@ auto get_starfield_universe() -> universe
       }
    }
 
-   // correction
-   const float norm_dist = glm::distance(starfield_universe.get_position_by_name("ALPHA CENTAURI"), starfield_universe.get_position_by_name("PORRIMA"));
-   constexpr float target_dist = 38.11f;
-   const float correction_factor = target_dist / norm_dist;
-   for(sfn::system& sys : starfield_universe.m_systems)
+   // Calibration with Porrima
    {
-      sys.m_position *= correction_factor;
+      const float measured_porrima_dist = glm::distance(starfield_universe.get_position_by_name("ALPHA CENTAURI"), starfield_universe.get_position_by_name("PORRIMA"));
+      constexpr float real_porrima_dist = 38.11f;
+      const float correction_factor = real_porrima_dist / measured_porrima_dist;
+      for (sfn::system& sys : starfield_universe.m_systems)
+      {
+         sys.m_position *= correction_factor;
+      }
    }
 
    const float binary_distance = glm::distance(
       starfield_universe.get_position_by_name("binaryA0"),
       starfield_universe.get_position_by_name("binaryA1")
    );
+
+   {
+      // Correctness check with Alpha Centauri
+      constexpr float AC_real_distance = 4.367f;
+      const float AC_distance = glm::distance(
+         starfield_universe.get_position_by_name("SOL"),
+         starfield_universe.get_position_by_name("ALPHA CENTAURI")
+      );
+      const float relative_deviation = 100.0f * std::abs(AC_real_distance - AC_distance) / AC_real_distance;
+      printf(std::format("Deviation for Alpha Centauri Distane: {:.1f} %%\n", relative_deviation).c_str());
+   }
 
    return starfield_universe;
 }
