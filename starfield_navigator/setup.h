@@ -113,10 +113,11 @@ namespace sfn
       id m_mvp_ubo_id{ no_init{} };
       id m_main_fb{ no_init{} };
       binding_point_man m_binding_point_man;
+      shader_program m_shader_stars;
       texture_manager m_textures{};
       framebuffer_manager m_framebuffers; // needs to be after texture manager
 
-      explicit engine(const config& config, const universe& universe);
+      explicit engine(const config& config, universe&& universe);
       ~engine() = default;
       [[nodiscard]] auto get_window() const->GLFWwindow*;
 

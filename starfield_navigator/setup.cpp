@@ -94,11 +94,12 @@ auto sfn::imgui_context::frame_end() const -> void
 }
 
 
-sfn::engine::engine(const config& config, const universe& universe)
+sfn::engine::engine(const config& config, universe&& universe)
    : m_window_wrapper(config)
    , m_imgui_context(config, m_window_wrapper.m_window)
-   , m_universe(universe)
+   , m_universe(std::move(universe))
    , m_buffers2(mvp_type::size)
+   , m_shader_stars("star_shader")
    , m_framebuffers(m_textures)
 {
    if (engine_ptr != nullptr)
@@ -217,6 +218,7 @@ auto sfn::engine::draw_fun() -> void
    static std::optional<jump_path> path;
    static std::vector<std::string> path_strings;
 
+   // Graph and path update
    if (course_changed)
    {
       starfield_graph = graph(m_universe, m_jump_range);
@@ -224,7 +226,6 @@ auto sfn::engine::draw_fun() -> void
 
       if (path.has_value())
       {
-         starfield_graph.print_path(*path);
          path_strings.clear();
          float travelled_distance = 0.0f;
          for (int i = 0; i < path->m_stops.size() - 1; ++i)
@@ -243,8 +244,20 @@ auto sfn::engine::draw_fun() -> void
             ));
          }
       }
+
+      const auto closest = starfield_graph.get_closest("SOL");
+      const auto source_pos = starfield_graph.m_nodes[starfield_graph.get_node_index_by_name("SOL")].m_position;
+      for(const int i : closest)
+      {
+         const auto& name = starfield_graph.m_nodes[i].m_name;
+         const auto& pos = starfield_graph.m_nodes[i].m_position;
+         const float dist = glm::distance(pos, source_pos);
+         printf(std::format("{:<15} dist: {:>5.2f} LY \n", name, dist).c_str());
+      }
+      int end = 0;
    }
 
+   // Path display
    if (path.has_value() == false)
    {
       ImGui::Text("Jump range not large enough\n");

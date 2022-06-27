@@ -95,6 +95,7 @@ namespace sfn {
       [[nodiscard]] auto get_neighbor_info(const int node_index_0, const int node_index_1) const -> neighbor_info;
       [[nodiscard]] auto get_jump_path(const std::string& start, const std::string& destination) const -> std::optional<jump_path>;
       auto print_path(const jump_path& path) const -> void;
+      [[nodiscard]] auto get_closest(const std::string& system) const -> std::vector<int>;
    };
 
 

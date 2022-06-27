@@ -279,3 +279,31 @@ auto sfn::graph::print_path(const jump_path& path) const -> void
    }
    printf(std::format("Travelled {:.1f} LY\n", travelled_distance).c_str());
 }
+
+
+auto sfn::graph::get_closest(const std::string& system) const -> std::vector<int>
+{
+   const int source_index = this->get_node_index_by_name(system);
+   const glm::vec3 source_pos = m_nodes[source_index].m_position;
+
+   std::vector<int> closest;
+   closest.reserve(m_nodes.size());
+
+   for(int i=0; i<m_nodes.size(); ++i)
+   {
+      closest.push_back(i);
+   }
+
+   const auto pred = [&](const int a, const int b)
+   {
+      const glm::vec3 a_pos = m_nodes[a].m_position;
+      const glm::vec3 b_pos = m_nodes[b].m_position;
+      const float a_dist2 = glm::distance2(source_pos, a_pos);
+      const float b_dist2 = glm::distance2(source_pos, b_pos);
+      return a_dist2 < b_dist2;
+   };
+   std::ranges::sort(closest, pred);
+   closest.resize(10);
+
+   return closest;
+}

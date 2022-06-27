@@ -144,7 +144,7 @@ auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
    try {
       engine engine(
          config{
-            .res_x = 800, .res_y = 400,
+            .res_x = 1280, .res_y = 720,
             .opengl_major_version = 4, .opengl_minor_version = 5,
             .vsync = true,
             .window_title = "Starfield navigator"
