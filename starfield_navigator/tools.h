@@ -3,6 +3,7 @@
 #include <format>
 #include <string_view>
 #include <chrono>
+#include <unordered_map>
 
 #include <s9w_core.h>
 
@@ -44,7 +45,7 @@ namespace sfn
 
    struct id
    {
-      using underlying_type = uint8_t;
+      using underlying_type = uint32_t;
       underlying_type m_id{};
       static constexpr inline underlying_type null_id = std::numeric_limits<underlying_type>::max();
 

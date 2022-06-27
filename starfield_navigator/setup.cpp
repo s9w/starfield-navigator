@@ -159,9 +159,25 @@ auto sfn::engine::draw_loop() -> void
    }
 }
 
+// struct colorer{
+//    bool m_needs_clearing = false;
+//    explicit colorer(const std::optional<ImColor>& color)
+//       : m_needs_clearing(color.has_value())
+//    {
+//       if(color.has_value())
+//          ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)(*color));
+//    }
+//    ~colorer()
+//    {
+//       if(m_needs_clearing)
+//          ImGui::PopStyleColor();
+//    }
+// };
+
 
 auto sfn::engine::draw_list() -> void
 {
+   ImGui::Text(std::format("Systems: {}", m_universe.m_systems.size()).c_str());
    static ImGuiTextFilter filter;
    filter.Draw("filter");
    const auto avail = ImGui::GetContentRegionAvail();
@@ -172,10 +188,17 @@ auto sfn::engine::draw_list() -> void
          if (filter.PassFilter(m_universe.m_systems[i].m_name.c_str()) == false)
             continue;
          const bool is_selected = (m_list_selection == i);
+
+         if(m_universe.m_systems[i].m_info_quality == info_quality::unknown)
+            ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor::HSV(0.0f, 0.0f, 0.7f));
+         else if (m_universe.m_systems[i].m_info_quality == info_quality::speculation)
+            ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor::HSV(0.3f, 1.0f, 1.0f));
          if (ImGui::Selectable(m_universe.m_systems[i].m_name.c_str(), is_selected))
          {
             m_list_selection = i;
          }
+         if (m_universe.m_systems[i].m_info_quality != info_quality::confirmed)
+            ImGui::PopStyleColor();
 
          // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
          if (is_selected)
@@ -247,15 +270,15 @@ auto sfn::engine::draw_fun() -> void
          }
       }
 
-      // const auto closest = starfield_graph.get_closest("SOL");
-      // const auto source_pos = starfield_graph.m_nodes[starfield_graph.get_node_index_by_name("SOL")].m_position;
-      // for(const int i : closest)
-      // {
-      //    const auto& name = starfield_graph.m_nodes[i].m_name;
-      //    const auto& pos = starfield_graph.m_nodes[i].m_position;
-      //    const float dist = glm::distance(pos, source_pos);
-      //    printf(std::format("{:<15} dist: {:>5.2f} LY \n", name, dist).c_str());
-      // }
+      const auto closest = starfield_graph.get_closest("SOL");
+      const auto source_pos = starfield_graph.m_nodes[starfield_graph.get_node_index_by_name("SOL")].m_position;
+      for(const int i : closest)
+      {
+         const auto& name = starfield_graph.m_nodes[i].m_name;
+         const auto& pos = starfield_graph.m_nodes[i].m_position;
+         const float dist = glm::distance(pos, source_pos);
+         printf(std::format("{:<15} dist: {:>5.2f} LY \n", name, dist).c_str());
+      }
       int end = 0;
    }
 

@@ -9,10 +9,28 @@
 #include <glm/gtx/norm.hpp>
 #pragma warning(pop)
 
+namespace
+{
+   using namespace sfn;
+
+   auto get_name_iq(const std::string& name) -> info_quality
+   {
+      const static std::vector<std::string> known_systems{
+         "SOL", "NARION", "ALPHA CENTAURI", "CHEYENNE", "PORRIMA", "VOLII", "JAFFA"
+      };
+      if (name.starts_with("User"))
+         return info_quality::unknown;
+      if (std::ranges::find(known_systems, name) != std::end(known_systems))
+         return info_quality::confirmed;
+      return info_quality::speculation;
+   }
+
+}
 
 sfn::system::system(const glm::vec3& pos, const std::string& name)
    : m_name(name)
    , m_position(pos)
+   , m_info_quality(get_name_iq(name))
 {
    static int unnamed_count = 0;
    if (name.empty())
@@ -20,13 +38,13 @@ sfn::system::system(const glm::vec3& pos, const std::string& name)
 }
 
 
-auto sfn::universe::get_position_by_name(const std::string& name) -> glm::vec3
+auto sfn::universe::get_position_by_name(const std::string& name) const -> glm::vec3
 {
    return m_systems[get_index_by_name(name)].m_position;
 }
 
 
-auto sfn::universe::get_index_by_name(const std::string& name) -> int
+auto sfn::universe::get_index_by_name(const std::string& name) const -> int
 {
    for(int i=0; i<std::ssize(m_systems); ++i)
    {
@@ -94,17 +112,18 @@ sfn::graph::graph(const universe& universe, const float jump_range)
          if(distance2 > jump_range2)
             continue;
 
-         m_connections.push_back(
+         const auto connection_id = id::create();
+         m_connections.emplace(
+            connection_id,
             connection{
                .m_node_index0 = i,
                .m_node_index1 = j,
                .m_weight = std::sqrt(distance2)
             }
          );
-         const int connection_index = static_cast<int>(std::size(m_connections)) - 1;
 
-         m_nodes[i].m_connections.push_back(connection_index);
-         m_nodes[j].m_connections.push_back(connection_index);
+         m_nodes[i].m_connections.push_back(connection_id);
+         m_nodes[j].m_connections.push_back(connection_id);
       }
    }
 }
@@ -132,17 +151,17 @@ auto sfn::graph::add_connection(const std::string& name_a, const std::string& na
          .m_node_index1 = node_index_b,
          .m_weight = weight
    };
-   const auto it = std::ranges::find(m_connections, new_connection);
-   if (it != std::end(m_connections))
-      std::terminate();
+   // const auto it = std::ranges::find(m_connections, new_connection);
+   // if (it != std::end(m_connections))
+   //    std::terminate();
 
-   m_connections.push_back(new_connection);
-   const int latest_index = static_cast<int>(std::ssize(m_connections)) - 1;
+   const id connection_id = id::create();
+   m_connections.emplace(connection_id, new_connection);
 
    for(int i=0; i<std::ssize(m_nodes); ++i)
    {
       if (new_connection.contains_node_index(i))
-         m_nodes[i].m_connections.push_back(latest_index);
+         m_nodes[i].m_connections.push_back(connection_id);
    }
 }
 
@@ -205,9 +224,9 @@ auto sfn::graph::are_neighbors(const int node_index_0, const int node_index_1) c
 {
    if (node_index_0 == node_index_1)
       return false;
-   for(const auto a_connect_index : m_nodes[node_index_0].m_connections)
+   for(const id& a_connect_index : m_nodes[node_index_0].m_connections)
    {
-      const connection& connection = m_connections[a_connect_index];
+      const connection& connection = m_connections.at(a_connect_index);
       if (connection.contains_node_index(node_index_1))
          return true;
    }
@@ -221,7 +240,7 @@ auto sfn::graph::get_neighbor_info(const int node_index_0, const int node_index_
       std::terminate();
    for (const auto a_connect_index : m_nodes[node_index_0].m_connections)
    {
-      const connection& connection = m_connections[a_connect_index];
+      const connection& connection = m_connections.at(a_connect_index);
       if (connection.contains_node_index(node_index_1))
       {
          const int other_index = (connection.m_node_index0 == node_index_1) ? connection.m_node_index1 : connection.m_node_index0;
@@ -311,7 +330,75 @@ auto sfn::graph::get_closest(const std::string& system) const -> std::vector<int
       return a_dist2 < b_dist2;
    };
    std::ranges::sort(closest, pred);
-   closest.resize(10);
+   closest.resize(20);
 
    return closest;
+}
+
+
+auto sfn::get_min_jump_dist(const universe& universe, const std::string& start, const std::string& destination) -> float
+{
+   const int start_index = universe.get_index_by_name(start);
+   const int dest_index = universe.get_index_by_name(destination);
+   const float total_dist = glm::distance(
+      universe.m_systems[start_index].m_position,
+      universe.m_systems[dest_index].m_position
+   );
+
+   // Initialize the graph with the total distance. That is guaranteed to work
+   // graph minimum_graph(universe, 26.0f);
+   graph minimum_graph(universe, total_dist+0.001f);
+   float necessary_jumprange = std::numeric_limits<float>::max();
+   while (true)
+   {
+      // Plot a course through that graph
+      // If no jump is possible, the previously calculated longest jump is the minimum required range
+      const std::optional<jump_path> plot = minimum_graph.get_jump_path(start, destination);
+      if (plot.has_value() == false)
+      {
+         return necessary_jumprange;
+      }
+
+
+
+      float longest_jump = 0.0f;
+      for (int i = 0; i < plot->m_stops.size() - 1; ++i)
+      {
+         const float dist = glm::distance(
+            universe.m_systems[plot->m_stops[i]].m_position,
+            universe.m_systems[plot->m_stops[i + 1]].m_position
+         );
+         longest_jump = std::max(longest_jump, dist);
+      }
+      printf(std::format("longest_jump: {}\n", longest_jump).c_str());
+
+      necessary_jumprange = longest_jump;
+      // printf(std::format("necessary_jumprange: {}\n", necessary_jumprange).c_str());
+
+      const auto pred = [&](const auto& pair_a, const auto& pair_b)
+      {
+         const float dist_a = glm::distance(
+            minimum_graph.m_nodes.at(pair_a.second.m_node_index0).m_position,
+            minimum_graph.m_nodes.at(pair_a.second.m_node_index1).m_position
+         );
+         const float dist_b = glm::distance(
+            minimum_graph.m_nodes.at(pair_b.second.m_node_index0).m_position,
+            minimum_graph.m_nodes.at(pair_b.second.m_node_index1).m_position
+         );
+         return dist_a < dist_b;
+      };
+      const auto it = std::ranges::max_element(minimum_graph.m_connections, pred);
+      const id remove_id = it->first;
+      minimum_graph.m_connections.erase(it);
+
+      // Also delete connection from the nodes
+      for (node& n : minimum_graph.m_nodes)
+      {
+         const auto pred2 = [&](const id& node_connection_id)
+         {
+            return node_connection_id == remove_id;
+         };
+         std::erase_if(n.m_connections, pred2);
+      }
+   }
 }

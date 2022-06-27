@@ -3,17 +3,22 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <unordered_map>
 
 #include <glm/vec3.hpp>
+
+#include "tools.h"
 
 
 namespace sfn {
 
    enum class factions{uc, freestar, crimson};
+   enum class info_quality{confirmed, speculation, unknown};
 
    struct system{
       std::string m_name;
       glm::vec3 m_position;
+      info_quality m_info_quality = info_quality::unknown;
 
       // int m_level = 1;
       // std::string m_spectral_class;
@@ -27,20 +32,16 @@ namespace sfn {
    struct universe{
       std::vector<system> m_systems;
 
-      [[nodiscard]] auto get_position_by_name(const std::string& name) -> glm::vec3;
-      [[nodiscard]] auto get_index_by_name(const std::string& name) -> int;
+      [[nodiscard]] auto get_position_by_name(const std::string& name) const -> glm::vec3;
+      [[nodiscard]] auto get_index_by_name(const std::string& name) const -> int;
    };
-
-
-
-
 
 
 
 
    struct node{
       std::string m_name;
-      std::vector<int> m_connections;
+      std::vector<id> m_connections;
       glm::vec3 m_position;
    };
 
@@ -80,11 +81,17 @@ namespace sfn {
       std::vector<int> m_stops;
    };
 
+   struct MyHashFunction {
+      constexpr auto operator()(const id& p) const -> size_t{
+         return p.m_id;
+      }
+   };
+
    struct graph
    {
       float m_jump_range = 0.0f;
       std::vector<node> m_nodes;
-      std::vector<connection> m_connections;
+      std::unordered_map<id, connection, MyHashFunction> m_connections;
 
       explicit graph() = default;
       explicit graph(const universe& universe, const float jump_range);
@@ -95,9 +102,11 @@ namespace sfn {
       [[nodiscard]] auto are_neighbors(const int node_index_0, const int node_index_1) const -> bool;
       [[nodiscard]] auto get_neighbor_info(const int node_index_0, const int node_index_1) const -> neighbor_info;
       [[nodiscard]] auto get_jump_path(const std::string& start, const std::string& destination) const -> std::optional<jump_path>;
+      
       auto print_path(const jump_path& path) const -> void;
       [[nodiscard]] auto get_closest(const std::string& system) const -> std::vector<int>;
    };
 
+   [[nodiscard]] auto get_min_jump_dist(const universe& universe, const std::string& start, const std::string& destination) -> float;
 
 }

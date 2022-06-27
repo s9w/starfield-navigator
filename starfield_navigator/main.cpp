@@ -1,9 +1,12 @@
 #include <vector>
 #include <fstream>
-#include <regex>
 
 #include <glm/vec3.hpp>
 #include <glm/geometric.hpp>
+#include <imgui.h>
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 #include <rng.h>
 
@@ -11,7 +14,7 @@
 #include "setup.h"
 #include "graph.h"
 
-#include <imgui.h>
+
 
 using namespace sfn;
 
@@ -52,25 +55,44 @@ auto test_djkstra() -> void
    return glm::vec3{ in[0], -in[2], in[1] };
 }
 
+
+
+[[nodiscard]] auto get_split_string(
+   std::string source,
+   const std::string& delim
+)->std::vector<std::string>
+{
+   if (delim.empty())
+      std::terminate();
+
+   std::vector<std::string> parts;
+   for (auto pos = source.find(delim);
+      pos != std::string::npos;
+      pos = source.find(delim))
+   {
+      parts.emplace_back(source.substr(0, pos));
+      source.erase(0, pos + delim.length());
+   }
+   parts.emplace_back(source);
+   return parts;
+}
+
 auto get_starfield_universe() -> universe
 {
    universe starfield_universe;
-   std::ifstream input("c4d.txt");
-   const std::regex regex(R"(name: (.*?), position: Vector\((-?\d*.\d*), (-?\d*.\d*), (-?\d*.\d*)\))");
+   std::ifstream input("system_data.txt");
    for (std::string line; getline(input, line); )
    {
-      std::smatch color_match;
-      if (std::regex_search(line, color_match, regex) == false)
-         std::terminate();
-      const std::string name = color_match[1];
+      const std::vector<std::string> split = get_split_string(line, "; ");
+      const std::string name = split[0];
       if(name.contains("Camera"))
       {
          continue;
       }
       
-      const float x = static_cast<float>(std::stod(color_match[2]));
-      const float y = static_cast<float>(std::stod(color_match[3]));
-      const float z = static_cast<float>(std::stod(color_match[4]));
+      const float x = static_cast<float>(std::stod(split[1]));
+      const float y = static_cast<float>(std::stod(split[2]));
+      const float z = static_cast<float>(std::stod(split[3]));
       starfield_universe.m_systems.emplace_back(c4d_convert(glm::vec3{ x, y, z }), name);
    }
 
@@ -79,16 +101,6 @@ auto get_starfield_universe() -> universe
       return a.m_position.x < b.m_position.x;
    };
    std::ranges::sort(starfield_universe.m_systems, pred);
-
-   // rename unknowns
-   for(sfn::system& sys : starfield_universe.m_systems)
-   {
-      if (sys.m_name.contains("User"))
-      {
-         static int unknown_count = 0;
-         sys.m_name = std::format("UNKNOWN {}", unknown_count++);
-      }
-   }
 
    // Calibration with Porrima
    {
@@ -101,11 +113,6 @@ auto get_starfield_universe() -> universe
       }
    }
 
-   const float binary_distance = glm::distance(
-      starfield_universe.get_position_by_name("binaryA0"),
-      starfield_universe.get_position_by_name("binaryA1")
-   );
-
    auto print_sol_deviation = [&](const std::string& sys_name, const float reference_dist)
    {
       const float dist = glm::distance(
@@ -113,21 +120,25 @@ auto get_starfield_universe() -> universe
          starfield_universe.get_position_by_name(sys_name)
       );
       const float relative_deviation = 100.0f * std::abs(reference_dist - dist) / reference_dist;
-      printf(std::format("Deviation for {} Distance: {:.1f} %%\n", sys_name, relative_deviation).c_str());
+      printf(std::format("Deviation for {} Distance: {:.2f} %%\n", sys_name, relative_deviation).c_str());
    };
    print_sol_deviation("ALPHA CENTAURI", 4.367f);
-   // print_sol_deviation("SIRIUS", 8.611f);
+   print_sol_deviation("SIRIUS", 8.611f);
+   print_sol_deviation("ALTAIR", 16.73f);
+
+   // const auto porrima_jump_min = get_min_jump_dist(starfield_universe, "SOL", "PORRIMA");
 
    return starfield_universe;
 }
 
-
-// Disable console window in release mode
-#if defined(_DEBUG) || defined(SHOW_CONSOLE)
 auto main(int /*argc*/, char* /*argv*/) -> int
-#else
-auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nCmdShow*/) -> int
-#endif
+
+// // Disable console window in release mode
+// #if defined(_DEBUG) || defined(SHOW_CONSOLE)
+// auto main(int /*argc*/, char* /*argv*/) -> int
+// #else
+// auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nCmdShow*/) -> int
+// #endif
 {
    test_djkstra();
 
