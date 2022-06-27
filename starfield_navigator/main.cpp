@@ -126,7 +126,17 @@ auto get_starfield_universe() -> universe
    print_sol_deviation("SIRIUS", 8.611f);
    print_sol_deviation("ALTAIR", 16.73f);
 
-   // const auto porrima_jump_min = get_min_jump_dist(starfield_universe, "SOL", "PORRIMA");
+   auto dist_report = [&](const std::string& name_a, const std::string& name_b){
+      const float dist = glm::distance(
+         starfield_universe.get_position_by_name(name_a),
+         starfield_universe.get_position_by_name(name_b)
+      );
+      printf(std::format("dist {}<->{}: {:.2f} LY\n", name_a, name_b, dist).c_str());
+   };
+   dist_report("User 64", "User 65");
+   dist_report("User 62", "User 63");
+
+   const auto porrima_jump_min = get_min_jump_dist(starfield_universe, "SOL", "PORRIMA");
 
    return starfield_universe;
 }
