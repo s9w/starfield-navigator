@@ -107,7 +107,10 @@ namespace sfn
       imgui_context m_imgui_context;
 
       universe m_universe;
-      float m_jump_range = 0.0f;
+      float m_jump_range = 30.0f;
+      int m_list_selection = 0;
+      int m_source_index = m_universe.get_index_by_name("SOL");
+      int m_destination_index = m_universe.get_index_by_name("PORRIMA");
 
       buffers m_buffers2;
       id m_mvp_ubo_id{ no_init{} };
@@ -142,7 +145,7 @@ namespace sfn
       engine(engine&&) = delete;
       engine& operator=(engine&&) = delete;
 
-      auto draw_list(int& selected_index, const std::string& imgui_id_base, ImGuiTextFilter& filter) const -> bool;
+      auto draw_list() -> void;
    };
 
 

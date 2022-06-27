@@ -28,6 +28,7 @@ namespace sfn {
       std::vector<system> m_systems;
 
       [[nodiscard]] auto get_position_by_name(const std::string& name) -> glm::vec3;
+      [[nodiscard]] auto get_index_by_name(const std::string& name) -> int;
    };
 
 

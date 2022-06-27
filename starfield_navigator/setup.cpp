@@ -160,25 +160,21 @@ auto sfn::engine::draw_loop() -> void
 }
 
 
-auto sfn::engine::draw_list(
-   int& selected_index,
-   const std::string& imgui_id_base,
-   ImGuiTextFilter& filter
-) const -> bool
+auto sfn::engine::draw_list() -> void
 {
-   bool changed = false;
-   filter.Draw((imgui_id_base+"_filter").c_str());
-   if (ImGui::BeginListBox((imgui_id_base + "_list").c_str(), ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
+   static ImGuiTextFilter filter;
+   filter.Draw("filter");
+   const auto avail = ImGui::GetContentRegionAvail();
+   if (ImGui::BeginListBox("##list", ImVec2(-FLT_MIN, avail.y)))
    {
       for (int i = 0; i < m_universe.m_systems.size(); i++)
       {
          if (filter.PassFilter(m_universe.m_systems[i].m_name.c_str()) == false)
             continue;
-         const bool is_selected = (selected_index == i);
+         const bool is_selected = (m_list_selection == i);
          if (ImGui::Selectable(m_universe.m_systems[i].m_name.c_str(), is_selected))
          {
-            selected_index = i;
-            changed = true;
+            m_list_selection = i;
          }
 
          // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -187,42 +183,42 @@ auto sfn::engine::draw_list(
       }
       ImGui::EndListBox();
    }
-   return changed;
 }
 
 
 auto sfn::engine::draw_fun() -> void
 {
-   normal_imgui_window w("Plotter");
-
-   bool course_changed = false;
-   static int src_index = 0;
-   static ImGuiTextFilter src_filter;
-   static int dest_index = 0;
-   static ImGuiTextFilter dst_filter;
-
-   constexpr bool child_border = false;
-   const float width_avail = ImGui::GetContentRegionAvail().x;
-   const float height = (5+3) * ImGui::GetTextLineHeightWithSpacing();
-   ImGui::BeginChild("ChildL", ImVec2(width_avail * 0.5f, height), child_border);
-   course_changed |= draw_list(src_index, "##selector_left", src_filter);
-   ImGui::EndChild();
-   ImGui::SameLine();
-   ImGui::BeginChild("ChildR", ImVec2(width_avail * 0.5f, height), child_border);
-   course_changed |= draw_list(dest_index, "##selector_right", dst_filter);
-   ImGui::EndChild();
-
-   course_changed |= ImGui::SliderFloat("jump range", &m_jump_range, 0.0f, 100.0f);
-
    static graph starfield_graph;
    static std::optional<jump_path> path;
    static std::vector<std::string> path_strings;
+
+   {
+      normal_imgui_window w("System select");
+      draw_list();
+   }
+
+   normal_imgui_window w("Plotter");
+
+   bool course_changed = ImGui::GetFrameCount() == 1;
+   if (ImGui::Button(std::format("Source: {}", m_universe.m_systems[m_source_index].m_name).c_str()))
+   {
+      course_changed = true;
+      m_source_index = m_list_selection;
+   }
+   ImGui::SameLine();
+   if (ImGui::Button(std::format("Target: {}", m_universe.m_systems[m_destination_index].m_name).c_str()))
+   {
+      course_changed = true;
+      m_destination_index = m_list_selection;
+   }
+   course_changed |= ImGui::SliderFloat("jump range", &m_jump_range, 0.0f, 100.0f);
+   
 
    // Graph and path update
    if (course_changed)
    {
       starfield_graph = graph(m_universe, m_jump_range);
-      path = starfield_graph.get_jump_path(m_universe.m_systems[src_index].m_name, m_universe.m_systems[dest_index].m_name);
+      path = starfield_graph.get_jump_path(m_universe.m_systems[m_source_index].m_name, m_universe.m_systems[m_destination_index].m_name);
 
       if (path.has_value())
       {
@@ -245,15 +241,15 @@ auto sfn::engine::draw_fun() -> void
          }
       }
 
-      const auto closest = starfield_graph.get_closest("SOL");
-      const auto source_pos = starfield_graph.m_nodes[starfield_graph.get_node_index_by_name("SOL")].m_position;
-      for(const int i : closest)
-      {
-         const auto& name = starfield_graph.m_nodes[i].m_name;
-         const auto& pos = starfield_graph.m_nodes[i].m_position;
-         const float dist = glm::distance(pos, source_pos);
-         printf(std::format("{:<15} dist: {:>5.2f} LY \n", name, dist).c_str());
-      }
+      // const auto closest = starfield_graph.get_closest("SOL");
+      // const auto source_pos = starfield_graph.m_nodes[starfield_graph.get_node_index_by_name("SOL")].m_position;
+      // for(const int i : closest)
+      // {
+      //    const auto& name = starfield_graph.m_nodes[i].m_name;
+      //    const auto& pos = starfield_graph.m_nodes[i].m_position;
+      //    const float dist = glm::distance(pos, source_pos);
+      //    printf(std::format("{:<15} dist: {:>5.2f} LY \n", name, dist).c_str());
+      // }
       int end = 0;
    }
 
@@ -269,7 +265,6 @@ auto sfn::engine::draw_fun() -> void
          ImGui::Text(path_string.c_str());
       ImGui::EndListBox();
    }
-   
 
    // ImGui::ShowDemoWindow();
 }

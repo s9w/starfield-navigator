@@ -22,10 +22,18 @@ sfn::system::system(const glm::vec3& pos, const std::string& name)
 
 auto sfn::universe::get_position_by_name(const std::string& name) -> glm::vec3
 {
-   const auto pred = [&](const system& system){
-      return system.m_name == name;
-   };
-   return std::ranges::find_if(m_systems, pred)->m_position;
+   return m_systems[get_index_by_name(name)].m_position;
+}
+
+
+auto sfn::universe::get_index_by_name(const std::string& name) -> int
+{
+   for(int i=0; i<std::ssize(m_systems); ++i)
+   {
+      if (m_systems[i].m_name == name)
+         return i;
+   }
+   std::terminate();
 }
 
 
