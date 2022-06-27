@@ -200,17 +200,23 @@ auto sfn::engine::draw_fun() -> void
    normal_imgui_window w("Plotter");
 
    bool course_changed = ImGui::GetFrameCount() == 1;
-   if (ImGui::Button(std::format("Source: {}", m_universe.m_systems[m_source_index].m_name).c_str()))
+
+   if (ImGui::Button("Take from selector ->"))
    {
       course_changed = true;
       m_source_index = m_list_selection;
    }
    ImGui::SameLine();
-   if (ImGui::Button(std::format("Target: {}", m_universe.m_systems[m_destination_index].m_name).c_str()))
+   ImGui::Text(std::format("Source: {}", m_universe.m_systems[m_source_index].m_name).c_str());
+
+   if (ImGui::Button("Take from selector ->"))
    {
       course_changed = true;
       m_destination_index = m_list_selection;
    }
+   ImGui::SameLine();
+   ImGui::Text(std::format("Destination: {}", m_universe.m_systems[m_destination_index].m_name).c_str());
+
    course_changed |= ImGui::SliderFloat("jump range", &m_jump_range, 0.0f, 100.0f);
    
 

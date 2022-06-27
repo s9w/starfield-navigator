@@ -106,16 +106,17 @@ auto get_starfield_universe() -> universe
       starfield_universe.get_position_by_name("binaryA1")
    );
 
+   auto print_sol_deviation = [&](const std::string& sys_name, const float reference_dist)
    {
-      // Correctness check with Alpha Centauri
-      constexpr float AC_real_distance = 4.367f;
-      const float AC_distance = glm::distance(
+      const float dist = glm::distance(
          starfield_universe.get_position_by_name("SOL"),
-         starfield_universe.get_position_by_name("ALPHA CENTAURI")
+         starfield_universe.get_position_by_name(sys_name)
       );
-      const float relative_deviation = 100.0f * std::abs(AC_real_distance - AC_distance) / AC_real_distance;
-      printf(std::format("Deviation for Alpha Centauri Distane: {:.1f} %%\n", relative_deviation).c_str());
-   }
+      const float relative_deviation = 100.0f * std::abs(reference_dist - dist) / reference_dist;
+      printf(std::format("Deviation for {} Distance: {:.1f} %%\n", sys_name, relative_deviation).c_str());
+   };
+   print_sol_deviation("ALPHA CENTAURI", 4.367f);
+   // print_sol_deviation("SIRIUS", 8.611f);
 
    return starfield_universe;
 }
