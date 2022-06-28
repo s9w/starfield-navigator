@@ -56,6 +56,15 @@ auto sfn::universe::get_index_by_name(const std::string& name) const -> int
 }
 
 
+auto universe::get_distance(const int a, const int b) const -> float
+{
+   return glm::distance(
+      m_systems[a].m_position,
+      m_systems[b].m_position
+   );
+}
+
+
 auto sfn::connection::contains_node_index(const int node_index) const -> bool
 {
    return m_node_index0 == node_index || m_node_index1 == node_index;
@@ -240,10 +249,8 @@ auto sfn::graph::are_neighbors(const int node_index_0, const int node_index_1) c
 }
 
 
-auto sfn::graph::get_jump_path(const std::string& start, const std::string& destination) const -> std::optional<jump_path>
+auto sfn::graph::get_jump_path(const int start_index, const int destination_index) const -> std::optional<jump_path>
 {
-   const int start_index = this->get_node_index_by_name(start);
-   const int destination_index = this->get_node_index_by_name(destination);
    const shortest_path_tree tree = this->get_dijkstra(start_index);
 
    jump_path result;
@@ -324,12 +331,10 @@ auto sfn::graph::get_closest(const std::string& system) const -> std::vector<int
 
 auto sfn::get_min_jump_dist(
    const universe& universe,
-   const std::string& start,
-   const std::string& destination
+   const int start_index,
+   const int dest_index
 ) -> float
 {
-   const int start_index = universe.get_index_by_name(start);
-   const int dest_index = universe.get_index_by_name(destination);
    const float total_dist = glm::distance(
       universe.m_systems[start_index].m_position,
       universe.m_systems[dest_index].m_position
@@ -344,7 +349,7 @@ auto sfn::get_min_jump_dist(
    {
       // Plot a course through that graph
       // If no jump is possible, the previously calculated longest jump is the minimum required range
-      const std::optional<jump_path> plot = minimum_graph.get_jump_path(start, destination);
+      const std::optional<jump_path> plot = minimum_graph.get_jump_path(start_index, dest_index);
       if (plot.has_value() == false)
       {
          return necessary_jumprange;

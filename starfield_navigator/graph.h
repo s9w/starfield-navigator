@@ -34,6 +34,7 @@ namespace sfn {
 
       [[nodiscard]] auto get_position_by_name(const std::string& name) const -> glm::vec3;
       [[nodiscard]] auto get_index_by_name(const std::string& name) const -> int;
+      [[nodiscard]] auto get_distance(const int a, const int b) const -> float;
    };
 
 
@@ -97,12 +98,12 @@ namespace sfn {
       [[nodiscard]] auto get_node_index_by_name(const std::string& name) const -> int;
       [[nodiscard]] auto get_dijkstra(const int source_node_index) const -> shortest_path_tree;
       [[nodiscard]] auto are_neighbors(const int node_index_0, const int node_index_1) const -> bool;
-      [[nodiscard]] auto get_jump_path(const std::string& start, const std::string& destination) const -> std::optional<jump_path>;
+      [[nodiscard]] auto get_jump_path(const int start_index, const int destination_index) const -> std::optional<jump_path>;
       
       auto print_path(const jump_path& path) const -> void;
       [[nodiscard]] auto get_closest(const std::string& system) const -> std::vector<int>;
    };
 
-   [[nodiscard]] auto get_min_jump_dist(const universe& universe, const std::string& start, const std::string& destination) -> float;
+   [[nodiscard]] auto get_min_jump_dist(const universe& universe, const int start_index, const int dest_index) -> float;
 
 }

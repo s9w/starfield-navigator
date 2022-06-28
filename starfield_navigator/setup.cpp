@@ -244,7 +244,8 @@ auto sfn::engine::draw_fun() -> void
    static float slider_max = 100.0f;
    if(course_changed)
    {
-      slider_min = get_min_jump_dist(m_universe, m_universe.m_systems[m_source_index].m_name, m_universe.m_systems[m_destination_index].m_name) + 0.01f;
+      slider_min = get_min_jump_dist(m_universe, m_source_index, m_destination_index) + 0.001f;
+      slider_max = m_universe.get_distance(m_source_index, m_destination_index) + 0.001f;
    }
 
    course_changed |= ImGui::SliderFloat("jump range", &m_jump_range, slider_min, slider_max);
@@ -254,7 +255,7 @@ auto sfn::engine::draw_fun() -> void
    if (course_changed)
    {
       starfield_graph = graph(m_universe, m_jump_range);
-      path = starfield_graph.get_jump_path(m_universe.m_systems[m_source_index].m_name, m_universe.m_systems[m_destination_index].m_name);
+      path = starfield_graph.get_jump_path(m_source_index, m_destination_index);
 
       if (path.has_value())
       {
