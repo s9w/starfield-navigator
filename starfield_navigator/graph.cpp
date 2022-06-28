@@ -405,7 +405,6 @@ auto sfn::get_absolute_min_jump_range(const universe& universe) -> float
    std::vector<float> results;
    results.resize(connections.size());
 
-
    std::transform(
       std::execution::par_unseq,
       std::cbegin(connections),
@@ -418,4 +417,30 @@ auto sfn::get_absolute_min_jump_range(const universe& universe) -> float
    );
 
    return *std::ranges::max_element(results);
+}
+
+
+auto sfn::get_closest_distances_for_all(const universe& universe) -> std::vector<float>
+{
+   std::vector<float> result;
+   result.reserve(universe.m_systems.size());
+
+   for(int i=0; i<std::size(universe.m_systems); ++i)
+   {
+      float closest = std::numeric_limits<float>::max();
+      for (int j = 0; j < std::size(universe.m_systems); ++j)
+      {
+         if(i==j)
+            continue;
+
+         const float dist = glm::distance(
+            universe.m_systems[i].m_position,
+            universe.m_systems[j].m_position
+         );
+         closest = std::min(closest, dist);
+      }
+      result.push_back(closest);
+   }
+
+   return result;
 }

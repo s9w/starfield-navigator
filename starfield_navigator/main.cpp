@@ -110,6 +110,12 @@ auto get_starfield_universe() -> universe
       printf(std::format("sufficient_jump_range: {:.1f}\n", sufficient_jump_range).c_str());
    }
 
+   {
+      const auto closest = get_closest_distances_for_all(starfield_universe);
+      printf(std::format("avg of closest: {:.2f}\n", get_average(closest)).c_str());
+      printf(std::format("max of closest: {:.2f}\n", *std::ranges::max_element(closest)).c_str());
+   }
+
    // timer t;
    // float ddd;
    // for(int i=0; i<1000; ++i)

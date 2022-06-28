@@ -62,6 +62,8 @@ namespace sfn
    template <typename T, typename pred_type>
    auto find_obj(const std::vector<T>& vec, const pred_type& pred, const std::string& error_msg) -> const T&;
 
+   [[nodiscard]] auto get_average(const std::vector<float>& vec) -> float;
+
    template <std::floating_point T>
    constexpr auto srgb_to_linear_fp(const T x)->T;
    auto constexpr srgb_to_linear_ui8(const uint8_t in)->uint8_t;

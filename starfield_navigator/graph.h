@@ -106,5 +106,6 @@ namespace sfn {
 
    [[nodiscard]] auto get_min_jump_dist(const universe& universe, const int start_index, const int dest_index) -> float;
    [[nodiscard]] auto get_absolute_min_jump_range(const universe& universe) -> float;
+   [[nodiscard]] auto get_closest_distances_for_all(const universe& universe) -> std::vector<float>;
 
 }
