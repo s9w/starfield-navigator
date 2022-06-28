@@ -6,7 +6,7 @@
 
 auto sfn::id::create() -> id
 {
-   static id::underlying_type next_id_value = 0;
+   static std::atomic<id::underlying_type> next_id_value = 0;
 
 #ifdef _DEBUG
    sfn_assert(
@@ -15,7 +15,5 @@ auto sfn::id::create() -> id
    );
 #endif
 
-   id new_id{ explicit_init{}, next_id_value };
-   next_id_value++;
-   return new_id;
+   return id{ explicit_init{}, next_id_value.fetch_add(1)};
 }
