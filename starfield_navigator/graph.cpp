@@ -301,10 +301,9 @@ auto sfn::graph::print_path(const jump_path& path) const -> void
 }
 
 
-auto sfn::graph::get_closest(const std::string& system) const -> std::vector<int>
+auto sfn::graph::get_closest(const int system_index) const -> std::vector<int>
 {
-   const int source_index = this->get_node_index_by_name(system);
-   const glm::vec3 source_pos = m_nodes[source_index].m_position;
+   const glm::vec3 source_pos = m_nodes[system_index].m_position;
 
    std::vector<int> closest;
    closest.reserve(m_nodes.size());

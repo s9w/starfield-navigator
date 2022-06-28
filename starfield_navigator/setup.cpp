@@ -215,92 +215,129 @@ auto sfn::engine::draw_fun() -> void
    static std::optional<jump_path> path;
    static std::vector<std::string> path_strings;
 
+   if(ImGui::GetFrameCount() == 1)
+   {
+      starfield_graph = graph(m_universe, m_jump_range);
+   }
+
    {
       normal_imgui_window w("System select");
       draw_list();
    }
 
-   normal_imgui_window w("Plotter");
-
-   bool course_changed = ImGui::GetFrameCount() == 1;
-
-   if (ImGui::Button("Take from selector -> ##src"))
    {
-      course_changed = true;
-      m_source_index = m_list_selection;
-   }
-   ImGui::SameLine();
-   ImGui::Text(std::format("Source: {}", m_universe.m_systems[m_source_index].m_name).c_str());
-
-   if (ImGui::Button("Take from selector -> ##dst"))
-   {
-      course_changed = true;
-      m_destination_index = m_list_selection;
-   }
-   ImGui::SameLine();
-   ImGui::Text(std::format("Destination: {}", m_universe.m_systems[m_destination_index].m_name).c_str());
-
-   static float slider_min = 0.0f;
-   static float slider_max = 100.0f;
-   if(course_changed)
-   {
-      slider_min = get_min_jump_dist(m_universe, m_source_index, m_destination_index) + 0.001f;
-      slider_max = m_universe.get_distance(m_source_index, m_destination_index) + 0.001f;
-   }
-
-   course_changed |= ImGui::SliderFloat("jump range", &m_jump_range, slider_min, slider_max);
-   
-
-   // Graph and path update
-   if (course_changed)
-   {
-      starfield_graph = graph(m_universe, m_jump_range);
-      path = starfield_graph.get_jump_path(m_source_index, m_destination_index);
-
-      if (path.has_value())
+      normal_imgui_window w("closest stars");
+      static int selection = 14;
+      if (ImGui::Button("Take from selector -> ##vicinity"))
       {
-         path_strings.clear();
-         float travelled_distance = 0.0f;
-         for (int i = 0; i < path->m_stops.size() - 1; ++i)
-         {
-            const int this_stop_system = path->m_stops[i];
-            const int next_stop_system = path->m_stops[i + 1];
-            const float dist = glm::distance(starfield_graph.m_nodes[this_stop_system].m_position, starfield_graph.m_nodes[next_stop_system].m_position);
-            travelled_distance += dist;
+         selection = m_list_selection;
+      }
+      ImGui::SameLine();
+      ImGui::Text(std::format("{}", m_universe.m_systems[selection].m_name).c_str());
 
-            path_strings.push_back(std::format(
-               "Jump {}: {} to {}. Distance: {:.1f} LY\n",
-               i,
-               starfield_graph.m_nodes[this_stop_system].m_name,
-               starfield_graph.m_nodes[next_stop_system].m_name,
-               dist
-            ));
+      const std::vector<int> closest = starfield_graph.get_closest(selection);
+
+      const auto avail = ImGui::GetContentRegionAvail();
+      if (ImGui::BeginListBox("##closest_list", ImVec2(-FLT_MIN, avail.y)))
+      {
+         for (int i = 1; i < std::ssize(closest); ++i)
+         {
+            const float dist = glm::distance(
+               m_universe.m_systems[selection].m_position,
+               m_universe.m_systems[closest[i]].m_position
+            );
+            ImGui::Text(std::format("{:<20} dist: {:.1f} LY", m_universe.m_systems[i].m_name, dist).c_str());
+         }
+         ImGui::EndListBox();
+      }
+   }
+
+   {
+      normal_imgui_window w("Plotter");
+
+      bool course_changed = ImGui::GetFrameCount() == 1;
+
+      if (ImGui::Button("Take from selector -> ##src"))
+      {
+         course_changed = true;
+         m_source_index = m_list_selection;
+      }
+      ImGui::SameLine();
+      ImGui::Text(std::format("Source: {}", m_universe.m_systems[m_source_index].m_name).c_str());
+
+      if (ImGui::Button("Take from selector -> ##dst"))
+      {
+         course_changed = true;
+         m_destination_index = m_list_selection;
+      }
+      ImGui::SameLine();
+      ImGui::Text(std::format("Destination: {}", m_universe.m_systems[m_destination_index].m_name).c_str());
+
+      static float slider_min = 0.0f;
+      static float slider_max = 100.0f;
+      if (course_changed)
+      {
+         slider_min = get_min_jump_dist(m_universe, m_source_index, m_destination_index) + 0.001f;
+         slider_max = m_universe.get_distance(m_source_index, m_destination_index) + 0.001f;
+      }
+
+      course_changed |= ImGui::SliderFloat("jump range", &m_jump_range, slider_min, slider_max);
+
+
+      // Graph and path update
+      if (course_changed)
+      {
+         starfield_graph = graph(m_universe, m_jump_range);
+         path = starfield_graph.get_jump_path(m_source_index, m_destination_index);
+
+         if (path.has_value())
+         {
+            path_strings.clear();
+            float travelled_distance = 0.0f;
+            for (int i = 0; i < path->m_stops.size() - 1; ++i)
+            {
+               const int this_stop_system = path->m_stops[i];
+               const int next_stop_system = path->m_stops[i + 1];
+               const float dist = glm::distance(starfield_graph.m_nodes[this_stop_system].m_position, starfield_graph.m_nodes[next_stop_system].m_position);
+               travelled_distance += dist;
+
+               path_strings.push_back(std::format(
+                  "Jump {}: {} to {}. Distance: {:.1f} LY\n",
+                  i,
+                  starfield_graph.m_nodes[this_stop_system].m_name,
+                  starfield_graph.m_nodes[next_stop_system].m_name,
+                  dist
+               ));
+            }
+         }
+
+         // const auto closest = starfield_graph.get_closest("SOL");
+         // const auto source_pos = starfield_graph.m_nodes[starfield_graph.get_node_index_by_name("SOL")].m_position;
+         // for (const int i : closest)
+         // {
+         //    const auto& name = starfield_graph.m_nodes[i].m_name;
+         //    const auto& pos = starfield_graph.m_nodes[i].m_position;
+         //    const float dist = glm::distance(pos, source_pos);
+         //    printf(std::format("{:<15} dist: {:>5.2f} LY \n", name, dist).c_str());
+         // }
+         int end = 0;
+      }
+
+      // Path display
+      if (path.has_value() == false)
+      {
+         ImGui::Text("Jump range not large enough\n");
+      }
+      else
+      {
+         const auto avail = ImGui::GetContentRegionAvail();
+         if (ImGui::BeginListBox("##result", ImVec2(-FLT_MIN, avail.y)))
+         {
+            for (const std::string& path_string : path_strings)
+               ImGui::Text(path_string.c_str());
+            ImGui::EndListBox();
          }
       }
-
-      const auto closest = starfield_graph.get_closest("SOL");
-      const auto source_pos = starfield_graph.m_nodes[starfield_graph.get_node_index_by_name("SOL")].m_position;
-      for(const int i : closest)
-      {
-         const auto& name = starfield_graph.m_nodes[i].m_name;
-         const auto& pos = starfield_graph.m_nodes[i].m_position;
-         const float dist = glm::distance(pos, source_pos);
-         printf(std::format("{:<15} dist: {:>5.2f} LY \n", name, dist).c_str());
-      }
-      int end = 0;
-   }
-
-   // Path display
-   if (path.has_value() == false)
-   {
-      ImGui::Text("Jump range not large enough\n");
-   }
-   else
-   {
-      ImGui::BeginListBox("##result", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing()));
-      for (const std::string& path_string : path_strings)
-         ImGui::Text(path_string.c_str());
-      ImGui::EndListBox();
    }
 
    // ImGui::ShowDemoWindow();
