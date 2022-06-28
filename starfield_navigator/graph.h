@@ -94,6 +94,7 @@ namespace sfn {
       float m_jump_range = 0.0f;
       std::vector<node> m_nodes;
       std::unordered_map<id, connection, MyHashFunction> m_connections;
+      std::vector<id> m_sorted_connections;
 
       explicit graph() = default;
       explicit graph(const universe& universe, const float jump_range);

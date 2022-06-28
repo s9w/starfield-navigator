@@ -110,6 +110,10 @@ auto jump_path::contains_connection(const connection& con) const -> bool
 sfn::graph::graph(const universe& universe, const float jump_range)
    : m_jump_range(jump_range)
 {
+   m_nodes.reserve(universe.m_systems.size());
+   m_connections.reserve(universe.m_systems.size() * universe.m_systems.size());
+   m_sorted_connections.reserve(universe.m_systems.size() * universe.m_systems.size());
+
    const float jump_range2 = jump_range * jump_range;
    for(const system& system : universe.m_systems)
    {
@@ -129,7 +133,7 @@ sfn::graph::graph(const universe& universe, const float jump_range)
          if(distance2 > jump_range2)
             continue;
 
-         const auto connection_id = id::create();
+         const id connection_id = id::create();
          m_connections.emplace(
             connection_id,
             connection{
@@ -138,11 +142,17 @@ sfn::graph::graph(const universe& universe, const float jump_range)
                .m_distance = std::sqrt(distance2)
             }
          );
+         m_sorted_connections.emplace_back(connection_id);
 
          m_nodes[i].m_connections.push_back(connection_id);
          m_nodes[j].m_connections.push_back(connection_id);
       }
    }
+
+   const auto pred = [&](const id& a, const id& b) {
+      return m_connections.at(a).m_distance < m_connections.at(b).m_distance;
+   };
+   std::ranges::sort(m_sorted_connections, pred);
 }
 
 
@@ -372,19 +382,6 @@ auto sfn::get_min_jump_dist(
    // graph minimum_graph(universe, 26.0f);
    graph minimum_graph(universe, total_dist+0.001f);
 
-   std::vector<id> connections_ascending_distances;
-   connections_ascending_distances.reserve(minimum_graph.m_connections.size());
-   for(const auto& id : minimum_graph.m_connections | std::views::keys)
-   {
-      connections_ascending_distances.push_back(id);
-   }
-   {
-      const auto pred = [&](const id& a, const id& b) {
-         return minimum_graph.m_connections.at(a).m_distance < minimum_graph.m_connections.at(b).m_distance;
-      };
-      std::ranges::sort(connections_ascending_distances, pred);
-   }
-
    float necessary_jumprange = std::numeric_limits<float>::max();
    while (true)
    {
@@ -411,7 +408,7 @@ auto sfn::get_min_jump_dist(
       // delete longest connections until one relevant was found
       while (true)
       {
-         const id longest_connection_id = connections_ascending_distances.back();
+         const id longest_connection_id = minimum_graph.m_sorted_connections.back();
          const bool was_relevant = plot->contains_connection(minimum_graph.m_connections.at(longest_connection_id));
 
          minimum_graph.m_connections.erase(longest_connection_id);
@@ -419,7 +416,7 @@ auto sfn::get_min_jump_dist(
          {
             std::erase(n.m_connections, longest_connection_id);
          }
-         connections_ascending_distances.pop_back();
+         minimum_graph.m_sorted_connections.pop_back();
 
          if (was_relevant)
             break;
