@@ -54,7 +54,7 @@ auto get_starfield_universe() -> universe
    {
       const std::vector<std::string> split = get_split_string(line, "; ");
       const std::string name = split[0];
-      if(name.contains("Camera"))
+      if(name.starts_with("Solved Camera"))
       {
          continue;
       }
