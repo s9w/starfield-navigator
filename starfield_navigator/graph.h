@@ -41,7 +41,7 @@ namespace sfn {
 
    struct node{
       std::string m_name;
-      std::vector<id> m_connections;
+      std::vector<id> m_neighbor_connections;
       glm::vec3 m_position;
    };
 
@@ -100,7 +100,6 @@ namespace sfn {
       explicit graph(const universe& universe, const float jump_range);
 
       [[nodiscard]] auto get_node_index_by_name(const std::string& name) const -> int;
-      auto add_connection(const std::string& name_a, const std::string& name_b, const float weight) -> void;
       [[nodiscard]] auto get_dijkstra(const int source_node_index) const -> shortest_path_tree;
       [[nodiscard]] auto are_neighbors(const int node_index_0, const int node_index_1) const -> bool;
       [[nodiscard]] auto get_neighbor_info(const int node_index_0, const int node_index_1) const -> neighbor_info;
