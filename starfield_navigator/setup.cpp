@@ -224,7 +224,7 @@ auto sfn::engine::draw_fun() -> void
 
    bool course_changed = ImGui::GetFrameCount() == 1;
 
-   if (ImGui::Button("Take from selector ->"))
+   if (ImGui::Button("Take from selector -> ##src"))
    {
       course_changed = true;
       m_source_index = m_list_selection;
@@ -232,7 +232,7 @@ auto sfn::engine::draw_fun() -> void
    ImGui::SameLine();
    ImGui::Text(std::format("Source: {}", m_universe.m_systems[m_source_index].m_name).c_str());
 
-   if (ImGui::Button("Take from selector ->"))
+   if (ImGui::Button("Take from selector -> ##dst"))
    {
       course_changed = true;
       m_destination_index = m_list_selection;
