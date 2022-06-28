@@ -136,6 +136,7 @@ auto get_starfield_universe() -> universe
    dist_report("User 64", "User 65");
    dist_report("User 62", "User 63");
 
+   timer t;
    const auto porrima_jump_min = get_min_jump_dist(starfield_universe, "SOL", "PORRIMA");
 
    return starfield_universe;

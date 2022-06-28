@@ -128,9 +128,7 @@ sfn::graph::graph(const universe& universe, const float jump_range)
          if(distance2 > jump_range2)
             continue;
 
-         const auto connection_id = id::create();
-         m_connections.emplace(
-            connection_id,
+         const auto connection_id = m_connections.emplace(
             connection{
                .m_node_index0 = i,
                .m_node_index1 = j,
@@ -171,8 +169,7 @@ auto sfn::graph::add_connection(const std::string& name_a, const std::string& na
    // if (it != std::end(m_connections))
    //    std::terminate();
 
-   const id connection_id = id::create();
-   m_connections.emplace(connection_id, new_connection);
+   const id connection_id = m_connections.emplace(new_connection);
 
    for(int i=0; i<std::ssize(m_nodes); ++i)
    {
@@ -396,24 +393,28 @@ auto sfn::get_min_jump_dist(
       // printf(std::format("necessary_jumprange: {}\n", necessary_jumprange).c_str());
 
       // delete longest connections until one relevant was found
-      const auto distance_comparator = [&](const auto& pair_a, const auto& pair_b)
+      const auto distance_comparator = [&](const connection& pair_a, const connection& pair_b)
       {
          const float dist_a = glm::distance(
-            minimum_graph.m_nodes.at(pair_a.second.m_node_index0).m_position,
-            minimum_graph.m_nodes.at(pair_a.second.m_node_index1).m_position
+            minimum_graph.m_nodes.at(pair_a.m_node_index0).m_position,
+            minimum_graph.m_nodes.at(pair_a.m_node_index1).m_position
          );
          const float dist_b = glm::distance(
-            minimum_graph.m_nodes.at(pair_b.second.m_node_index0).m_position,
-            minimum_graph.m_nodes.at(pair_b.second.m_node_index1).m_position
+            minimum_graph.m_nodes.at(pair_b.m_node_index0).m_position,
+            minimum_graph.m_nodes.at(pair_b.m_node_index1).m_position
          );
          return dist_a < dist_b;
       };
       while (true)
       {
-         const auto it = std::ranges::max_element(minimum_graph.m_connections, distance_comparator);
-         const id connection_remove_id = it->first;
-         const bool stop_after = plot->contains_connection(it->second);
-         minimum_graph.m_connections.erase(it);
+         const id connection_remove_id = minimum_graph.m_connections.get_max_element_id(distance_comparator);
+         const bool stop_after = plot->contains_connection(minimum_graph.m_connections.at(connection_remove_id));
+         minimum_graph.m_connections.delete_elem(connection_remove_id);
+
+         // const auto it = std::ranges::max_element(minimum_graph.m_connections, distance_comparator);
+         // const id connection_remove_id = it->first;
+         // const bool stop_after = plot->contains_connection(it->second);
+         // minimum_graph.m_connections.erase(it);
 
          // Also delete connection from the nodes
          for (node& n : minimum_graph.m_nodes)

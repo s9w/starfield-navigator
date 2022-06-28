@@ -110,5 +110,8 @@
     <ClInclude Include="core\canvas.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="vector_map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

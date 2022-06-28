@@ -8,6 +8,7 @@
 #include <glm/vec3.hpp>
 
 #include "tools.h"
+#include "vector_map.h"
 
 
 namespace sfn {
@@ -83,17 +84,17 @@ namespace sfn {
       [[nodiscard]] auto contains_connection(const connection& con) const -> bool;
    };
 
-   struct MyHashFunction {
-      constexpr auto operator()(const id& p) const -> size_t{
-         return p.m_id;
-      }
-   };
+   // struct MyHashFunction {
+   //    constexpr auto operator()(const id& p) const -> size_t{
+   //       return p.m_id;
+   //    }
+   // };
 
    struct graph
    {
       float m_jump_range = 0.0f;
       std::vector<node> m_nodes;
-      std::unordered_map<id, connection, MyHashFunction> m_connections;
+      vector_map<connection> m_connections;
 
       explicit graph() = default;
       explicit graph(const universe& universe, const float jump_range);

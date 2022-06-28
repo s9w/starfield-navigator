@@ -119,6 +119,7 @@
     <ClInclude Include="texture.h" />
     <ClInclude Include="tools.h" />
     <ClInclude Include="type_support.h" />
+    <ClInclude Include="vector_map.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
