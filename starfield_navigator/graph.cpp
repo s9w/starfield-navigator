@@ -90,6 +90,22 @@ auto sfn::shortest_path_tree::get_distance_from_source(const int node_index) con
 }
 
 
+auto jump_path::contains_connection(const connection& con) const -> bool
+{
+   for(int i=0; i<std::ssize(m_stops)-1; ++i)
+   {
+      const connection temp{
+         .m_node_index0 = m_stops[i],
+         .m_node_index1 = m_stops[i+1],
+         .m_weight = 0.0f
+      };
+      if (temp == con)
+         return true;
+   }
+   return false;
+}
+
+
 sfn::graph::graph(const universe& universe, const float jump_range)
    : m_jump_range(jump_range)
 {
@@ -171,6 +187,7 @@ auto sfn::graph::get_dijkstra(const int source_node_index) const -> shortest_pat
    shortest_path_tree tree(source_node_index, static_cast<int>(std::ssize(m_nodes)));
 
    std::vector<int> visited;
+   visited.reserve(std::ssize(m_nodes));
    std::vector<int> unvisited;
    unvisited.reserve(std::ssize(m_nodes));
    for (int i = 0; i < std::ssize(m_nodes); ++i)
@@ -181,6 +198,7 @@ auto sfn::graph::get_dijkstra(const int source_node_index) const -> shortest_pat
    while(unvisited.empty() == false)
    {
       std::vector<int> current_vertex_neighbors;
+      current_vertex_neighbors.reserve(10);
       for (int i = 0; i < std::ssize(m_nodes); ++i)
       {
          if(this->are_neighbors(current_vertex, i) == false)
@@ -336,7 +354,11 @@ auto sfn::graph::get_closest(const std::string& system) const -> std::vector<int
 }
 
 
-auto sfn::get_min_jump_dist(const universe& universe, const std::string& start, const std::string& destination) -> float
+auto sfn::get_min_jump_dist(
+   const universe& universe,
+   const std::string& start,
+   const std::string& destination
+) -> float
 {
    const int start_index = universe.get_index_by_name(start);
    const int dest_index = universe.get_index_by_name(destination);
@@ -359,8 +381,6 @@ auto sfn::get_min_jump_dist(const universe& universe, const std::string& start, 
          return necessary_jumprange;
       }
 
-
-
       float longest_jump = 0.0f;
       for (int i = 0; i < plot->m_stops.size() - 1; ++i)
       {
@@ -375,7 +395,8 @@ auto sfn::get_min_jump_dist(const universe& universe, const std::string& start, 
       necessary_jumprange = longest_jump;
       // printf(std::format("necessary_jumprange: {}\n", necessary_jumprange).c_str());
 
-      const auto pred = [&](const auto& pair_a, const auto& pair_b)
+      // delete longest connections until one relevant was found
+      const auto distance_comparator = [&](const auto& pair_a, const auto& pair_b)
       {
          const float dist_a = glm::distance(
             minimum_graph.m_nodes.at(pair_a.second.m_node_index0).m_position,
@@ -387,18 +408,25 @@ auto sfn::get_min_jump_dist(const universe& universe, const std::string& start, 
          );
          return dist_a < dist_b;
       };
-      const auto it = std::ranges::max_element(minimum_graph.m_connections, pred);
-      const id remove_id = it->first;
-      minimum_graph.m_connections.erase(it);
-
-      // Also delete connection from the nodes
-      for (node& n : minimum_graph.m_nodes)
+      while (true)
       {
-         const auto pred2 = [&](const id& node_connection_id)
+         const auto it = std::ranges::max_element(minimum_graph.m_connections, distance_comparator);
+         const id connection_remove_id = it->first;
+         const bool stop_after = plot->contains_connection(it->second);
+         minimum_graph.m_connections.erase(it);
+
+         // Also delete connection from the nodes
+         for (node& n : minimum_graph.m_nodes)
          {
-            return node_connection_id == remove_id;
-         };
-         std::erase_if(n.m_connections, pred2);
+            const auto pred2 = [&](const id& node_connection_id)
+            {
+               return node_connection_id == connection_remove_id;
+            };
+            std::erase_if(n.m_connections, pred2);
+         }
+
+         if (stop_after)
+            break;
       }
    }
 }

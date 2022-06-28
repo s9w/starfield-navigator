@@ -38,7 +38,8 @@ namespace sfn
       return diff < static_cast<T>(0.001);
    }
 
-   auto constexpr sfn_assert(const bool condition, const std::string& msg = "") -> void;
+   auto constexpr sfn_assert(const bool condition, const std::string& msg ) -> void;
+   auto constexpr sfn_assert(const bool condition) -> void;
 
    struct explicit_init {};
    struct no_init {};
@@ -105,9 +106,12 @@ auto sfn::find_obj(
    return *it;
 }
 
+
 constexpr auto sfn::operator==(const id a, const id b) -> bool
 {
-   sfn_assert(a.m_id != id::null_id && b.m_id != id::null_id, "comparison with null id");
+#ifdef _DEBUG 
+   sfn_assert(a.m_id != id::null_id && b.m_id != id::null_id);
+#endif
    return a.m_id == b.m_id;
 }
 
@@ -121,6 +125,17 @@ constexpr auto sfn::sfn_assert(const bool condition, const std::string& msg) -> 
    if (msg.empty() == false)
    {
       printf(std::format("error: {}\n", msg).c_str());
+   }
+
+   std::terminate();
+}
+
+
+constexpr auto sfn::sfn_assert(const bool condition) -> void
+{
+   if (condition == true)
+   {
+      return;
    }
 
    std::terminate();

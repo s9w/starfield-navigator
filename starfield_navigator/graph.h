@@ -79,6 +79,8 @@ namespace sfn {
 
    struct jump_path{
       std::vector<int> m_stops;
+
+      [[nodiscard]] auto contains_connection(const connection& con) const -> bool;
    };
 
    struct MyHashFunction {
