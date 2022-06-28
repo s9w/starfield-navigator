@@ -27,7 +27,7 @@ namespace sfn
       {
          const auto t1 = std::chrono::high_resolution_clock::now();
          const dbl_ms duration = dbl_ms(t1 - m_t0);
-         printf(std::format("timer: {} ms\n", static_cast<int>(duration.count())).c_str()) ;
+         printf(std::format("timer: {} ns\n", static_cast<int>(duration.count())).c_str()) ;
       }
    };
 
