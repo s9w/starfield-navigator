@@ -411,11 +411,13 @@ auto sfn::get_min_jump_dist(
          const id longest_connection_id = minimum_graph.m_sorted_connections.back();
          const bool was_relevant = plot->contains_connection(minimum_graph.m_connections.at(longest_connection_id));
 
-         minimum_graph.m_connections.erase(longest_connection_id);
-         for (node& n : minimum_graph.m_nodes)
          {
-            std::erase(n.m_connections, longest_connection_id);
+            const auto& con = minimum_graph.m_connections.at(longest_connection_id);
+            std::erase(minimum_graph.m_nodes[con.m_node_index0].m_connections, longest_connection_id);
+            std::erase(minimum_graph.m_nodes[con.m_node_index1].m_connections, longest_connection_id);
          }
+
+         minimum_graph.m_connections.erase(longest_connection_id);
          minimum_graph.m_sorted_connections.pop_back();
 
          if (was_relevant)
