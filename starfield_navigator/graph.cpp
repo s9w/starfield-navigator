@@ -144,8 +144,8 @@ sfn::graph::graph(const universe& universe, const float jump_range)
          );
          m_sorted_connections.emplace_back(connection_id);
 
-         m_nodes[i].m_neighbor_connections.push_back(connection_id);
-         m_nodes[j].m_neighbor_connections.push_back(connection_id);
+         m_nodes[i].m_neighbor_nodes.push_back(j);
+         m_nodes[j].m_neighbor_nodes.push_back(i);
       }
    }
 
@@ -197,8 +197,10 @@ auto sfn::graph::get_dijkstra(const int source_node_index) const -> shortest_pat
 
       for(const int neighbor : current_vertex_neighbors)
       {
-         const neighbor_info info = this->get_neighbor_info(current_vertex, neighbor);
-         const float distance = tree.get_distance_from_source(info.m_other_index) + info.m_distance;
+         const float distance = glm::distance(
+            m_nodes[current_vertex].m_position,
+            m_nodes[neighbor].m_position
+         );
          if (distance < tree.m_entries[neighbor].m_shortest_distance)
          {
             tree.m_entries[neighbor].m_shortest_distance = distance;
@@ -229,33 +231,12 @@ auto sfn::graph::are_neighbors(const int node_index_0, const int node_index_1) c
 {
    if (node_index_0 == node_index_1)
       return false;
-   for(const id& a_connect_index : m_nodes[node_index_0].m_neighbor_connections)
+   for(const int& node_index : m_nodes[node_index_0].m_neighbor_nodes)
    {
-      const connection& connection = m_connections.at(a_connect_index);
-      if (connection.contains_node_index(node_index_1))
+      if (node_index == node_index_1)
          return true;
    }
    return false;
-}
-
-
-auto sfn::graph::get_neighbor_info(const int node_index_0, const int node_index_1) const -> neighbor_info
-{
-   if (node_index_0 == node_index_1)
-      std::terminate();
-   for (const auto a_connect_index : m_nodes[node_index_0].m_neighbor_connections)
-   {
-      const connection& connection = m_connections.at(a_connect_index);
-      if (connection.contains_node_index(node_index_1))
-      {
-         const int other_index = (connection.m_node_index0 == node_index_1) ? connection.m_node_index1 : connection.m_node_index0;
-         return neighbor_info{
-               .m_distance = connection.m_distance,
-               .m_other_index = other_index
-         };
-      }
-   }
-   std::terminate();
 }
 
 
@@ -389,8 +370,8 @@ auto sfn::get_min_jump_dist(
 
          {
             const auto& con = minimum_graph.m_connections.at(longest_connection_id);
-            std::erase(minimum_graph.m_nodes[con.m_node_index0].m_neighbor_connections, longest_connection_id);
-            std::erase(minimum_graph.m_nodes[con.m_node_index1].m_neighbor_connections, longest_connection_id);
+            std::erase(minimum_graph.m_nodes[con.m_node_index0].m_neighbor_nodes, con.m_node_index1);
+            std::erase(minimum_graph.m_nodes[con.m_node_index1].m_neighbor_nodes, con.m_node_index0);
          }
 
          minimum_graph.m_connections.erase(longest_connection_id);

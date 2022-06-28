@@ -41,7 +41,7 @@ namespace sfn {
 
    struct node{
       std::string m_name;
-      std::vector<id> m_neighbor_connections;
+      std::vector<int> m_neighbor_nodes;
       glm::vec3 m_position;
    };
 
@@ -72,11 +72,6 @@ namespace sfn {
       friend auto operator<=>(const shortest_path_tree&, const shortest_path_tree&) = default;
    };
 
-   struct neighbor_info{
-      float m_distance;
-      int m_other_index;
-   };
-
    struct jump_path{
       std::vector<int> m_stops;
 
@@ -102,7 +97,6 @@ namespace sfn {
       [[nodiscard]] auto get_node_index_by_name(const std::string& name) const -> int;
       [[nodiscard]] auto get_dijkstra(const int source_node_index) const -> shortest_path_tree;
       [[nodiscard]] auto are_neighbors(const int node_index_0, const int node_index_1) const -> bool;
-      [[nodiscard]] auto get_neighbor_info(const int node_index_0, const int node_index_1) const -> neighbor_info;
       [[nodiscard]] auto get_jump_path(const std::string& start, const std::string& destination) const -> std::optional<jump_path>;
       
       auto print_path(const jump_path& path) const -> void;
