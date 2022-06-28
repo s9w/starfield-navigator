@@ -197,7 +197,7 @@ auto sfn::graph::get_dijkstra(const int source_node_index) const -> shortest_pat
 
       for(const int neighbor : current_vertex_neighbors)
       {
-         const float distance = glm::distance(
+         const float distance = tree.get_distance_from_source(current_vertex) + glm::distance(
             m_nodes[current_vertex].m_position,
             m_nodes[neighbor].m_position
          );
