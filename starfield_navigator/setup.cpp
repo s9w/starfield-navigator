@@ -240,7 +240,14 @@ auto sfn::engine::draw_fun() -> void
    ImGui::SameLine();
    ImGui::Text(std::format("Destination: {}", m_universe.m_systems[m_destination_index].m_name).c_str());
 
-   course_changed |= ImGui::SliderFloat("jump range", &m_jump_range, 0.0f, 100.0f);
+   static float slider_min = 0.0f;
+   static float slider_max = 100.0f;
+   if(course_changed)
+   {
+      slider_min = get_min_jump_dist(m_universe, m_universe.m_systems[m_source_index].m_name, m_universe.m_systems[m_destination_index].m_name) + 0.01f;
+   }
+
+   course_changed |= ImGui::SliderFloat("jump range", &m_jump_range, slider_min, slider_max);
    
 
    // Graph and path update
