@@ -97,7 +97,7 @@ auto jump_path::contains_connection(const connection& con) const -> bool
       const connection temp{
          .m_node_index0 = m_stops[i],
          .m_node_index1 = m_stops[i+1],
-         .m_weight = 0.0f
+         .m_distance = 0.0f
       };
       if (temp == con)
          return true;
@@ -134,7 +134,7 @@ sfn::graph::graph(const universe& universe, const float jump_range)
             connection{
                .m_node_index0 = i,
                .m_node_index1 = j,
-               .m_weight = std::sqrt(distance2)
+               .m_distance = std::sqrt(distance2)
             }
          );
 
@@ -165,7 +165,7 @@ auto sfn::graph::add_connection(const std::string& name_a, const std::string& na
    const connection new_connection{
          .m_node_index0 = node_index_a,
          .m_node_index1 = node_index_b,
-         .m_weight = weight
+         .m_distance = weight
    };
    // const auto it = std::ranges::find(m_connections, new_connection);
    // if (it != std::end(m_connections))
@@ -263,7 +263,7 @@ auto sfn::graph::get_neighbor_info(const int node_index_0, const int node_index_
       {
          const int other_index = (connection.m_node_index0 == node_index_1) ? connection.m_node_index1 : connection.m_node_index0;
          return neighbor_info{
-               .m_distance = connection.m_weight,
+               .m_distance = connection.m_distance,
                .m_other_index = other_index
          };
       }
@@ -390,22 +390,14 @@ auto sfn::get_min_jump_dist(
          );
          longest_jump = std::max(longest_jump, dist);
       }
-      printf(std::format("longest_jump: {}\n", longest_jump).c_str());
 
       necessary_jumprange = longest_jump;
-      // printf(std::format("necessary_jumprange: {}\n", necessary_jumprange).c_str());
 
       // delete longest connections until one relevant was found
       const auto distance_comparator = [&](const auto& pair_a, const auto& pair_b)
       {
-         const float dist_a = glm::distance(
-            minimum_graph.m_nodes.at(pair_a.second.m_node_index0).m_position,
-            minimum_graph.m_nodes.at(pair_a.second.m_node_index1).m_position
-         );
-         const float dist_b = glm::distance(
-            minimum_graph.m_nodes.at(pair_b.second.m_node_index0).m_position,
-            minimum_graph.m_nodes.at(pair_b.second.m_node_index1).m_position
-         );
+         const float dist_a = pair_a.second.m_distance;
+         const float dist_b = pair_b.second.m_distance;
          return dist_a < dist_b;
       };
       while (true)

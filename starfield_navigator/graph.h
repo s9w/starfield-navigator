@@ -48,7 +48,7 @@ namespace sfn {
    struct connection{
       int m_node_index0;
       int m_node_index1;
-      float m_weight;
+      float m_distance;
       
       [[nodiscard]] auto contains_node_index(const int node_index) const -> bool;
    };
