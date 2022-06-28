@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #pragma warning(push, 0)    
+#include <ranges>
 #include <glm/geometric.hpp>
 #include <glm/gtx/norm.hpp>
 #pragma warning(pop)
@@ -370,6 +371,20 @@ auto sfn::get_min_jump_dist(
    // Initialize the graph with the total distance. That is guaranteed to work
    // graph minimum_graph(universe, 26.0f);
    graph minimum_graph(universe, total_dist+0.001f);
+
+   std::vector<id> connections_ascending_distances;
+   connections_ascending_distances.reserve(minimum_graph.m_connections.size());
+   for(const auto& id : minimum_graph.m_connections | std::views::keys)
+   {
+      connections_ascending_distances.push_back(id);
+   }
+   {
+      const auto pred = [&](const id& a, const id& b) {
+         return minimum_graph.m_connections.at(a).m_distance < minimum_graph.m_connections.at(b).m_distance;
+      };
+      std::ranges::sort(connections_ascending_distances, pred);
+   }
+
    float necessary_jumprange = std::numeric_limits<float>::max();
    while (true)
    {
@@ -394,30 +409,19 @@ auto sfn::get_min_jump_dist(
       necessary_jumprange = longest_jump;
 
       // delete longest connections until one relevant was found
-      const auto distance_comparator = [&](const auto& pair_a, const auto& pair_b)
-      {
-         const float dist_a = pair_a.second.m_distance;
-         const float dist_b = pair_b.second.m_distance;
-         return dist_a < dist_b;
-      };
       while (true)
       {
-         const auto it = std::ranges::max_element(minimum_graph.m_connections, distance_comparator);
-         const id connection_remove_id = it->first;
-         const bool stop_after = plot->contains_connection(it->second);
-         minimum_graph.m_connections.erase(it);
+         const id longest_connection_id = connections_ascending_distances.back();
+         const bool was_relevant = plot->contains_connection(minimum_graph.m_connections.at(longest_connection_id));
 
-         // Also delete connection from the nodes
+         minimum_graph.m_connections.erase(longest_connection_id);
          for (node& n : minimum_graph.m_nodes)
          {
-            const auto pred2 = [&](const id& node_connection_id)
-            {
-               return node_connection_id == connection_remove_id;
-            };
-            std::erase_if(n.m_connections, pred2);
+            std::erase(n.m_connections, longest_connection_id);
          }
+         connections_ascending_distances.pop_back();
 
-         if (stop_after)
+         if (was_relevant)
             break;
       }
    }
