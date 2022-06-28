@@ -273,12 +273,18 @@ auto sfn::engine::draw_fun() -> void
       ImGui::SameLine();
       ImGui::Text(std::format("Destination: {}", m_universe.m_systems[m_destination_index].m_name).c_str());
 
+      ImGui::Text(std::format(
+         "Total distance: {:.1f} LY",
+         m_universe.get_distance(m_source_index, m_destination_index)
+      ).c_str());
+
       static float slider_min = 0.0f;
       static float slider_max = 100.0f;
       if (course_changed)
       {
          slider_min = get_min_jump_dist(m_universe, m_source_index, m_destination_index) + 0.001f;
          slider_max = m_universe.get_distance(m_source_index, m_destination_index) + 0.001f;
+         m_jump_range = 0.5f * (slider_min + slider_max);
       }
 
       course_changed |= ImGui::SliderFloat("jump range", &m_jump_range, slider_min, slider_max);
@@ -309,17 +315,9 @@ auto sfn::engine::draw_fun() -> void
                   dist
                ));
             }
+            path_strings.push_back("-----");
+            path_strings.push_back(std::format("Travelled distance: {:.1f} LY", travelled_distance));
          }
-
-         // const auto closest = starfield_graph.get_closest("SOL");
-         // const auto source_pos = starfield_graph.m_nodes[starfield_graph.get_node_index_by_name("SOL")].m_position;
-         // for (const int i : closest)
-         // {
-         //    const auto& name = starfield_graph.m_nodes[i].m_name;
-         //    const auto& pos = starfield_graph.m_nodes[i].m_position;
-         //    const float dist = glm::distance(pos, source_pos);
-         //    printf(std::format("{:<15} dist: {:>5.2f} LY \n", name, dist).c_str());
-         // }
          int end = 0;
       }
 
