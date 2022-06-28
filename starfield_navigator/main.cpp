@@ -105,6 +105,11 @@ auto get_starfield_universe() -> universe
    dist_report("User 64", "User 65");
    dist_report("User 62", "User 63");
 
+   {
+      const float sufficient_jump_range = get_absolute_min_jump_range(starfield_universe);
+      printf(std::format("sufficient_jump_range: {:.1f}\n", sufficient_jump_range).c_str());
+   }
+
    // timer t;
    // float ddd;
    // for(int i=0; i<1000; ++i)
@@ -123,17 +128,6 @@ auto main(int /*argc*/, char* /*argv*/) -> int
 // auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nCmdShow*/) -> int
 // #endif
 {
-
-   
-
-   // const graph starfield_graph(starfield_world, 60);
-   // const std::optional<jump_path> path = starfield_graph.get_jump_path("SOL", "PORRIMA");
-   // if(path.has_value() == false)
-   // {
-   //    printf("Jump range not large enough\n");
-   //    return 0;
-   // }
-   // starfield_graph.print_path(*path);
 
    try {
       engine engine(

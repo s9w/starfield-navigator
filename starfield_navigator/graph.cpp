@@ -3,6 +3,7 @@
 #include "tools.h"
 
 #include <algorithm>
+#include <execution>
 
 #pragma warning(push, 0)    
 #include <ranges>
@@ -370,10 +371,11 @@ auto sfn::get_min_jump_dist(
       while (true)
       {
          const id longest_connection_id = minimum_graph.m_sorted_connections.back();
-         const bool was_relevant = plot->contains_connection(minimum_graph.m_connections.at(longest_connection_id));
+         const auto& con = minimum_graph.m_connections.at(longest_connection_id);
+         const bool was_relevant = plot->contains_connection(con);
 
          {
-            const auto& con = minimum_graph.m_connections.at(longest_connection_id);
+            // const auto& con = minimum_graph.m_connections.at(longest_connection_id);
             std::erase(minimum_graph.m_nodes[con.m_node_index0].m_neighbor_nodes, con.m_node_index1);
             std::erase(minimum_graph.m_nodes[con.m_node_index1].m_neighbor_nodes, con.m_node_index0);
          }
@@ -385,4 +387,35 @@ auto sfn::get_min_jump_dist(
             break;
       }
    }
+}
+
+
+auto sfn::get_absolute_min_jump_range(const universe& universe) -> float
+{
+   timer t;
+   std::vector<std::pair<int, int>> connections;
+   connections.reserve(universe.m_systems.size()* universe.m_systems.size());
+   for (int i = 0; i < universe.m_systems.size(); ++i)
+   {
+      for (int j = i + 1; j < universe.m_systems.size(); ++j)
+      {
+         connections.emplace_back(i, j);
+      }
+   }
+   std::vector<float> results;
+   results.resize(connections.size());
+
+
+   std::transform(
+      std::execution::par_unseq,
+      std::cbegin(connections),
+      std::cend(connections),
+      std::begin(results),
+      [&](const std::pair<int, int>& ppp)
+      {
+         return get_min_jump_dist(universe, ppp.first, ppp.second);
+      }
+   );
+
+   return *std::ranges::max_element(results);
 }
