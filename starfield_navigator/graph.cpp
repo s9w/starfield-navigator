@@ -323,7 +323,6 @@ auto sfn::graph::get_closest(const int system_index) const -> std::vector<int>
       return a_dist2 < b_dist2;
    };
    std::ranges::sort(closest, pred);
-   closest.resize(20);
 
    return closest;
 }

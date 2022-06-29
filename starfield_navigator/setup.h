@@ -146,6 +146,8 @@ namespace sfn
       engine& operator=(engine&&) = delete;
 
       auto draw_list() -> void;
+      auto gui_closest_stars(const graph& starfield_graph) -> void;
+      auto gui_plotter(graph& starfield_graph) -> void;
    };
 
 

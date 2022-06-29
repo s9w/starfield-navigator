@@ -105,10 +105,10 @@ auto get_starfield_universe() -> universe
    dist_report("User 64", "User 65");
    dist_report("User 62", "User 63");
 
-   {
-      const float sufficient_jump_range = get_absolute_min_jump_range(starfield_universe);
-      printf(std::format("sufficient_jump_range: {:.1f}\n", sufficient_jump_range).c_str());
-   }
+   // {
+   //    const float sufficient_jump_range = get_absolute_min_jump_range(starfield_universe);
+   //    printf(std::format("sufficient_jump_range: {:.1f}\n", sufficient_jump_range).c_str());
+   // }
 
    {
       const auto closest = get_closest_distances_for_all(starfield_universe);
