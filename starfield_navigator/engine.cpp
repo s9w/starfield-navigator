@@ -39,6 +39,16 @@ namespace
       return return_selection;
    }
 
+
+   auto right_align_text(const std::string& text) -> void
+   {
+      const auto posX = (ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(text.c_str()).x
+         - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
+      if (posX > ImGui::GetCursorPosX())
+         ImGui::SetCursorPosX(posX);
+      ImGui::Text(text.c_str());
+   }
+
 } // namespace {}
 
 
@@ -158,7 +168,8 @@ auto sfn::engine::draw_list() -> void
 
          ImGui::TableNextRow();
          ImGui::TableSetColumnIndex(0);
-         ImGui::Text(std::format("{:0>2}", i).c_str());
+         right_align_text(std::format("{}", i));
+         // ImGui::Text(std::format("{:0>2}", i).c_str());
          ImGui::TableSetColumnIndex(1);
 
          if (const auto x = print_system(m_universe, i, &is_selected); x.has_value())
@@ -192,7 +203,7 @@ auto sfn::engine::gui_closest_stars() -> void
    if (ImGui::BeginTable("##table_closest", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
    {
       ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
-      ImGui::TableSetupColumn("Dist [LY]", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+      ImGui::TableSetupColumn("Dist [LY]", ImGuiTableColumnFlags_WidthFixed, 60.0f);
       ImGui::TableSetupColumn("System", ImGuiTableColumnFlags_None);
 
       ImGui::TableHeadersRow();
@@ -205,7 +216,7 @@ auto sfn::engine::gui_closest_stars() -> void
             m_universe.m_systems[selection].m_position,
             m_universe.m_systems[closest[i]].m_position
          );
-         ImGui::Text(std::format("{:>5.1f}", dist).c_str());
+         right_align_text(std::format("{:.1f}", dist));
 
          ImGui::TableSetColumnIndex(1);
          print_system(m_universe, closest[i], nullptr);
