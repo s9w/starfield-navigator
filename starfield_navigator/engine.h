@@ -48,6 +48,7 @@ namespace sfn
       id m_mvp_ubo_id{ no_init{} };
       id m_main_fb{ no_init{} };
       binding_point_man m_binding_point_man;
+      mvp_type m_current_mvp{};
       shader_program m_shader_stars;
       texture_manager m_textures{};
       framebuffer_manager m_framebuffers; // needs to be after texture manager
@@ -79,6 +80,8 @@ namespace sfn
       auto draw_list() -> void;
       auto gui_closest_stars() -> void;
       auto gui_plotter(graph& starfield_graph) -> void;
+      auto bind_ubo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;
+      auto gpu_upload() -> void;
    };
 
 }

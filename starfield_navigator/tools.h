@@ -4,6 +4,7 @@
 #include <string_view>
 #include <chrono>
 #include <unordered_map>
+#include <span>
 
 #include <s9w_core.h>
 
@@ -16,6 +17,18 @@ namespace sfn
    // {
    //    std::format(fmt, arg...);
    // }
+
+   template<typename T>
+   auto as_bytes(const std::vector<T>& vec) -> auto
+   {
+      return std::as_bytes(std::span{ vec });
+   }
+
+   template<typename T>
+   auto as_bytes(const T& object) -> auto
+   {
+      return std::as_bytes(std::span{ &object, 1 });
+   }
 
    struct timer{
       std::chrono::high_resolution_clock::time_point m_t0;

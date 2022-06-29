@@ -100,6 +100,10 @@ sfn::engine::engine(const config& config, universe&& universe)
    m_mvp_ubo_id = segment_ids[0];
    m_binding_point_man.add(m_mvp_ubo_id);
    m_main_fb = m_framebuffers.get_efault_fb();
+   m_binding_point_man.add(m_mvp_ubo_id);
+
+   const buffer& buffer_ref = m_buffers2.get_single_buffer_ref();
+   bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_stars);
 }
 
 
@@ -130,6 +134,15 @@ auto sfn::engine::draw_frame() -> void
    glClear(GL_COLOR_BUFFER_BIT);
    m_imgui_context.frame_begin();
 
+   // calculate things
+   // update_mvp_member(); // TODO
+
+   // upload things
+   gpu_upload();
+
+   // render things
+
+   // GUI
    this->draw_fun();
 
    m_imgui_context.frame_end();
@@ -324,6 +337,31 @@ auto sfn::engine::gui_plotter(graph& starfield_graph) -> void
          ImGui::EndListBox();
       }
    }
+}
+
+
+auto engine::bind_ubo(
+   const std::string& name,
+   const buffer& buffer_ref,
+   const id segment_id,
+   const shader_program& shader
+) const -> void
+{
+   const GLuint block_index = glGetUniformBlockIndex(shader.m_opengl_id, name.c_str());
+   const int binding_point = m_binding_point_man.get_point(segment_id);
+   glUniformBlockBinding(shader.m_opengl_id, block_index, binding_point);
+   glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, buffer_ref.m_buffer_opengl_id);
+
+   const auto segment_size = buffer_ref.get_segment_size(segment_id);
+   const auto offset_in_buffer = buffer_ref.get_segment_offset(segment_id);
+   glBindBufferRange(GL_UNIFORM_BUFFER, binding_point, buffer_ref.m_buffer_opengl_id, offset_in_buffer, segment_size);
+}
+
+
+
+auto engine::gpu_upload() -> void
+{
+   m_buffers2.upload_ubo(m_mvp_ubo_id, as_bytes(m_current_mvp));
 }
 
 
