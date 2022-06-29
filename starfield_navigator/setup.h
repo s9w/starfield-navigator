@@ -121,7 +121,7 @@ namespace sfn
       framebuffer_manager m_framebuffers; // needs to be after texture manager
 
       explicit engine(const config& config, universe&& universe);
-      ~engine() = default;
+      // ~engine() = default;
       [[nodiscard]] auto get_window() const->GLFWwindow*;
 
       static auto static_resize_callback(
@@ -146,7 +146,7 @@ namespace sfn
       engine& operator=(engine&&) = delete;
 
       auto draw_list() -> void;
-      auto gui_closest_stars(const graph& starfield_graph) -> void;
+      auto gui_closest_stars() -> void;
       auto gui_plotter(graph& starfield_graph) -> void;
    };
 

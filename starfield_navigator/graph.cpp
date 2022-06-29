@@ -302,22 +302,22 @@ auto sfn::graph::print_path(const jump_path& path) const -> void
 }
 
 
-auto sfn::graph::get_closest(const int system_index) const -> std::vector<int>
+auto sfn::universe::get_closest(const int system_index) const -> std::vector<int>
 {
-   const glm::vec3 source_pos = m_nodes[system_index].m_position;
+   const glm::vec3 source_pos = m_systems[system_index].m_position;
 
    std::vector<int> closest;
-   closest.reserve(m_nodes.size());
+   closest.reserve(m_systems.size());
 
-   for(int i=0; i<m_nodes.size(); ++i)
+   for(int i=0; i< m_systems.size(); ++i)
    {
       closest.push_back(i);
    }
 
    const auto pred = [&](const int a, const int b)
    {
-      const glm::vec3 a_pos = m_nodes[a].m_position;
-      const glm::vec3 b_pos = m_nodes[b].m_position;
+      const glm::vec3 a_pos = m_systems[a].m_position;
+      const glm::vec3 b_pos = m_systems[b].m_position;
       const float a_dist2 = glm::distance2(source_pos, a_pos);
       const float b_dist2 = glm::distance2(source_pos, b_pos);
       return a_dist2 < b_dist2;

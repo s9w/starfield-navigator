@@ -2,8 +2,8 @@
 
 #include <glad/gl.h>
 #include <GLFW/glfw3.h> // after glad
-// #define GLFW_EXPOSE_NATIVE_WIN32
-// #include <GLFW/glfw3native.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -11,7 +11,16 @@
 #include <imgui_stdlib.h>
 #include <glm/geometric.hpp>
 
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+#include "fonts/FontAwesomeSolid.hpp"
+#include "fonts/DroidSans.hpp"
+#include "fonts/IconsFontAwesome5.h"
+
 #include <optional>
+
 
 namespace
 {
@@ -43,7 +52,16 @@ namespace
       return return_selection;
    }
 
-}
+
+   auto disable_maximize_button(HWND windowHandle) -> void
+   {
+      auto style = GetWindowLong(windowHandle, GWL_STYLE);
+      style &= ~WS_MAXIMIZEBOX;
+      SetWindowLong(windowHandle, GWL_STYLE, style);
+   }
+
+} // namespace {}
+
 
 sfn::glfw_wrapper::glfw_wrapper()
 {
@@ -51,10 +69,12 @@ sfn::glfw_wrapper::glfw_wrapper()
       throw std::exception{ "glfwInit() error" };
 }
 
+
 sfn::glfw_wrapper::~glfw_wrapper()
 {
    glfwTerminate();
 }
+
 
 sfn::window_wrapper::window_wrapper(const config& config)
 {
@@ -68,6 +88,8 @@ sfn::window_wrapper::window_wrapper(const config& config)
       throw std::exception{ "glfwCreateWindow error" };
    }
    glfwMakeContextCurrent(m_window);
+
+   disable_maximize_button(glfwGetWin32Window(m_window));
 
    if (config.vsync)
       glfwSwapInterval(1);
@@ -132,6 +154,35 @@ sfn::engine::engine(const config& config, universe&& universe)
    , m_shader_stars("star_shader")
    , m_framebuffers(m_textures)
 {
+   {
+      ImGuiIO& io = ImGui::GetIO();
+      ImFontConfig configBasic;
+      ImFontConfig configMerge;
+      configMerge.MergeMode = true;
+
+      static const ImWchar rangesBasic[] = {
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
+        0x03BC, 0x03BC, // micro
+        0x03C3, 0x03C3, // small sigma
+        0x2013, 0x2013, // en dash
+        0x2264, 0x2264, // less-than or equal to
+        0,
+      };
+      static const ImWchar rangesIcons[] = {
+          ICON_MIN_FA, ICON_MAX_FA,
+          0
+      };
+      constexpr float normal_font_size = 15.0f;
+      constexpr float icon_font_size = 15.0f;
+
+      io.Fonts->Clear();
+      io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, round(normal_font_size), &configBasic, rangesBasic);
+      io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesomeSolid_compressed_data, FontAwesomeSolid_compressed_size, round(icon_font_size), &configMerge, rangesIcons);
+
+      // ImGui_ImplOpenGL3_DestroyFontsTexture();
+      // ImGui_ImplOpenGL3_CreateFontsTexture();
+   }
+
    if (engine_ptr != nullptr)
       std::terminate();
    engine_ptr = this;
@@ -194,7 +245,7 @@ auto sfn::engine::draw_loop() -> void
 auto sfn::engine::draw_list() -> void
 {
    static ImGuiTextFilter filter;
-   filter.Draw("filter");
+   filter.Draw((const char*)ICON_FA_SEARCH " Filter");
 
    if (ImGui::BeginTable("##table_selector", 2, ImGuiTableFlags_RowBg| ImGuiTableFlags_ScrollY))
    {
@@ -211,7 +262,7 @@ auto sfn::engine::draw_list() -> void
 
          ImGui::TableNextRow();
          ImGui::TableSetColumnIndex(0);
-         ImGui::Text(std::format("{}", i).c_str());
+         ImGui::Text(std::format("{:0>2}", i).c_str());
          ImGui::TableSetColumnIndex(1);
 
          if(const auto x = print_system(m_universe, i, &is_selected); x.has_value())
@@ -224,18 +275,22 @@ auto sfn::engine::draw_list() -> void
 }
 
 
-auto engine::gui_closest_stars(const graph& starfield_graph) -> void
+auto engine::gui_closest_stars() -> void
 {
    static int selection = 14;
-   if (ImGui::Button("Take from selector -> ##vicinity"))
+
+   ImGui::AlignTextToFramePadding();
+   ImGui::Text(std::format("Closest systems around: {}", m_universe.m_systems[selection].m_name).c_str());
+   ImGui::SameLine();
+   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+   if (ImGui::Button((const char*)ICON_FA_MAP_MARKER_ALT, ImVec2(30, 20)))
    {
       selection = m_list_selection;
    }
-   ImGui::SameLine();
-   ImGui::Text(std::format("{}", m_universe.m_systems[selection].m_name).c_str());
+   ImGui::PopStyleVar();
 
    // TODO why does this even use the graph and not just the universe?
-   const std::vector<int> closest = starfield_graph.get_closest(selection);
+   const std::vector<int> closest = m_universe.get_closest(selection);
 
 
    if (ImGui::BeginTable("##table_closest", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
@@ -273,21 +328,31 @@ auto engine::gui_plotter(graph& starfield_graph) -> void
    bool course_changed = first_plot;
    first_plot = false;
 
-   if (ImGui::Button("Take from selector -> ##src"))
+
+   ImGui::AlignTextToFramePadding();
+   ImGui::Text(std::format("Source: {}", m_universe.m_systems[m_source_index].m_name).c_str());
+   ImGui::SameLine();
+   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+   if (ImGui::Button((const char*)ICON_FA_MAP_MARKER_ALT "##src", ImVec2(30, 20)))
    {
       course_changed = true;
       m_source_index = m_list_selection;
    }
-   ImGui::SameLine();
-   ImGui::Text(std::format("Source: {}", m_universe.m_systems[m_source_index].m_name).c_str());
+   ImGui::PopStyleVar();
 
-   if (ImGui::Button("Take from selector -> ##dst"))
+
+   ImGui::AlignTextToFramePadding();
+   ImGui::Text(std::format("Destination: {}", m_universe.m_systems[m_destination_index].m_name).c_str());
+   ImGui::SameLine();
+   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+   if (ImGui::Button((const char*)ICON_FA_MAP_MARKER_ALT "##dst", ImVec2(30, 20)))
    {
       course_changed = true;
       m_destination_index = m_list_selection;
    }
-   ImGui::SameLine();
-   ImGui::Text(std::format("Destination: {}", m_universe.m_systems[m_destination_index].m_name).c_str());
+   ImGui::PopStyleVar();
+
+
 
    ImGui::Text(std::format(
       "Total distance: {:.1f} LY",
@@ -382,7 +447,7 @@ auto sfn::engine::draw_fun() -> void
          if (ImGui::BeginTabItem("Closest stars"))
          {
             
-            gui_closest_stars(starfield_graph);
+            gui_closest_stars();
             ImGui::EndTabItem();
          }
          

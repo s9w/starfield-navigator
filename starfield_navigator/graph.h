@@ -35,6 +35,7 @@ namespace sfn {
       [[nodiscard]] auto get_position_by_name(const std::string& name) const -> glm::vec3;
       [[nodiscard]] auto get_index_by_name(const std::string& name) const -> int;
       [[nodiscard]] auto get_distance(const int a, const int b) const -> float;
+      [[nodiscard]] auto get_closest(const int system_index) const -> std::vector<int>;
    };
 
 
@@ -101,7 +102,7 @@ namespace sfn {
       [[nodiscard]] auto get_jump_path(const int start_index, const int destination_index) const -> std::optional<jump_path>;
       
       auto print_path(const jump_path& path) const -> void;
-      [[nodiscard]] auto get_closest(const int system_index) const -> std::vector<int>;
+      
    };
 
    [[nodiscard]] auto get_min_jump_dist(const universe& universe, const int start_index, const int dest_index) -> float;
