@@ -99,6 +99,7 @@
     <ClCompile Include="..\libs\src\imgui_widgets.cpp" />
     <ClCompile Include="buffer.cpp" />
     <ClCompile Include="core\canvas.cpp" />
+    <ClCompile Include="engine.cpp" />
     <ClCompile Include="framebuffers.cpp" />
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="implementations.cpp" />
@@ -112,6 +113,7 @@
   <ItemGroup>
     <ClInclude Include="buffer.h" />
     <ClInclude Include="core\canvas.h" />
+    <ClInclude Include="engine.h" />
     <ClInclude Include="framebuffers.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="setup.h" />
