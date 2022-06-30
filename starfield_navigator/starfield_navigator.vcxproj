@@ -109,6 +109,7 @@
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="tools.cpp" />
     <ClCompile Include="type_support.cpp" />
+    <ClCompile Include="vertex_data.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="buffer.h" />
@@ -121,6 +122,7 @@
     <ClInclude Include="texture.h" />
     <ClInclude Include="tools.h" />
     <ClInclude Include="type_support.h" />
+    <ClInclude Include="vertex_data.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

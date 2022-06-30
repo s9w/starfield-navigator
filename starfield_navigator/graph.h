@@ -36,6 +36,7 @@ namespace sfn {
       [[nodiscard]] auto get_index_by_name(const std::string& name) const -> int;
       [[nodiscard]] auto get_distance(const int a, const int b) const -> float;
       [[nodiscard]] auto get_closest(const int system_index) const -> std::vector<int>;
+      auto print_info() const -> void;
    };
 
 

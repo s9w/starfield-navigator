@@ -27,6 +27,34 @@ namespace
       SetWindowLong(windowHandle, GWL_STYLE, style);
    }
 
+
+   void GLAPIENTRY
+      MessageCallback(
+         GLenum,
+         GLenum type,
+         GLuint,
+         GLenum severity,
+         GLsizei,
+         const GLchar* message,
+         const void*)
+   {
+      if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
+         return;
+      // ignoring performance warning for now. Maybe fixed with SPIRV?
+      if (type == GL_DEBUG_TYPE_PERFORMANCE)
+         return;
+      int end = 0;
+      // sg::log::warn(
+      //    std::format(
+      //       "OpenGL Error.\n\tType: {}\n\tSeverity: {}\n\tmessage: {}\n",
+      //       sg::opengl_enum_to_str(type),
+      //       sg::opengl_enum_to_str(severity),
+      //       message
+      //    )
+      // );
+   }
+
+
 } // namespace {}
 
 
@@ -77,6 +105,20 @@ sfn::glad_wrapper::glad_wrapper()
    const int glad_version = gladLoadGL(glfwGetProcAddress);
    if (glad_version == 0)
       throw std::exception{ "gladLoadGL error" };
+
+   // error handling
+#ifdef _DEBUG
+   glEnable(GL_DEBUG_OUTPUT);
+   glDebugMessageCallback(MessageCallback, 0);
+   glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#endif
+
+   glEnable(GL_DEPTH_TEST);
+   glEnable(GL_BLEND);
+   glEnable(GL_CULL_FACE);
+   glCullFace(GL_BACK);
+
+   glEnable(GL_MULTISAMPLE);
 }
 
 

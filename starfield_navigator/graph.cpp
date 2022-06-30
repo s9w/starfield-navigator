@@ -328,6 +328,20 @@ auto sfn::universe::get_closest(const int system_index) const -> std::vector<int
 }
 
 
+auto universe::print_info() const -> void
+{
+   glm::vec3 min = m_systems[0].m_position;
+   glm::vec3 max = m_systems[0].m_position;
+   for(const system& system : m_systems)
+   {
+      min = glm::min(min, system.m_position);
+      max = glm::max(max, system.m_position);
+   }
+   printf(std::format("BB min: {:.1f} {:.1f}, {:.1f}\n", min[0], min[1], min[2]).c_str());
+   printf(std::format("BB max: {:.1f} {:.1f}, {:.1f}\n", max[0], max[1], max[2]).c_str());
+}
+
+
 auto sfn::get_min_jump_dist(
    const universe& universe,
    const int start_index,

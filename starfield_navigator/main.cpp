@@ -22,7 +22,8 @@ using namespace sfn;
 
 [[nodiscard]] constexpr auto c4d_convert(const glm::vec3& in) -> glm::vec3
 {
-   return glm::vec3{ in[0], -in[2], in[1] };
+   return glm::vec3{ in[0], in[2], in[1] };
+   // return glm::vec3{ in[0], -in[2], in[1] };
 }
 
 
@@ -30,7 +31,7 @@ using namespace sfn;
 [[nodiscard]] auto get_split_string(
    std::string source,
    const std::string& delim
-)->std::vector<std::string>
+) -> std::vector<std::string>
 {
    if (delim.empty())
       std::terminate();
@@ -51,18 +52,20 @@ auto get_starfield_universe() -> universe
 {
    universe starfield_universe;
    std::ifstream input("system_data.txt");
+
    for (std::string line; getline(input, line); )
    {
       const std::vector<std::string> split = get_split_string(line, "; ");
       const std::string name = split[0];
-      if(name.starts_with("Solved Camera"))
-      {
-         continue;
-      }
+      // if(name.starts_with("Solved Camera"))
+      // {
+      //    continue;
+      // }
       
       const float x = static_cast<float>(std::stod(split[1]));
       const float y = static_cast<float>(std::stod(split[2]));
       const float z = static_cast<float>(std::stod(split[3]));
+
       starfield_universe.m_systems.emplace_back(c4d_convert(glm::vec3{ x, y, z }), name);
    }
 
@@ -81,6 +84,17 @@ auto get_starfield_universe() -> universe
       {
          sys.m_position *= correction_factor;
       }
+   }
+
+   {
+      // camera stuff
+      const auto camera_pred = [](const sfn::system& sys)
+      {
+         return sys.m_name == "Solved Camera";
+      };
+      const auto it = std::ranges::find_if(starfield_universe.m_systems, camera_pred);
+      const auto camera_pos = it->m_position;
+      starfield_universe.m_systems.erase(it);
    }
 
    auto print_sol_deviation = [&](const std::string& sys_name, const float reference_dist)
@@ -117,12 +131,7 @@ auto get_starfield_universe() -> universe
       printf(std::format("max of closest: {:.2f}\n", *std::ranges::max_element(closest)).c_str());
    }
 
-   // timer t;
-   // float ddd;
-   // for(int i=0; i<1000; ++i)
-   //    ddd = get_min_jump_dist(starfield_universe, "SOL", "PORRIMA");
-   // printf(std::format("ddd: {}", ddd).c_str());
-
+   starfield_universe.print_info();
    return starfield_universe;
 }
 
