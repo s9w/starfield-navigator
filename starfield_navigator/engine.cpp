@@ -208,20 +208,19 @@ auto sfn::engine::draw_frame() -> void
    gpu_upload();
 
    // render things
-   
+   m_vao_lines->bind();
+   m_shader_lines.use();
+   m_shader_lines.set_uniform("time", timing_info.m_steady_time);
+   glDepthMask(false);
+   glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(line_mesh.size()));
+   glDepthMask(true);
 
 
    m_vao_stars->bind();
    m_shader_stars.use();
-   
    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_universe.m_systems.size()));
 
-   m_vao_lines->bind();
-   m_shader_lines.use();
-   m_shader_lines.set_uniform("time", timing_info.m_steady_time);
-   glEnable(GL_LINE_SMOOTH);
-   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-   glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(line_mesh.size()));
+   
 
    // GUI
    this->draw_fun();

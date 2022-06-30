@@ -75,6 +75,7 @@ sfn::window_wrapper::window_wrapper(const config& config)
 {
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, config.opengl_major_version);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, config.opengl_minor_version);
+   glfwWindowHint(GLFW_SAMPLES, 8);
    constexpr GLFWmonitor* monitor = nullptr;
    constexpr GLFWwindow* shared_window = nullptr;
    m_window = glfwCreateWindow(config.res_x, config.res_y, config.window_title.c_str(), monitor, shared_window);
@@ -118,6 +119,8 @@ sfn::glad_wrapper::glad_wrapper(const config& config)
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
    glEnable(GL_CULL_FACE);
    glCullFace(GL_BACK);
+   // glEnable(GL_LINE_SMOOTH);
+   // glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
    glViewport(0, 0, config.res_x, config.res_y);
    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);

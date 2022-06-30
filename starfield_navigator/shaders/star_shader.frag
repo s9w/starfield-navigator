@@ -12,7 +12,20 @@ in float io_closeness;
 
 void main()
 {
+    vec2 circCoord = 2.0 * gl_PointCoord - 1.0;
+    float dist = dot(circCoord, circCoord);
+
+    if (dot(circCoord, circCoord) > 1.0) {
+        discard;
+    }
+
+
+    // if (dot(circCoord, circCoord) > 1.2) {
+    //     discard;
+    // }
+    // float alpha = smoothstep(1.2, 0.8, dist);
+
     float intensity = clamp(io_closeness, 0.3, 1);
-    FragColor = vec4(1, 1, 1, intensity);
+    FragColor = vec4(vec3(intensity), 1);
 } 
 

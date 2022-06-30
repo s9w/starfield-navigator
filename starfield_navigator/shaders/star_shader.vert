@@ -19,6 +19,6 @@ void main()
    
    float distance_from_cam = distance(position, camera_pos);
    float closeness = 1.0 - distance_from_cam / 130.0;
-   gl_PointSize = clamp(closeness, 0.4, 1.0) * 8;
+   gl_PointSize = clamp(closeness, 0.4, 1.0) * 20;
    io_closeness = closeness;
 }
