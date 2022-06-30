@@ -242,7 +242,6 @@ auto sfn::engine::draw_frame() -> void
    glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(line_mesh.size()));
    glDepthMask(true);
 
-
    m_vao_stars->bind();
    m_shader_stars.use();
    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_universe.m_systems.size()));
@@ -522,9 +521,9 @@ auto engine::get_camera_pos() const -> glm::vec3
    else if(std::holds_alternative<circle_mode>(m_camera_mode))
    {
       const circle_mode& mode = std::get<circle_mode>(m_camera_mode);
-      const glm::vec3 planet_pos = m_universe.m_systems[mode.m_planet].m_position;
-      const glm::vec3 cam_pos = planet_pos + glm::vec3{0, -50, 0};
-      return cam_pos;
+      const glm::vec3& planet_pos = m_universe.m_systems[mode.m_planet].m_position;
+      const glm::vec3 offset = get_cartesian_from_spherical(mode.horiz_angle_offset, mode.vert_angle_offset, mode.distance);
+      return planet_pos + offset;
    }
    std::terminate();
 }
@@ -555,14 +554,6 @@ auto sfn::engine::gui_draw() -> void
          if (is_button_pressed(GLFW_KEY_D)) {
             camera_pos.x += +0.1f;
          }
-      }
-      else if(std::holds_alternative<circle_mode>(m_camera_mode))
-      {
-         circle_mode& mode = std::get<circle_mode>(m_camera_mode);
-         if (is_button_pressed(GLFW_KEY_W))
-            mode.distance -= 0.1f;
-         if (is_button_pressed(GLFW_KEY_S))
-            mode.distance += 0.1f;
       }
 
       if(ImGui::Button("enable WASD mode"))
@@ -651,11 +642,9 @@ auto sfn::engine::get_view_matrix(const wasd_mode& wasd) const -> glm::mat4
 auto sfn::engine::get_view_matrix(const circle_mode& circle) const -> glm::mat4
 {
    const glm::vec3& planet_pos = m_universe.m_systems[circle.m_planet].m_position;
-   const glm::vec3 offfset = get_cartesian_from_spherical(circle.horiz_angle_offset, circle.vert_angle_offset, circle.distance);
-   const auto camera_ps = planet_pos + offfset;
 
    return glm::lookAt(
-      camera_ps,
+      get_camera_pos(),
       planet_pos,
       glm::vec3{ 0, 0, 1 }
    );
@@ -664,6 +653,7 @@ auto sfn::engine::get_view_matrix(const circle_mode& circle) const -> glm::mat4
 
 auto engine::draw_system_labels() const -> void
 {
+   const glm::vec3 cam_pos = this->get_camera_pos();
    for (const system& system : m_universe.m_systems)
    {
       if (system.m_info_quality == info_quality::unknown)
@@ -677,7 +667,11 @@ auto engine::draw_system_labels() const -> void
       const ImVec2 text_size = ImGui::CalcTextSize(system.m_name.c_str());
       imgui_draw_pos.x -= 0.5f * text_size.x;
       imgui_draw_pos.y -= 0.5f * text_size.y;
-      imgui_draw_pos.y -= 15.0f;
+
+      const float distance_from_cam = glm::distance(cam_pos, system.m_position);
+      const float pointsize = 500 / distance_from_cam;
+      const float planet_radius = 0.5f * pointsize;
+      imgui_draw_pos.y -= planet_radius + 8.0f;
       ImColor text_color = ImColor(50.0f, 45.0f, 255.0f, 27.0f);
       if (system.m_info_quality == info_quality::speculation)
          text_color = ImColor(0.0f, 255.0f, 0.0f, 127.0f);

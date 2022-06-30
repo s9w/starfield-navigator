@@ -9,7 +9,7 @@ layout (std140) uniform ubo_mvp
     mat4 projection;
 };
 
-out float io_closeness;
+out float io_distance;
 
 void main()
 {
@@ -18,7 +18,6 @@ void main()
    gl_Position = pos;
    
    float distance_from_cam = distance(position, camera_pos);
-   float closeness = 1.0 - distance_from_cam / 130.0;
-   gl_PointSize = clamp(closeness, 0.4, 1.0) * 20;
-   io_closeness = closeness;
+   gl_PointSize = 500/distance_from_cam;
+   io_distance = distance_from_cam;
 }
