@@ -25,7 +25,7 @@ void main()
     // }
     // float alpha = smoothstep(1.2, 0.8, dist);
 
-    float intensity = clamp(1-io_distance/150, 0.5, 1);
+    float intensity = clamp(1-io_distance/150, 0.5, 1.0);
     FragColor = vec4(vec3(intensity), 1);
 } 
 
