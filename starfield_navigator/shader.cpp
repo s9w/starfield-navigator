@@ -245,6 +245,7 @@ sfn::shader::shader(
       msg.resize(msg_length);
       glGetShaderInfoLog(m_opengl_id, msg_length, NULL, msg.data());
       // log::error("shader compilation error: {}", msg);
+      std::terminate();
    }
 
    //assert_binary_io_formats();
