@@ -50,7 +50,7 @@ namespace sfn
 
    struct glad_wrapper
    {
-      explicit glad_wrapper();
+      explicit glad_wrapper(const config& config);
       ~glad_wrapper() = default;
 
       glad_wrapper(const glad_wrapper&) = delete;

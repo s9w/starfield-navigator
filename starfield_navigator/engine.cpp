@@ -84,6 +84,7 @@ namespace
    }
 
    std::vector<position_vertex_data> star_mesh;
+   std::vector<line_vertex_data> line_mesh;
    std::vector<position_vertex_data> screen_rect_mesh = {
       position_vertex_data{.m_position = { -1, -1, 0}},
       position_vertex_data{.m_position = {  1, -1, 0}},
@@ -99,10 +100,12 @@ namespace
 
 sfn::engine::engine(const config& config, universe&& universe)
    : m_window_wrapper(config)
+   , m_glad_wrapper(config)
    , m_imgui_context(config, m_window_wrapper.m_window)
    , m_universe(std::move(universe))
    , m_buffers2(128)
    , m_shader_stars("star_shader")
+   , m_shader_lines("line_shader")
    , m_framebuffers(m_textures)
 {
    {
@@ -145,21 +148,22 @@ sfn::engine::engine(const config& config, universe&& universe)
    star_mesh = get_star_vertex_data(m_universe);
    buffer_layout.emplace_back(get_soa_vbo_segment(star_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment(screen_rect_mesh));
-   buffer_layout.emplace_back(get_soa_vbo_segment<position_vertex_data>(100*100));
+   buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    const std::vector<id> segment_ids = m_buffers2.create_buffer(std::move(buffer_layout), usage_pattern::dynamic_draw);
    m_mvp_ubo_id = segment_ids[0];
    m_star_vbo_id = segment_ids[1];
-   m_screen_rect_vbo_id = segment_ids[1];
-   m_connections_vbo_id = segment_ids[2];
+   m_screen_rect_vbo_id = segment_ids[2];
+   m_connections_vbo_id = segment_ids[3];
 
    m_binding_point_man.add(m_mvp_ubo_id);
    m_main_fb = m_framebuffers.get_efault_fb();
-   m_binding_point_man.add(m_mvp_ubo_id);
 
    const buffer& buffer_ref = m_buffers2.get_single_buffer_ref();
    bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_stars);
+   bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_lines);
 
    m_vao_stars.emplace(m_buffers2, m_star_vbo_id, m_shader_stars);
+   m_vao_lines.emplace(m_buffers2, m_connections_vbo_id, m_shader_lines);
    m_vao_screen_rect.emplace(m_buffers2, m_screen_rect_vbo_id, m_shader_stars);
 }
 
@@ -188,7 +192,8 @@ auto sfn::engine::resize_callback(
 
 auto sfn::engine::draw_frame() -> void
 {
-   // glClear(GL_COLOR_BUFFER_BIT);
+   const timing_info timing_info = m_frame_pacer.get_timing_info();
+
    m_framebuffers.bind_fb(m_main_fb, fb_target::full);
    m_framebuffers.clear_depth(m_main_fb);
    constexpr glm::vec3 bg_color{}; //{ 0.01f, 0.156f, 0.139f };
@@ -203,16 +208,20 @@ auto sfn::engine::draw_frame() -> void
    gpu_upload();
 
    // render things
+   
+
+
    m_vao_stars->bind();
    m_shader_stars.use();
-   glViewport(0, 0, 1280, 720);
-   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-   // glPointSize(5);
+   
    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_universe.m_systems.size()));
 
+   m_vao_lines->bind();
+   m_shader_lines.use();
+   m_shader_lines.set_uniform("time", timing_info.m_steady_time);
    glEnable(GL_LINE_SMOOTH);
    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-   glDrawArrays(GL_LINES, 0, 4);
+   glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(line_mesh.size()));
 
    // GUI
    this->draw_fun();
@@ -220,6 +229,7 @@ auto sfn::engine::draw_frame() -> void
    m_imgui_context.frame_end();
    glfwSwapBuffers(this->get_window());
    glfwPollEvents();
+   m_frame_pacer.mark_frame_end();
 }
 
 
@@ -390,7 +400,36 @@ auto sfn::engine::gui_plotter(graph& starfield_graph) -> void
          }
          path_strings.push_back("-----");
          path_strings.push_back(std::format("Travelled distance: {:.1f} LY", travelled_distance));
+
+         // update vertices
+         line_mesh.clear();
+         travelled_distance = 0.0f;
+         for (int i = 0; i < path->m_stops.size() - 1; ++i)
+         {
+            const int this_stop_system = path->m_stops[i];
+            const int next_stop_system = path->m_stops[i + 1];
+            const float dist = glm::distance(starfield_graph.m_nodes[this_stop_system].m_position, starfield_graph.m_nodes[next_stop_system].m_position);
+
+            const float this_progress = travelled_distance;
+            travelled_distance += dist;
+            const float next_progress = travelled_distance;
+
+            line_mesh.push_back(
+               line_vertex_data{
+                  .m_position = starfield_graph.m_nodes[this_stop_system].m_position,
+                  .m_progress = this_progress
+               }
+            );
+            line_mesh.push_back(
+               line_vertex_data{
+                  .m_position = starfield_graph.m_nodes[next_stop_system].m_position,
+                  .m_progress = next_progress
+               }
+            );
+         }
       }
+
+      
    }
 
    // Path display
@@ -434,6 +473,7 @@ auto engine::gpu_upload() -> void
 {
    m_buffers2.upload_ubo(m_mvp_ubo_id, as_bytes(m_current_mvp));
    m_buffers2.upload_vbo(m_star_vbo_id, as_bytes(star_mesh));
+   m_buffers2.upload_vbo(m_connections_vbo_id, as_bytes(line_mesh));
    m_buffers2.upload_vbo(m_screen_rect_vbo_id, as_bytes(screen_rect_mesh));
 }
 

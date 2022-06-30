@@ -65,6 +65,11 @@ namespace sfn
       static auto for_each(vertex_data_visitor& visitor) -> void;
    };
 
-   
+   struct line_vertex_data
+   {
+      glm::vec3 m_position;
+      float m_progress;
+      static auto for_each(vertex_data_visitor& visitor) -> void;
+   };
 
 }

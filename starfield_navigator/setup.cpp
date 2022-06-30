@@ -100,7 +100,7 @@ sfn::window_wrapper::~window_wrapper()
 }
 
 
-sfn::glad_wrapper::glad_wrapper()
+sfn::glad_wrapper::glad_wrapper(const config& config)
 {
    const int glad_version = gladLoadGL(glfwGetProcAddress);
    if (glad_version == 0)
@@ -118,6 +118,9 @@ sfn::glad_wrapper::glad_wrapper()
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
    glEnable(GL_CULL_FACE);
    glCullFace(GL_BACK);
+
+   glViewport(0, 0, config.res_x, config.res_y);
+   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
    glEnable(GL_MULTISAMPLE);
 }

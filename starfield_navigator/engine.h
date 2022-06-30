@@ -3,6 +3,7 @@
 #include "setup.h"
 #include "vertex_data.h"
 #include "buffer.h"
+#include "timing_provider.h"
 
 
 namespace sfn
@@ -22,7 +23,7 @@ namespace sfn
    private:
       static inline engine* engine_ptr;
    public:
-
+      timing_provider m_frame_pacer{};
       glfw_wrapper m_glfw;
       window_wrapper m_window_wrapper;
       glad_wrapper m_glad_wrapper;
@@ -35,7 +36,7 @@ namespace sfn
       int m_destination_index = m_universe.get_index_by_name("PORRIMA");
 
       glm::vec3 m_camera_pos{ 6, -12, 0 };
-      bool m_wasda_enabled = false;
+      bool m_wasda_enabled = true;
       buffers m_buffers2;
       id m_mvp_ubo_id{ no_init{} };
       id m_main_fb{ no_init{} };
@@ -45,9 +46,11 @@ namespace sfn
       binding_point_man m_binding_point_man;
       mvp_type m_current_mvp{};
       shader_program m_shader_stars;
+      shader_program m_shader_lines;
       texture_manager m_textures{};
       framebuffer_manager m_framebuffers; // needs to be after texture manager
       std::optional<vao> m_vao_stars;
+      std::optional<vao> m_vao_lines;
       std::optional<vao> m_vao_screen_rect;
 
       explicit engine(const config& config, universe&& universe);
@@ -80,7 +83,6 @@ namespace sfn
       auto bind_ubo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;
       auto gpu_upload() -> void;
       auto update_mvp_member() -> void;
-      // auto get_star_vertex_data() const->std::vector<position_vertex_data>;
    };
 
 }

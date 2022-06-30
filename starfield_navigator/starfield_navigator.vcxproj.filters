@@ -87,6 +87,9 @@
     <ClCompile Include="vertex_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="timing_provider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools.h">
@@ -120,6 +123,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vertex_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="timing_provider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

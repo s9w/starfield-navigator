@@ -107,6 +107,7 @@
     <ClCompile Include="setup.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="texture.cpp" />
+    <ClCompile Include="timing_provider.cpp" />
     <ClCompile Include="tools.cpp" />
     <ClCompile Include="type_support.cpp" />
     <ClCompile Include="vertex_data.cpp" />
@@ -120,6 +121,7 @@
     <ClInclude Include="setup.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="texture.h" />
+    <ClInclude Include="timing_provider.h" />
     <ClInclude Include="tools.h" />
     <ClInclude Include="type_support.h" />
     <ClInclude Include="vertex_data.h" />
