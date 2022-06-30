@@ -233,7 +233,12 @@ auto sfn::engine::draw_frame() -> void
    m_imgui_context.frame_begin();
 
    // calculate things
-   update_mvp_member(); // TODO
+   update_mvp_member();
+   if(std::holds_alternative<trailer_mode>(m_camera_mode))
+   {
+      float& progress = std::get<trailer_mode>(m_camera_mode).m_progress;
+      progress = std::fmod(progress + 0.002f, 1.0f);
+   }
 
    // upload things
    gpu_upload();
@@ -394,7 +399,7 @@ auto sfn::engine::gui_plotter() -> void
    {
       slider_min = get_min_jump_dist(m_universe, m_source_index, m_destination_index) + 0.001f;
       slider_max = m_universe.get_distance(m_source_index, m_destination_index) + 0.001f;
-      jump_range = 0.5f * (slider_min + slider_max);
+      jump_range = slider_min;
    }
 
    course_changed |= ImGui::SliderFloat("jump range", &jump_range, slider_min, slider_max);
@@ -527,6 +532,12 @@ auto engine::get_camera_pos() const -> glm::vec3
    {
       return std::get<wasd_mode>(m_camera_mode).m_camera_pos;
    }
+   else if (std::holds_alternative<trailer_mode>(m_camera_mode))
+   {
+      const trailer_mode& mode = std::get<trailer_mode>(m_camera_mode);
+      const glm::vec3 camera_pos = glm::mix(trailer_mode::pos0, trailer_mode::pos1, mode.m_progress);
+      return camera_pos;
+   }
    else if(std::holds_alternative<circle_mode>(m_camera_mode))
    {
       const circle_mode& mode = std::get<circle_mode>(m_camera_mode);
@@ -542,7 +553,7 @@ auto sfn::engine::gui_draw() -> void
 {
    // glLineWidth(5);
    {
-      normal_imgui_window w(glm::ivec2{ 200, 0 }, glm::ivec2{ 350, 60 }, "camera");
+      normal_imgui_window w(glm::ivec2{ 200, 0 }, glm::ivec2{ 450, 60 }, "camera");
 
       const auto is_button_pressed = [&](const int key) -> bool {
          return glfwGetKey(m_window_wrapper.m_window, key) == GLFW_PRESS;
@@ -563,13 +574,17 @@ auto sfn::engine::gui_draw() -> void
             camera_pos.x += +0.1f;
          }
       }
-
-      if(ImGui::Button(std::format("{} WASD mode", (const char*)ICON_FA_VIDEO).c_str()))
+      if (ImGui::Button(std::format("{} Trailer", (const char*)ICON_FA_VIDEO).c_str()))
+      {
+         m_camera_mode = trailer_mode{};
+      }
+      ImGui::SameLine();
+      if(ImGui::Button(std::format("{} Frontal", (const char*)ICON_FA_VIDEO).c_str()))
       {
          m_camera_mode = wasd_mode{};
       }
       ImGui::SameLine();
-      if (ImGui::Button(std::format("{} Center mode (around {})", (const char*)ICON_FA_VIDEO, m_universe.m_systems[m_list_selection].m_name).c_str()))
+      if (ImGui::Button(std::format("{} Center (around {})", (const char*)ICON_FA_VIDEO, m_universe.m_systems[m_list_selection].m_name).c_str()))
       {
          m_camera_mode = circle_mode{
             .m_planet = m_list_selection,
@@ -598,36 +613,24 @@ auto sfn::engine::gui_draw() -> void
    }
 
    {
-      normal_imgui_window w(glm::ivec2{ 0, 0 }, glm::ivec2{ 200, m_config.res_y }, "System selector");
+      normal_imgui_window w(glm::ivec2{ 0, 0 }, glm::ivec2{ 200, 500 }, "System selector");
       draw_list();
    }
 
    {
       constexpr float tools_width = 500.0f;
-      normal_imgui_window w(glm::ivec2{ m_config.res_x- tools_width, 0 }, glm::ivec2{ tools_width, 300 }, "Tools");
+      normal_imgui_window w(glm::ivec2{ m_config.res_x- tools_width, 0 }, glm::ivec2{ tools_width, 250 }, "Tools");
 
       if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
       {
          ImGui::PushStyleColor(ImGuiCol_Tab, (ImVec4)ImColor::HSV(0.0f, 0.5f, 0.6f));
          ImGui::PushStyleColor(ImGuiCol_TabHovered, (ImVec4)ImColor::HSV(0.0f, 0.5f, 0.8f));
          ImGui::PushStyleColor(ImGuiCol_TabActive, (ImVec4)ImColor::HSV(0.0f, 0.5f, 0.9f));
-         if (ImGui::BeginTabItem("Closest stars"))
-         {
-            m_gui_mode = gui_mode::closest;
-            gui_closest_stars();
-            ImGui::EndTabItem();
-         }
 
-         if (ImGui::BeginTabItem("Jump calculations"))
-         {
-            m_gui_mode = gui_mode::jumps;
-            gui_plotter();
-            ImGui::EndTabItem();
-         }
          if (ImGui::BeginTabItem("Show connections"))
          {
             m_gui_mode = gui_mode::connections;
-            static float connections_jump_range = 20.0f;
+            static float connections_jump_range = 15.0f;
             static graph connection_graph = graph(m_universe, connections_jump_range);
             if(ImGui::SliderFloat("jump range", &connections_jump_range, 10, 30) || connection_line_mesh.empty())
             {
@@ -650,6 +653,19 @@ auto sfn::engine::gui_draw() -> void
                   );
                }
             }
+            ImGui::EndTabItem();
+         }
+         if (ImGui::BeginTabItem("Closest stars"))
+         {
+            m_gui_mode = gui_mode::closest;
+            gui_closest_stars();
+            ImGui::EndTabItem();
+         }
+
+         if (ImGui::BeginTabItem("Jump calculations"))
+         {
+            m_gui_mode = gui_mode::jumps;
+            gui_plotter();
             ImGui::EndTabItem();
          }
          // if (ImGui::BeginTabItem("game"))
@@ -691,6 +707,15 @@ auto sfn::engine::get_view_matrix(const circle_mode& circle) const -> glm::mat4
       planet_pos,
       glm::vec3{ 0, 0, 1 }
    );
+}
+
+
+auto engine::get_view_matrix(const trailer_mode& trailer) const -> glm::mat4
+{
+   glm::mat4 view_matrix{ 1.0f };
+   view_matrix = glm::rotate(view_matrix, glm::radians(-90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
+   view_matrix = glm::translate(view_matrix, -get_camera_pos());
+   return view_matrix;
 }
 
 

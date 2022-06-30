@@ -20,7 +20,8 @@ namespace sfn
 
    struct wasd_mode
    {
-      glm::vec3 m_camera_pos{ 6, -12, 0 };
+      glm::vec3 m_camera_pos{ 9.76780128, -19.2952900, -0.248474315 };
+      // glm::vec3 m_camera_pos{ 6, -12, 0 };
    };
    struct circle_mode
    {
@@ -29,8 +30,13 @@ namespace sfn
       float horiz_angle_offset;
       float vert_angle_offset;
    };
+   struct trailer_mode{
+      constexpr static glm::vec3 pos0{};
+      constexpr static glm::vec3 pos1{ 9.76780128, -19.2952900, -0.248474315 };
+      float m_progress = 0.0;
+   };
 
-   using camera_mode = std::variant<wasd_mode, circle_mode>;
+   using camera_mode = std::variant<wasd_mode, circle_mode, trailer_mode>;
 
    enum class gui_mode{closest, jumps, connections, game};
 
@@ -113,6 +119,7 @@ namespace sfn
       auto get_camera_pos() const -> glm::vec3;
       [[nodiscard]] auto get_view_matrix(const wasd_mode& wasd) const -> glm::mat4;
       [[nodiscard]] auto get_view_matrix(const circle_mode& circle) const -> glm::mat4;
+      [[nodiscard]] auto get_view_matrix(const trailer_mode& trailer) const -> glm::mat4;
       auto draw_system_labels() const -> void;
    };
 }

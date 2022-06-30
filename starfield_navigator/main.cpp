@@ -48,6 +48,23 @@ using namespace sfn;
    return parts;
 }
 
+
+auto extract_and_delete_cameras(std::vector<sfn::system>& systems) -> void
+{
+   const auto camera_pred = [](const sfn::system& sys)
+   {
+      return sys.m_name.starts_with("cam");
+   };
+   std::vector<glm::vec3> cam_positions;
+   for(const sfn::system& sys : systems)
+   {
+      if (camera_pred(sys))
+         cam_positions.push_back(sys.m_position);
+   }
+   std::erase_if(systems, camera_pred);
+}
+
+
 auto get_starfield_universe() -> universe
 {
    universe starfield_universe;
@@ -57,10 +74,6 @@ auto get_starfield_universe() -> universe
    {
       const std::vector<std::string> split = get_split_string(line, "; ");
       const std::string name = split[0];
-      // if(name.starts_with("Solved Camera"))
-      // {
-      //    continue;
-      // }
       
       const float x = static_cast<float>(std::stod(split[1]));
       const float y = static_cast<float>(std::stod(split[2]));
@@ -86,16 +99,7 @@ auto get_starfield_universe() -> universe
       }
    }
 
-   {
-      // camera stuff
-      const auto camera_pred = [](const sfn::system& sys)
-      {
-         return sys.m_name == "Solved Camera";
-      };
-      const auto it = std::ranges::find_if(starfield_universe.m_systems, camera_pred);
-      const auto camera_pos = it->m_position;
-      starfield_universe.m_systems.erase(it);
-   }
+   extract_and_delete_cameras(starfield_universe.m_systems);
 
    auto print_sol_deviation = [&](const std::string& sys_name, const float reference_dist)
    {
