@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "logging.h"
+
 #pragma warning(push, 0)    
 #include <glm/gtc/type_ptr.hpp>
 #pragma warning(pop)
@@ -21,7 +23,7 @@ namespace
          case shader_type::vertex: return GL_VERTEX_SHADER;
          case shader_type::compute: return GL_COMPUTE_SHADER;
       }
-      // log::error("bad enum");
+      log::error("bad enum");
       std::terminate();
    }
 
@@ -40,7 +42,7 @@ namespace
       {
          return shader_type::compute;
       }
-      // log::error("unknown shader extension: {}", filename);
+      log::error(std::format("unknown shader extension: {}", filename));
       std::terminate();
    }
 
@@ -145,7 +147,7 @@ namespace
       GLint formats = 0;
       glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &formats);
       if (formats == 0) {
-         // log::error("Driver does not support any binary formats.");
+         log::error("Driver does not support any binary formats.");
          std::terminate();
       }
    }
@@ -222,7 +224,7 @@ sfn::shader::shader(
    const fs::path path = get_shader_path(filename.string());
    if(exists(path) == false)
    {
-      // log::error("path doesn't exist: {}", path.string());
+      log::error(std::format("path doesn't exist: {}", path.string()));
       std::terminate();
    }
 
@@ -244,7 +246,7 @@ sfn::shader::shader(
       std::string msg;
       msg.resize(msg_length);
       glGetShaderInfoLog(m_opengl_id, msg_length, NULL, msg.data());
-      // log::error("shader compilation error: {}", msg);
+      log::error(std::format("shader compilation error: {}", msg));
       std::terminate();
    }
 
@@ -299,7 +301,7 @@ shader_program::shader_program(
       std::string msg;
       msg.resize(msg_length);
       glGetProgramInfoLog(m_opengl_id, msg_length, NULL, msg.data());
-      // log::error("shader program link error: {}", msg);
+      log::error(std::format("shader program link error: {}", msg));
       std::terminate();
    }
 
@@ -347,7 +349,7 @@ auto binding_point_man::get_point(const id id) const -> int
       if (id == m_ids[i])
          return i;
    }
-   // log::error( "binding point for id not found");
+   log::error( std::format("binding point for id not found"));
    std::terminate();
 }
 
@@ -371,7 +373,7 @@ auto sfn::shader_program::set_uniform(
    const shader_io& uni = get_uniform(name);
    if (get_data_type_v<T> != uni.m_data_type)
    {
-      // log::error("types don't match in set_uniform()");
+      log::error(std::format("types don't match in set_uniform()"));
       std::terminate();
    }
 

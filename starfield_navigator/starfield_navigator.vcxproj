@@ -118,6 +118,7 @@
     <ClInclude Include="engine.h" />
     <ClInclude Include="framebuffers.h" />
     <ClInclude Include="graph.h" />
+    <ClInclude Include="logging.h" />
     <ClInclude Include="setup.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="texture.h" />
