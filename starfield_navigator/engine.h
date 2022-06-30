@@ -12,6 +12,7 @@ namespace sfn
 
    struct mvp_type : ubo_type
    {
+      alignas(glm::vec4) glm::vec3 m_cam_pos;
       alignas(sizeof(glm::vec4)) glm::mat4 m_view{ 1.0f };
       alignas(sizeof(glm::vec4)) glm::mat4 m_projection{ 1.0f };
    };
@@ -39,6 +40,7 @@ namespace sfn
       id m_mvp_ubo_id{ no_init{} };
       id m_main_fb{ no_init{} };
       id m_star_vbo_id{ no_init{} };
+      id m_screen_rect_vbo_id{ no_init{} };
       id m_connections_vbo_id{ no_init{} };
       binding_point_man m_binding_point_man;
       mvp_type m_current_mvp{};
@@ -46,6 +48,7 @@ namespace sfn
       texture_manager m_textures{};
       framebuffer_manager m_framebuffers; // needs to be after texture manager
       std::optional<vao> m_vao_stars;
+      std::optional<vao> m_vao_screen_rect;
 
       explicit engine(const config& config, universe&& universe);
       [[nodiscard]] auto get_window() const->GLFWwindow*;
@@ -77,7 +80,7 @@ namespace sfn
       auto bind_ubo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;
       auto gpu_upload() -> void;
       auto update_mvp_member() -> void;
-      // auto get_star_vertex_data() const->std::vector<star_vertex_data>;
+      // auto get_star_vertex_data() const->std::vector<position_vertex_data>;
    };
 
 }

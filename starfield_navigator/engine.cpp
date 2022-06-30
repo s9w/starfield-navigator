@@ -72,20 +72,27 @@ namespace
    }
 
 
-   auto get_star_vertex_data(const universe& universe) -> std::vector<star_vertex_data>
+   auto get_star_vertex_data(const universe& universe) -> std::vector<position_vertex_data>
    {
-      std::vector<star_vertex_data> result;
+      std::vector<position_vertex_data> result;
       result.reserve(universe.m_systems.size());
       for (const sfn::system& sys : universe.m_systems)
       {
-         result.push_back(star_vertex_data{ .m_position = sys.m_position });
+         result.push_back(position_vertex_data{ .m_position = sys.m_position });
       }
       return result;
    }
 
-
-   std::vector<star_vertex_data> star_mesh;
-   std::vector<star_vertex_data> connection_mesh;
+   std::vector<position_vertex_data> star_mesh;
+   std::vector<position_vertex_data> screen_rect_mesh = {
+      position_vertex_data{.m_position = { -1, -1, 0}},
+      position_vertex_data{.m_position = {  1, -1, 0}},
+      position_vertex_data{.m_position = { -1,  1, 0}},
+      position_vertex_data{.m_position = { -1, -1, 0}},
+      position_vertex_data{.m_position = {  1,  1, 0}},
+      position_vertex_data{.m_position = { -1,  1, 0}}
+   };
+   // std::vector<position_vertex_data> connection_mesh;
 
 } // namespace {}
 
@@ -137,10 +144,12 @@ sfn::engine::engine(const config& config, universe&& universe)
 
    star_mesh = get_star_vertex_data(m_universe);
    buffer_layout.emplace_back(get_soa_vbo_segment(star_mesh));
-   buffer_layout.emplace_back(get_soa_vbo_segment<star_vertex_data>(100*100));
+   buffer_layout.emplace_back(get_soa_vbo_segment(screen_rect_mesh));
+   buffer_layout.emplace_back(get_soa_vbo_segment<position_vertex_data>(100*100));
    const std::vector<id> segment_ids = m_buffers2.create_buffer(std::move(buffer_layout), usage_pattern::dynamic_draw);
    m_mvp_ubo_id = segment_ids[0];
    m_star_vbo_id = segment_ids[1];
+   m_screen_rect_vbo_id = segment_ids[1];
    m_connections_vbo_id = segment_ids[2];
 
    m_binding_point_man.add(m_mvp_ubo_id);
@@ -151,6 +160,7 @@ sfn::engine::engine(const config& config, universe&& universe)
    bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_stars);
 
    m_vao_stars.emplace(m_buffers2, m_star_vbo_id, m_shader_stars);
+   m_vao_screen_rect.emplace(m_buffers2, m_screen_rect_vbo_id, m_shader_stars);
 }
 
 
@@ -380,7 +390,6 @@ auto sfn::engine::gui_plotter(graph& starfield_graph) -> void
          path_strings.push_back("-----");
          path_strings.push_back(std::format("Travelled distance: {:.1f} LY", travelled_distance));
       }
-      int end = 0;
    }
 
    // Path display
@@ -424,10 +433,12 @@ auto engine::gpu_upload() -> void
 {
    m_buffers2.upload_ubo(m_mvp_ubo_id, as_bytes(m_current_mvp));
    m_buffers2.upload_vbo(m_star_vbo_id, as_bytes(star_mesh));
+   m_buffers2.upload_vbo(m_screen_rect_vbo_id, as_bytes(screen_rect_mesh));
 }
 
 auto engine::update_mvp_member() -> void
 {
+   m_current_mvp.m_cam_pos = m_camera_pos;
    m_current_mvp.m_projection = get_projection_matrxi();
    m_current_mvp.m_view = get_view_matrix(m_camera_pos);
 }
