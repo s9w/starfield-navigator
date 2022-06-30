@@ -37,6 +37,7 @@ namespace sfn
    private:
       static inline engine* engine_ptr;
    public:
+      config m_config;
       timing_provider m_frame_pacer{};
       glfw_wrapper m_glfw;
       window_wrapper m_window_wrapper;
@@ -94,7 +95,7 @@ namespace sfn
 
       auto draw_frame() -> void;
       auto draw_loop() -> void;
-      auto draw_fun() -> void;
+      auto gui_draw() -> void;
 
       engine(const engine&) = delete;
       engine& operator=(const engine&) = delete;
@@ -110,6 +111,7 @@ namespace sfn
       auto get_camera_pos() const -> glm::vec3;
       [[nodiscard]] auto get_view_matrix(const wasd_mode& wasd) const -> glm::mat4;
       [[nodiscard]] auto get_view_matrix(const circle_mode& circle) const -> glm::mat4;
+      auto draw_system_labels() const -> void;
    };
 }
 

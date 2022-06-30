@@ -104,7 +104,8 @@ namespace
 
 
 sfn::engine::engine(const config& config, universe&& universe)
-   : m_window_wrapper(config)
+   : m_config(config)
+   , m_window_wrapper(config)
    , m_glad_wrapper(config)
    , m_imgui_context(config, m_window_wrapper.m_window)
    , m_universe(std::move(universe))
@@ -210,7 +211,7 @@ auto sfn::engine::scroll_callback(
    if(std::holds_alternative<circle_mode>(m_camera_mode))
    {
       auto& mode = std::get<circle_mode>(m_camera_mode);
-      mode.distance += -3.0f * static_cast<float>(yoffset);
+      mode.distance += -5.0f * static_cast<float>(yoffset);
       mode.distance = std::clamp(mode.distance, 8.0f, 200.0f);
    }
 }
@@ -246,10 +247,10 @@ auto sfn::engine::draw_frame() -> void
    m_shader_stars.use();
    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_universe.m_systems.size()));
 
-   
+   draw_system_labels();
 
    // GUI
-   this->draw_fun();
+   this->gui_draw();
 
    m_imgui_context.frame_end();
    glfwSwapBuffers(this->get_window());
@@ -529,7 +530,7 @@ auto engine::get_camera_pos() const -> glm::vec3
 }
 
 
-auto sfn::engine::draw_fun() -> void
+auto sfn::engine::gui_draw() -> void
 {
    static graph starfield_graph;
 
@@ -658,4 +659,28 @@ auto sfn::engine::get_view_matrix(const circle_mode& circle) const -> glm::mat4
       planet_pos,
       glm::vec3{ 0, 0, 1 }
    );
+}
+
+
+auto engine::draw_system_labels() const -> void
+{
+   for (const system& system : m_universe.m_systems)
+   {
+      if (system.m_info_quality == info_quality::unknown)
+         continue;
+      glm::vec4 screen_pos_vec4 = m_current_mvp.m_projection * m_current_mvp.m_view * glm::vec4(system.m_position, 1.0f);
+      screen_pos_vec4 /= screen_pos_vec4[3];
+
+      glm::vec2 imgui_draw_pos = 0.5f * (glm::vec2(screen_pos_vec4) + 1.0f);
+      imgui_draw_pos[1] = 1.0f - imgui_draw_pos[1];
+      imgui_draw_pos *= glm::vec2{ m_config.res_x, m_config.res_y };
+      const ImVec2 text_size = ImGui::CalcTextSize(system.m_name.c_str());
+      imgui_draw_pos.x -= 0.5f * text_size.x;
+      imgui_draw_pos.y -= 0.5f * text_size.y;
+      imgui_draw_pos.y -= 15.0f;
+      ImColor text_color = ImColor(50.0f, 45.0f, 255.0f, 27.0f);
+      if (system.m_info_quality == info_quality::speculation)
+         text_color = ImColor(0.0f, 255.0f, 0.0f, 127.0f);
+      ImGui::GetBackgroundDrawList()->AddText(ImVec2(imgui_draw_pos[0], imgui_draw_pos[1]), text_color, system.m_name.c_str());
+   }
 }
