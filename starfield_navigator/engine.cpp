@@ -206,7 +206,8 @@ auto sfn::engine::draw_frame() -> void
    m_vao_stars->bind();
    m_shader_stars.use();
    glViewport(0, 0, 1280, 720);
-   glPointSize(5);
+   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+   // glPointSize(5);
    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_universe.m_systems.size()));
 
    glEnable(GL_LINE_SMOOTH);

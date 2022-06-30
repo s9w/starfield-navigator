@@ -8,12 +8,11 @@ layout (std140) uniform ubo_mvp
     mat4 projection;
 };
 
-in float io_distance_from_cam;
+in float io_closeness;
 
 void main()
 {
-    float closeness = io_distance_from_cam / 130.0;
-    float intensity = clamp(1.0 - closeness, 0.3, 1);
+    float intensity = clamp(io_closeness, 0.3, 1);
     FragColor = vec4(1, 1, 1, intensity);
 } 
 
