@@ -138,6 +138,7 @@ sfn::imgui_context::imgui_context(const config& config, GLFWwindow* window)
    ImGui_ImplOpenGL3_Init(glsl_version.c_str());
 
    ImGui::GetStyle().FrameBorderSize = 1.0f;
+   ImGui::GetIO().IniFilename = nullptr;
 }
 
 
@@ -164,8 +165,24 @@ auto sfn::imgui_context::frame_end() const -> void
 }
 
 
-sfn::normal_imgui_window::normal_imgui_window(const char* name, const ImGuiWindowFlags extra_flags)
+sfn::normal_imgui_window::normal_imgui_window(
+   const char* name,
+   const ImGuiWindowFlags extra_flags
+)
 {
+   ImGui::Begin(name, nullptr, extra_flags);
+}
+
+
+normal_imgui_window::normal_imgui_window(
+   const glm::ivec2& top_left,
+   const glm::ivec2& size,
+   const char* name,
+   const ImGuiWindowFlags extra_flags
+)
+{
+   ImGui::SetNextWindowPos(ImVec2(static_cast<float>(top_left[0]), static_cast<float>(top_left[1])), ImGuiCond_Once);
+   ImGui::SetNextWindowSize(ImVec2(static_cast<float>(size[0]), static_cast<float>(size[1])), ImGuiCond_Once);
    ImGui::Begin(name, nullptr, extra_flags);
 }
 

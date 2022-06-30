@@ -81,6 +81,7 @@ namespace sfn
 
    struct normal_imgui_window {
       explicit normal_imgui_window(const char* name, const ImGuiWindowFlags extra_flags = 0);
+      explicit normal_imgui_window(const glm::ivec2& top_left, const glm::ivec2& size, const char* name, const ImGuiWindowFlags extra_flags = 0);
       ~normal_imgui_window();
 
       normal_imgui_window(const normal_imgui_window&) = delete;

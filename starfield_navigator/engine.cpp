@@ -253,14 +253,16 @@ auto sfn::engine::draw_frame() -> void
       m_vao_connection_lines->bind();
       m_shader_lines.use();
       m_shader_lines.set_uniform("time", -1.0f);
-      glDepthMask(false);
+      // glDepthMask(false);
       glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(connection_line_mesh.size()));
-      glDepthMask(true);
+      // glDepthMask(true);
    }
 
    m_vao_stars->bind();
    m_shader_stars.use();
+   glDisable(GL_DEPTH_TEST);
    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_universe.m_systems.size()));
+   glEnable(GL_DEPTH_TEST);
 
    draw_system_labels();
 
@@ -538,9 +540,9 @@ auto engine::get_camera_pos() const -> glm::vec3
 
 auto sfn::engine::gui_draw() -> void
 {
-
+   // glLineWidth(5);
    {
-      normal_imgui_window w("camera");
+      normal_imgui_window w(glm::ivec2{ 200, 0 }, glm::ivec2{ 350, 60 }, "camera");
 
       const auto is_button_pressed = [&](const int key) -> bool {
          return glfwGetKey(m_window_wrapper.m_window, key) == GLFW_PRESS;
@@ -562,11 +564,12 @@ auto sfn::engine::gui_draw() -> void
          }
       }
 
-      if(ImGui::Button("enable WASD mode"))
+      if(ImGui::Button(std::format("{} WASD mode", (const char*)ICON_FA_VIDEO).c_str()))
       {
          m_camera_mode = wasd_mode{};
       }
-      if (ImGui::Button("enable circle mode"))
+      ImGui::SameLine();
+      if (ImGui::Button(std::format("{} Center mode (around {})", (const char*)ICON_FA_VIDEO, m_universe.m_systems[m_list_selection].m_name).c_str()))
       {
          m_camera_mode = circle_mode{
             .m_planet = m_list_selection,
@@ -595,12 +598,13 @@ auto sfn::engine::gui_draw() -> void
    }
 
    {
-      normal_imgui_window w("System selector");
+      normal_imgui_window w(glm::ivec2{ 0, 0 }, glm::ivec2{ 200, m_config.res_y }, "System selector");
       draw_list();
    }
 
    {
-      normal_imgui_window w("Tools");
+      constexpr float tools_width = 500.0f;
+      normal_imgui_window w(glm::ivec2{ m_config.res_x- tools_width, 0 }, glm::ivec2{ tools_width, 300 }, "Tools");
 
       if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
       {
