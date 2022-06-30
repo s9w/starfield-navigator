@@ -402,7 +402,7 @@ auto sfn::engine::gui_plotter() -> void
    if (course_changed)
    {
       starfield_graph = graph(m_universe, jump_range);
-      path = starfield_graph.get_jump_path(m_source_index, m_destination_index);
+      path = starfield_graph.get_jump_path(m_source_index, m_destination_index, m_universe);
 
       if (path.has_value())
       {
@@ -412,14 +412,17 @@ auto sfn::engine::gui_plotter() -> void
          {
             const int this_stop_system = path->m_stops[i];
             const int next_stop_system = path->m_stops[i + 1];
-            const float dist = glm::distance(starfield_graph.m_nodes[this_stop_system].m_position, starfield_graph.m_nodes[next_stop_system].m_position);
+            const float dist = glm::distance(
+               m_universe.m_systems[this_stop_system].m_position,
+               m_universe.m_systems[next_stop_system].m_position
+            );
             travelled_distance += dist;
 
             path_strings.push_back(std::format(
                "Jump {}: {} to {}. Distance: {:.1f} LY\n",
                i,
-               starfield_graph.m_nodes[this_stop_system].m_name,
-               starfield_graph.m_nodes[next_stop_system].m_name,
+               m_universe.m_systems[this_stop_system].m_name,
+               m_universe.m_systems[next_stop_system].m_name,
                dist
             ));
          }
@@ -433,7 +436,10 @@ auto sfn::engine::gui_plotter() -> void
          {
             const int this_stop_system = path->m_stops[i];
             const int next_stop_system = path->m_stops[i + 1];
-            const float dist = glm::distance(starfield_graph.m_nodes[this_stop_system].m_position, starfield_graph.m_nodes[next_stop_system].m_position);
+            const float dist = glm::distance(
+               m_universe.m_systems[this_stop_system].m_position,
+               m_universe.m_systems[next_stop_system].m_position
+            );
 
             const float this_progress = travelled_distance;
             travelled_distance += dist;
@@ -441,13 +447,13 @@ auto sfn::engine::gui_plotter() -> void
 
             jump_line_mesh.push_back(
                line_vertex_data{
-                  .m_position = starfield_graph.m_nodes[this_stop_system].m_position,
+                  .m_position = m_universe.m_systems[this_stop_system].m_position,
                   .m_progress = this_progress
                }
             );
             jump_line_mesh.push_back(
                line_vertex_data{
-                  .m_position = starfield_graph.m_nodes[next_stop_system].m_position,
+                  .m_position = m_universe.m_systems[next_stop_system].m_position,
                   .m_progress = next_progress
                }
             );

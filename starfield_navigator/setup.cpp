@@ -35,7 +35,7 @@ namespace
          GLuint,
          GLenum severity,
          GLsizei,
-         const GLchar* message,
+         [[maybe_unused]] const GLchar* message,
          const void*)
    {
       if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)

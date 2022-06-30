@@ -125,12 +125,11 @@ sfn::graph::graph(const universe& universe, const float jump_range)
    m_sorted_connections.reserve(universe.m_systems.size() * universe.m_systems.size());
 
    const float jump_range2 = jump_range * jump_range;
-   for(const system& system : universe.m_systems)
+   for(int i=0; i<std::ssize(universe.m_systems); ++i)
    {
       m_nodes.push_back(
          node{
-            .m_name = system.m_name,
-            .m_position = system.m_position
+            .m_index = i
          }
       );
    }
@@ -166,20 +165,10 @@ sfn::graph::graph(const universe& universe, const float jump_range)
 }
 
 
-auto sfn::graph::get_node_index_by_name(const std::string& name) const -> int
-{
-   for(int i=0; i<std::ssize(m_nodes); ++i)
-   {
-      if(name == m_nodes[i].m_name)
-      {
-         return i;
-      }
-   }
-   std::terminate();
-}
-
-
-auto sfn::graph::get_dijkstra(const int source_node_index) const -> shortest_path_tree
+auto sfn::graph::get_dijkstra(
+   const int source_node_index,
+   const universe& universe
+) const -> shortest_path_tree
 {
    shortest_path_tree tree(source_node_index, static_cast<int>(std::ssize(m_nodes)));
 
@@ -208,8 +197,8 @@ auto sfn::graph::get_dijkstra(const int source_node_index) const -> shortest_pat
       for(const int neighbor : current_vertex_neighbors)
       {
          const float distance = tree.get_distance_from_source(current_vertex) + glm::distance(
-            m_nodes[current_vertex].m_position,
-            m_nodes[neighbor].m_position
+            universe.m_systems[current_vertex].m_position,
+            universe.m_systems[neighbor].m_position
          );
          if (distance < tree.m_entries[neighbor].m_shortest_distance)
          {
@@ -250,9 +239,13 @@ auto sfn::graph::are_neighbors(const int node_index_0, const int node_index_1) c
 }
 
 
-auto sfn::graph::get_jump_path(const int start_index, const int destination_index) const -> std::optional<jump_path>
+auto sfn::graph::get_jump_path(
+   const int start_index,
+   const int destination_index,
+   const universe& universe
+) const -> std::optional<jump_path>
 {
-   const shortest_path_tree tree = this->get_dijkstra(start_index);
+   const shortest_path_tree tree = this->get_dijkstra(start_index, universe);
 
    jump_path result;
    int position = destination_index;
@@ -270,35 +263,6 @@ auto sfn::graph::get_jump_path(const int start_index, const int destination_inde
    std::ranges::reverse(result.m_stops);
 
    return result;
-}
-
-
-auto sfn::graph::print_path(const jump_path& path) const -> void
-{
-   printf(std::format(
-      "Calculating jump from {} to {} with jump_range of {} LY. Total distance: {:.1f} LY\n",
-      m_nodes[path.m_stops.front()].m_name,
-      m_nodes[path.m_stops.back()].m_name,
-      m_jump_range,
-      glm::distance(m_nodes[path.m_stops.front()].m_position, m_nodes[path.m_stops.back()].m_position)
-   ).c_str());
-
-   float travelled_distance = 0.0f;
-   for(int i=0; i<path.m_stops.size()-1; ++i)
-   {
-      const int this_stop_system = path.m_stops[i];
-      const int next_stop_system = path.m_stops[i+1];
-      const float dist = glm::distance(m_nodes[this_stop_system].m_position, m_nodes[next_stop_system].m_position);
-      travelled_distance += dist;
-      printf(std::format(
-         "Jump {}: {} to {}. Distance: {:.1f} LY\n",
-         i,
-         m_nodes[this_stop_system].m_name,
-         m_nodes[next_stop_system].m_name,
-         dist
-      ).c_str());
-   }
-   printf(std::format("Travelled {:.1f} LY\n", travelled_distance).c_str());
 }
 
 
@@ -362,7 +326,7 @@ auto sfn::get_min_jump_dist(
    {
       // Plot a course through that graph
       // If no jump is possible, the previously calculated longest jump is the minimum required range
-      const std::optional<jump_path> plot = minimum_graph.get_jump_path(start_index, dest_index);
+      const std::optional<jump_path> plot = minimum_graph.get_jump_path(start_index, dest_index, universe);
       if (plot.has_value() == false)
       {
          return necessary_jumprange;

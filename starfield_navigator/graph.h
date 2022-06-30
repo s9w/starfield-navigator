@@ -20,12 +20,6 @@ namespace sfn {
       glm::vec3 m_position;
       info_quality m_info_quality = info_quality::unknown;
 
-      // int m_level = 1;
-      // std::string m_spectral_class;
-      // int m_planet_count;
-      // int m_moon_count;
-      // factions m_faction;
-
       explicit system(const glm::vec3& pos, const std::string& name = "");
    };
 
@@ -43,9 +37,8 @@ namespace sfn {
 
 
    struct node{
-      std::string m_name;
+      int m_index;
       std::vector<int> m_neighbor_nodes;
-      glm::vec3 m_position;
    };
 
    struct connection{
@@ -97,13 +90,9 @@ namespace sfn {
       explicit graph() = default;
       explicit graph(const universe& universe, const float jump_range);
 
-      [[nodiscard]] auto get_node_index_by_name(const std::string& name) const -> int;
-      [[nodiscard]] auto get_dijkstra(const int source_node_index) const -> shortest_path_tree;
+      [[nodiscard]] auto get_dijkstra(const int source_node_index, const universe& universe) const -> shortest_path_tree;
       [[nodiscard]] auto are_neighbors(const int node_index_0, const int node_index_1) const -> bool;
-      [[nodiscard]] auto get_jump_path(const int start_index, const int destination_index) const -> std::optional<jump_path>;
-      
-      auto print_path(const jump_path& path) const -> void;
-      
+      [[nodiscard]] auto get_jump_path(const int start_index, const int destination_index, const universe& universe) const -> std::optional<jump_path>;
    };
 
    [[nodiscard]] auto get_min_jump_dist(const universe& universe, const int start_index, const int dest_index) -> float;
