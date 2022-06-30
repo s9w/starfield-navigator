@@ -18,6 +18,20 @@ namespace sfn
       alignas(sizeof(glm::vec4)) glm::mat4 m_projection{ 1.0f };
    };
 
+   struct wasd_mode
+   {
+      glm::vec3 m_camera_pos{ 6, -12, 0 };
+   };
+   struct circle_mode
+   {
+      int m_planet;
+      float distance;
+      float horiz_angle_offset;
+      float vert_angle_offset;
+   };
+
+   using camera_mode = std::variant<wasd_mode, circle_mode>;
+
    struct engine
    {
    private:
@@ -35,8 +49,9 @@ namespace sfn
       int m_source_index = m_universe.get_index_by_name("SOL");
       int m_destination_index = m_universe.get_index_by_name("PORRIMA");
 
-      glm::vec3 m_camera_pos{ 6, -12, 0 };
-      bool m_wasda_enabled = true;
+      // glm::vec3 m_camera_pos{ 6, -12, 0 };
+      camera_mode m_camera_mode = wasd_mode{};
+      // bool m_wasda_enabled = true;
       buffers m_buffers2;
       id m_mvp_ubo_id{ no_init{} };
       id m_main_fb{ no_init{} };
@@ -61,11 +76,20 @@ namespace sfn
          int new_width,
          int new_height
       ) -> void;
+      static auto static_scroll_callback(
+         GLFWwindow* window,
+         double xoffset, double yoffset
+      ) -> void;
 
       auto resize_callback(
          [[maybe_unused]] GLFWwindow* window,
          [[maybe_unused]] int new_width,
          [[maybe_unused]] int new_height
+      ) -> void;
+      auto scroll_callback(
+         [[maybe_unused]] GLFWwindow* window,
+         [[maybe_unused]] double xoffset,
+         [[maybe_unused]] double yoffset
       ) -> void;
 
       auto draw_frame() -> void;
@@ -83,7 +107,9 @@ namespace sfn
       auto bind_ubo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;
       auto gpu_upload() -> void;
       auto update_mvp_member() -> void;
+      auto get_camera_pos() const -> glm::vec3;
+      [[nodiscard]] auto get_view_matrix(const wasd_mode& wasd) const -> glm::mat4;
+      [[nodiscard]] auto get_view_matrix(const circle_mode& circle) const -> glm::mat4;
    };
-
 }
 

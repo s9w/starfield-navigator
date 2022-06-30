@@ -51,17 +51,7 @@ namespace
       ImGui::Text(text.c_str());
    }
 
-   auto get_view_matrix(const glm::vec3& camera_pos) -> glm::mat4
-   {
-      glm::mat4 view_matrix{ 1.0f };
 
-      view_matrix = glm::rotate(view_matrix, glm::radians(-90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
-
-      // camera_pos += height * std::tan(view_tilt) * glm::vec3{ 0, -1, 0 };
-      view_matrix = glm::translate(view_matrix, -camera_pos);
-   
-      return view_matrix;
-   }
 
    auto get_projection_matrxi() -> glm::mat4
    {
@@ -93,7 +83,22 @@ namespace
       position_vertex_data{.m_position = {  1,  1, 0}},
       position_vertex_data{.m_position = { -1,  1, 0}}
    };
-   // std::vector<position_vertex_data> connection_mesh;
+
+
+   // written so it yields (0, -1, 0) for 0, 0, 1 parameters, which is how the geometry is set up
+   [[nodiscard]] auto get_cartesian_from_spherical(
+      const float phi_offset,
+      const float theta,
+      const float r
+   ) -> glm::vec3
+   {
+      const float phi = -std::numbers::pi_v<float> / 2 + phi_offset;
+      const float equation_theta = -theta + std::numbers::pi_v<float> / 2.0f;
+      const float x = r * std::cos(phi) * std::sin(equation_theta);
+      const float y = r * std::sin(phi) * std::sin(equation_theta);
+      const float z = r * std::cos(equation_theta);
+      return glm::vec3{ x, y, z };
+   }
 
 } // namespace {}
 
@@ -141,6 +146,7 @@ sfn::engine::engine(const config& config, universe&& universe)
       std::terminate();
    engine_ptr = this;
    glfwSetFramebufferSizeCallback(get_window(), engine::static_resize_callback);
+   glfwSetScrollCallback(get_window(), engine::static_scroll_callback);
 
    std::vector<segment_type> buffer_layout;
    buffer_layout.emplace_back(ubo_segment(sizeof(mvp_type), "ubo_mvp"));
@@ -179,6 +185,11 @@ auto sfn::engine::static_resize_callback(GLFWwindow* window, int new_width, int 
    engine_ptr->resize_callback(window, new_width, new_height);
 }
 
+auto engine::static_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) -> void
+{
+   engine_ptr->scroll_callback(window, xoffset, yoffset);
+}
+
 
 auto sfn::engine::resize_callback(
    [[maybe_unused]] GLFWwindow* window,
@@ -187,6 +198,21 @@ auto sfn::engine::resize_callback(
 ) -> void
 {
    draw_frame();
+}
+
+
+auto sfn::engine::scroll_callback(
+   [[maybe_unused]] GLFWwindow* window,
+   [[maybe_unused]] double xoffset,
+   [[maybe_unused]] double yoffset
+) -> void
+{
+   if(std::holds_alternative<circle_mode>(m_camera_mode))
+   {
+      auto& mode = std::get<circle_mode>(m_camera_mode);
+      mode.distance += -3.0f * static_cast<float>(yoffset);
+      mode.distance = std::clamp(mode.distance, 8.0f, 200.0f);
+   }
 }
 
 
@@ -478,11 +504,29 @@ auto engine::gpu_upload() -> void
 
 auto engine::update_mvp_member() -> void
 {
-   m_current_mvp.m_cam_pos = m_camera_pos;
+   m_current_mvp.m_cam_pos = get_camera_pos();
    m_current_mvp.m_projection = get_projection_matrxi();
-   m_current_mvp.m_view = get_view_matrix(m_camera_pos);
+   m_current_mvp.m_view = std::visit(
+      [&](const auto& x) {return get_view_matrix(x); },
+      m_camera_mode
+   );
 }
 
+auto engine::get_camera_pos() const -> glm::vec3
+{
+   if(std::holds_alternative<wasd_mode>(m_camera_mode))
+   {
+      return std::get<wasd_mode>(m_camera_mode).m_camera_pos;
+   }
+   else if(std::holds_alternative<circle_mode>(m_camera_mode))
+   {
+      const circle_mode& mode = std::get<circle_mode>(m_camera_mode);
+      const glm::vec3 planet_pos = m_universe.m_systems[mode.m_planet].m_position;
+      const glm::vec3 cam_pos = planet_pos + glm::vec3{0, -50, 0};
+      return cam_pos;
+   }
+   std::terminate();
+}
 
 
 auto sfn::engine::draw_fun() -> void
@@ -495,30 +539,61 @@ auto sfn::engine::draw_fun() -> void
       const auto is_button_pressed = [&](const int key) -> bool {
          return glfwGetKey(m_window_wrapper.m_window, key) == GLFW_PRESS;
       };
-      if (m_wasda_enabled)
+      if (std::holds_alternative<wasd_mode>(m_camera_mode))
       {
+         auto& camera_pos = std::get<wasd_mode>(m_camera_mode).m_camera_pos;
          if (is_button_pressed(GLFW_KEY_W)) {
-            m_camera_pos.y += 0.1f;
+            camera_pos.y += 0.1f;
          }
          if (is_button_pressed(GLFW_KEY_S)) {
-            m_camera_pos.y += -0.1f;
+            camera_pos.y += -0.1f;
          }
          if (is_button_pressed(GLFW_KEY_A)) {
-            m_camera_pos.x += -0.1f;
+            camera_pos.x += -0.1f;
          }
          if (is_button_pressed(GLFW_KEY_D)) {
-            m_camera_pos.x += +0.1f;
+            camera_pos.x += +0.1f;
          }
       }
-
-      if(ImGui::Button(std::format("toggle WASDA (currently: {})", m_wasda_enabled).c_str()))
+      else if(std::holds_alternative<circle_mode>(m_camera_mode))
       {
-         m_wasda_enabled = !m_wasda_enabled;
+         circle_mode& mode = std::get<circle_mode>(m_camera_mode);
+         if (is_button_pressed(GLFW_KEY_W))
+            mode.distance -= 0.1f;
+         if (is_button_pressed(GLFW_KEY_S))
+            mode.distance += 0.1f;
       }
 
-      // ImGui::InputFloat("X", &m_camera_pos.x);
-      // ImGui::InputFloat("Y", &m_camera_pos.y);
-      // ImGui::InputFloat("Z", &m_camera_pos.z);
+      if(ImGui::Button("enable WASD mode"))
+      {
+         m_camera_mode = wasd_mode{};
+      }
+      if (ImGui::Button("enable circle mode"))
+      {
+         m_camera_mode = circle_mode{
+            .m_planet = m_list_selection,
+            .distance = 100.0f,
+            .horiz_angle_offset = 0,
+            .vert_angle_offset = 0
+         };
+      }
+
+      if (std::holds_alternative<circle_mode>(m_camera_mode))
+      {
+         circle_mode& mode = std::get<circle_mode>(m_camera_mode);
+         if (is_button_pressed(GLFW_KEY_W)) {
+            mode.vert_angle_offset += 0.01f;
+         }
+         if (is_button_pressed(GLFW_KEY_S)) {
+            mode.vert_angle_offset -= 0.01f;
+         }
+         if (is_button_pressed(GLFW_KEY_A)) {
+            mode.horiz_angle_offset -= 0.01f;
+         }
+         if (is_button_pressed(GLFW_KEY_D)) {
+            mode.horiz_angle_offset += 0.01f;
+         }
+      }
    }
 
 
@@ -560,4 +635,27 @@ auto sfn::engine::draw_fun() -> void
    }
 
    // ImGui::ShowDemoWindow();
+}
+
+
+auto sfn::engine::get_view_matrix(const wasd_mode& wasd) const -> glm::mat4
+{
+   glm::mat4 view_matrix{ 1.0f };
+   view_matrix = glm::rotate(view_matrix, glm::radians(-90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
+   view_matrix = glm::translate(view_matrix, -wasd.m_camera_pos);
+   return view_matrix;
+}
+
+
+auto sfn::engine::get_view_matrix(const circle_mode& circle) const -> glm::mat4
+{
+   const glm::vec3& planet_pos = m_universe.m_systems[circle.m_planet].m_position;
+   const glm::vec3 offfset = get_cartesian_from_spherical(circle.horiz_angle_offset, circle.vert_angle_offset, circle.distance);
+   const auto camera_ps = planet_pos + offfset;
+
+   return glm::lookAt(
+      camera_ps,
+      planet_pos,
+      glm::vec3{ 0, 0, 1 }
+   );
 }
