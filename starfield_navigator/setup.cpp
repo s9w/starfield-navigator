@@ -136,6 +136,8 @@ sfn::imgui_context::imgui_context(const config& config, GLFWwindow* window)
    ImGui_ImplGlfw_InitForOpenGL(window, true);
    const std::string glsl_version = std::format("#version {}{}0", config.opengl_major_version, config.opengl_minor_version);
    ImGui_ImplOpenGL3_Init(glsl_version.c_str());
+
+   ImGui::GetStyle().FrameBorderSize = 1.0f;
 }
 
 

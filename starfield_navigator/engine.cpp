@@ -322,19 +322,11 @@ auto sfn::engine::gui_closest_stars() -> void
 {
    static int selection = 14;
 
-   ImGui::AlignTextToFramePadding();
-   ImGui::Text(std::format("Closest systems around: {}", m_universe.m_systems[selection].m_name).c_str());
-   ImGui::SameLine();
-   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-   if (ImGui::Button((const char*)ICON_FA_MAP_MARKER_ALT, ImVec2(30, 20)))
+   if (ImGui::Button(std::format("Closest systems around: {} {}", m_universe.m_systems[selection].m_name, (const char*)ICON_FA_MAP_MARKER_ALT).c_str()))
    {
       selection = m_list_selection;
    }
-   ImGui::PopStyleVar();
-
-   // TODO why does this even use the graph and not just the universe?
    const std::vector<int> closest = m_universe.get_closest(selection);
-
 
    if (ImGui::BeginTable("##table_closest", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
    {
@@ -366,12 +358,7 @@ auto sfn::engine::gui_closest_stars() -> void
 auto sfn::engine::gui_plotter() -> void
 {
    static float jump_range = 20.0f;
-   static graph starfield_graph = graph(m_universe, jump_range);;
-   // if (ImGui::GetFrameCount() == 1)
-   // {
-   //    starfield_graph = graph(m_universe, m_jump_range);
-   // }
-
+   static graph starfield_graph = graph(m_universe, jump_range);
    static std::optional<jump_path> path;
 
    static bool first_plot = true;
@@ -379,28 +366,17 @@ auto sfn::engine::gui_plotter() -> void
    first_plot = false;
 
 
-   ImGui::AlignTextToFramePadding();
-   ImGui::Text(std::format("Source: {}", m_universe.m_systems[m_source_index].m_name).c_str());
-   ImGui::SameLine();
-   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-   if (ImGui::Button((const char*)ICON_FA_MAP_MARKER_ALT "##src", ImVec2(30, 20)))
+   if (ImGui::Button(std::format("Source: {} {}", m_universe.m_systems[m_source_index].m_name, (const char*)ICON_FA_MAP_MARKER_ALT).c_str()))
    {
       course_changed = true;
       m_source_index = m_list_selection;
    }
-   ImGui::PopStyleVar();
-
-
-   ImGui::AlignTextToFramePadding();
-   ImGui::Text(std::format("Destination: {}", m_universe.m_systems[m_destination_index].m_name).c_str());
    ImGui::SameLine();
-   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-   if (ImGui::Button((const char*)ICON_FA_MAP_MARKER_ALT "##dst", ImVec2(30, 20)))
+   if (ImGui::Button(std::format("Destination: {} {}", m_universe.m_systems[m_destination_index].m_name, (const char*)ICON_FA_MAP_MARKER_ALT).c_str()))
    {
       course_changed = true;
       m_destination_index = m_list_selection;
    }
-   ImGui::PopStyleVar();
 
 
 
@@ -666,6 +642,16 @@ auto sfn::engine::gui_draw() -> void
             }
             ImGui::EndTabItem();
          }
+         // if (ImGui::BeginTabItem("game"))
+         // {
+         //    m_gui_mode = gui_mode::game;
+         //    static float game_jump_range = 20.0f;
+         //    static int current_system = 14;
+         //    ImGui::SliderFloat("jump range", &game_jump_range, 10, 30);
+         //
+         //    ImGui::EndTabItem();
+         // }
+
          ImGui::PopStyleColor(3);
 
          ImGui::EndTabBar();

@@ -32,7 +32,7 @@ namespace sfn
 
    using camera_mode = std::variant<wasd_mode, circle_mode>;
 
-   enum class gui_mode{closest, jumps, connections};
+   enum class gui_mode{closest, jumps, connections, game};
 
    struct engine
    {
