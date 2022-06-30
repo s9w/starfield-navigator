@@ -74,7 +74,8 @@ namespace
    }
 
    std::vector<position_vertex_data> star_mesh;
-   std::vector<line_vertex_data> line_mesh;
+   std::vector<line_vertex_data> jump_line_mesh;
+   std::vector<line_vertex_data> connection_line_mesh;
    std::vector<position_vertex_data> screen_rect_mesh = {
       position_vertex_data{.m_position = { -1, -1, 0}},
       position_vertex_data{.m_position = {  1, -1, 0}},
@@ -156,11 +157,13 @@ sfn::engine::engine(const config& config, universe&& universe)
    buffer_layout.emplace_back(get_soa_vbo_segment(star_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment(screen_rect_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
+   buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    const std::vector<id> segment_ids = m_buffers2.create_buffer(std::move(buffer_layout), usage_pattern::dynamic_draw);
    m_mvp_ubo_id = segment_ids[0];
    m_star_vbo_id = segment_ids[1];
    m_screen_rect_vbo_id = segment_ids[2];
-   m_connections_vbo_id = segment_ids[3];
+   m_jump_lines_vbo_id = segment_ids[3];
+   m_connection_lines_vbo_id = segment_ids[4]; // same layout
 
    m_binding_point_man.add(m_mvp_ubo_id);
    m_main_fb = m_framebuffers.get_efault_fb();
@@ -170,7 +173,8 @@ sfn::engine::engine(const config& config, universe&& universe)
    bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_lines);
 
    m_vao_stars.emplace(m_buffers2, m_star_vbo_id, m_shader_stars);
-   m_vao_lines.emplace(m_buffers2, m_connections_vbo_id, m_shader_lines);
+   m_vao_jump_lines.emplace(m_buffers2, m_jump_lines_vbo_id, m_shader_lines);
+   m_vao_connection_lines.emplace(m_buffers2, m_connection_lines_vbo_id, m_shader_lines);
    m_vao_screen_rect.emplace(m_buffers2, m_screen_rect_vbo_id, m_shader_stars);
 }
 
@@ -235,12 +239,24 @@ auto sfn::engine::draw_frame() -> void
    gpu_upload();
 
    // render things
-   m_vao_lines->bind();
-   m_shader_lines.use();
-   m_shader_lines.set_uniform("time", timing_info.m_steady_time);
-   glDepthMask(false);
-   glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(line_mesh.size()));
-   glDepthMask(true);
+   if (m_gui_mode == gui_mode::jumps)
+   {
+      m_vao_jump_lines->bind();
+      m_shader_lines.use();
+      m_shader_lines.set_uniform("time", timing_info.m_steady_time);
+      glDepthMask(false);
+      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(jump_line_mesh.size()));
+      glDepthMask(true);
+   }
+   else if (m_gui_mode == gui_mode::connections)
+   {
+      m_vao_connection_lines->bind();
+      m_shader_lines.use();
+      m_shader_lines.set_uniform("time", -1.0f);
+      glDepthMask(false);
+      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(connection_line_mesh.size()));
+      glDepthMask(true);
+   }
 
    m_vao_stars->bind();
    m_shader_stars.use();
@@ -347,8 +363,15 @@ auto sfn::engine::gui_closest_stars() -> void
 }
 
 
-auto sfn::engine::gui_plotter(graph& starfield_graph) -> void
+auto sfn::engine::gui_plotter() -> void
 {
+   static float jump_range = 20.0f;
+   static graph starfield_graph = graph(m_universe, jump_range);;
+   // if (ImGui::GetFrameCount() == 1)
+   // {
+   //    starfield_graph = graph(m_universe, m_jump_range);
+   // }
+
    static std::optional<jump_path> path;
 
    static bool first_plot = true;
@@ -388,20 +411,21 @@ auto sfn::engine::gui_plotter(graph& starfield_graph) -> void
 
    static float slider_min = 0.0f;
    static float slider_max = 100.0f;
+   
    if (course_changed)
    {
       slider_min = get_min_jump_dist(m_universe, m_source_index, m_destination_index) + 0.001f;
       slider_max = m_universe.get_distance(m_source_index, m_destination_index) + 0.001f;
-      m_jump_range = 0.5f * (slider_min + slider_max);
+      jump_range = 0.5f * (slider_min + slider_max);
    }
 
-   course_changed |= ImGui::SliderFloat("jump range", &m_jump_range, slider_min, slider_max);
+   course_changed |= ImGui::SliderFloat("jump range", &jump_range, slider_min, slider_max);
 
    static std::vector<std::string> path_strings;
    // Graph and path update
    if (course_changed)
    {
-      starfield_graph = graph(m_universe, m_jump_range);
+      starfield_graph = graph(m_universe, jump_range);
       path = starfield_graph.get_jump_path(m_source_index, m_destination_index);
 
       if (path.has_value())
@@ -427,7 +451,7 @@ auto sfn::engine::gui_plotter(graph& starfield_graph) -> void
          path_strings.push_back(std::format("Travelled distance: {:.1f} LY", travelled_distance));
 
          // update vertices
-         line_mesh.clear();
+         jump_line_mesh.clear();
          travelled_distance = 0.0f;
          for (int i = 0; i < path->m_stops.size() - 1; ++i)
          {
@@ -439,13 +463,13 @@ auto sfn::engine::gui_plotter(graph& starfield_graph) -> void
             travelled_distance += dist;
             const float next_progress = travelled_distance;
 
-            line_mesh.push_back(
+            jump_line_mesh.push_back(
                line_vertex_data{
                   .m_position = starfield_graph.m_nodes[this_stop_system].m_position,
                   .m_progress = this_progress
                }
             );
-            line_mesh.push_back(
+            jump_line_mesh.push_back(
                line_vertex_data{
                   .m_position = starfield_graph.m_nodes[next_stop_system].m_position,
                   .m_progress = next_progress
@@ -498,7 +522,8 @@ auto engine::gpu_upload() -> void
 {
    m_buffers2.upload_ubo(m_mvp_ubo_id, as_bytes(m_current_mvp));
    m_buffers2.upload_vbo(m_star_vbo_id, as_bytes(star_mesh));
-   m_buffers2.upload_vbo(m_connections_vbo_id, as_bytes(line_mesh));
+   m_buffers2.upload_vbo(m_jump_lines_vbo_id, as_bytes(jump_line_mesh));
+   m_buffers2.upload_vbo(m_connection_lines_vbo_id, as_bytes(connection_line_mesh));
    m_buffers2.upload_vbo(m_screen_rect_vbo_id, as_bytes(screen_rect_mesh));
 }
 
@@ -531,7 +556,6 @@ auto engine::get_camera_pos() const -> glm::vec3
 
 auto sfn::engine::gui_draw() -> void
 {
-   static graph starfield_graph;
 
    {
       normal_imgui_window w("camera");
@@ -588,12 +612,6 @@ auto sfn::engine::gui_draw() -> void
       }
    }
 
-
-   if (ImGui::GetFrameCount() == 1)
-   {
-      starfield_graph = graph(m_universe, m_jump_range);
-   }
-
    {
       normal_imgui_window w("System selector");
       draw_list();
@@ -609,14 +627,43 @@ auto sfn::engine::gui_draw() -> void
          ImGui::PushStyleColor(ImGuiCol_TabActive, (ImVec4)ImColor::HSV(0.0f, 0.5f, 0.9f));
          if (ImGui::BeginTabItem("Closest stars"))
          {
-
+            m_gui_mode = gui_mode::closest;
             gui_closest_stars();
             ImGui::EndTabItem();
          }
 
          if (ImGui::BeginTabItem("Jump calculations"))
          {
-            gui_plotter(starfield_graph);
+            m_gui_mode = gui_mode::jumps;
+            gui_plotter();
+            ImGui::EndTabItem();
+         }
+         if (ImGui::BeginTabItem("Show connections"))
+         {
+            m_gui_mode = gui_mode::connections;
+            static float connections_jump_range = 20.0f;
+            static graph connection_graph = graph(m_universe, connections_jump_range);
+            if(ImGui::SliderFloat("jump range", &connections_jump_range, 10, 30) || connection_line_mesh.empty())
+            {
+               connection_graph = graph(m_universe, connections_jump_range);
+
+               connection_line_mesh.clear();
+               for(const auto& [key, connection] : connection_graph.m_connections)
+               {
+                  connection_line_mesh.push_back(
+                     line_vertex_data{
+                        .m_position = m_universe.m_systems[connection.m_node_index0].m_position,
+                        .m_progress = 0.0f
+                     }
+                  );
+                  connection_line_mesh.push_back(
+                     line_vertex_data{
+                        .m_position = m_universe.m_systems[connection.m_node_index1].m_position,
+                        .m_progress = 0.0f
+                     }
+                  );
+               }
+            }
             ImGui::EndTabItem();
          }
          ImGui::PopStyleColor(3);

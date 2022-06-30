@@ -11,6 +11,7 @@ layout (std140) uniform ubo_mvp
 };
 
 out float io_progress;
+out float io_distance;
 
 void main()
 {
@@ -19,4 +20,5 @@ void main()
    gl_Position = pos;
 
    io_progress = progress;
+   io_distance = distance(camera_pos, position);
 }

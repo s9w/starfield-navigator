@@ -32,6 +32,8 @@ namespace sfn
 
    using camera_mode = std::variant<wasd_mode, circle_mode>;
 
+   enum class gui_mode{closest, jumps, connections};
+
    struct engine
    {
    private:
@@ -45,20 +47,19 @@ namespace sfn
       imgui_context m_imgui_context;
 
       universe m_universe;
-      float m_jump_range = 30.0f;
       int m_list_selection = 0;
       int m_source_index = m_universe.get_index_by_name("SOL");
       int m_destination_index = m_universe.get_index_by_name("PORRIMA");
+      gui_mode m_gui_mode = gui_mode::connections;
 
-      // glm::vec3 m_camera_pos{ 6, -12, 0 };
       camera_mode m_camera_mode = wasd_mode{};
-      // bool m_wasda_enabled = true;
       buffers m_buffers2;
       id m_mvp_ubo_id{ no_init{} };
       id m_main_fb{ no_init{} };
       id m_star_vbo_id{ no_init{} };
       id m_screen_rect_vbo_id{ no_init{} };
-      id m_connections_vbo_id{ no_init{} };
+      id m_jump_lines_vbo_id{ no_init{} };
+      id m_connection_lines_vbo_id{ no_init{} };
       binding_point_man m_binding_point_man;
       mvp_type m_current_mvp{};
       shader_program m_shader_stars;
@@ -66,7 +67,8 @@ namespace sfn
       texture_manager m_textures{};
       framebuffer_manager m_framebuffers; // needs to be after texture manager
       std::optional<vao> m_vao_stars;
-      std::optional<vao> m_vao_lines;
+      std::optional<vao> m_vao_jump_lines;
+      std::optional<vao> m_vao_connection_lines;
       std::optional<vao> m_vao_screen_rect;
 
       explicit engine(const config& config, universe&& universe);
@@ -104,7 +106,7 @@ namespace sfn
 
       auto draw_list() -> void;
       auto gui_closest_stars() -> void;
-      auto gui_plotter(graph& starfield_graph) -> void;
+      auto gui_plotter() -> void;
       auto bind_ubo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;
       auto gpu_upload() -> void;
       auto update_mvp_member() -> void;
