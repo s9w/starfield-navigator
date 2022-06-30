@@ -8,7 +8,7 @@ namespace
    ) -> float
    {
       const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(second - first).count();
-      const float seconds = static_cast<float>(ns) / 1'000'000'000.0;
+      const float seconds = static_cast<float>(ns) / 1'000'000'000.0f;
       return seconds;
    }
 }
