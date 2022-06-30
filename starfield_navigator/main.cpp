@@ -139,14 +139,14 @@ auto get_starfield_universe() -> universe
    return starfield_universe;
 }
 
-auto main(int /*argc*/, char* /*argv*/) -> int
-
-// // Disable console window in release mode
-// #if defined(_DEBUG) || defined(SHOW_CONSOLE)
 // auto main(int /*argc*/, char* /*argv*/) -> int
-// #else
-// auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nCmdShow*/) -> int
-// #endif
+
+// Disable console window in release mode
+#if defined(_DEBUG) || defined(SHOW_CONSOLE)
+auto main(int /*argc*/, char* /*argv*/) -> int
+#else
+auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nCmdShow*/) -> int
+#endif
 {
 
    try {

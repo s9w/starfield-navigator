@@ -6,6 +6,9 @@ The Starfield Navigator is a small program uses that data in a couple of ways:
 
 https://user-images.githubusercontent.com/6044318/176746031-0618f746-c8c0-4785-8a17-996b1aab303a.mp4
 
+A zip file with the windows binary can be downloaded [here](https://github.com/s9w/starfield-navigator/releases). If you get a dll error, you're missing a recent [C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe).
+
+## Insights
 A couple of insights were gained from the data:
 - Of the "over 100" stars announced for the final game, 75 were visible
 - Of the seven labeled systems, three are real. Therefore it's likely that other real-life star systems are included in the game
