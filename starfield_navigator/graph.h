@@ -5,36 +5,10 @@
 #include <optional>
 #include <unordered_map>
 
-#include <glm/vec3.hpp>
-
 #include "tools.h"
 
 
 namespace sfn {
-
-   enum class factions{uc, freestar, crimson};
-   enum class info_quality{confirmed, speculation, unknown};
-
-   struct system{
-      std::string m_name;
-      glm::vec3 m_position;
-      info_quality m_info_quality = info_quality::unknown;
-
-      explicit system(const glm::vec3& pos, const std::string& name = "");
-   };
-
-   struct universe{
-      std::vector<system> m_systems;
-
-      [[nodiscard]] auto get_position_by_name(const std::string& name) const -> glm::vec3;
-      [[nodiscard]] auto get_index_by_name(const std::string& name) const -> int;
-      [[nodiscard]] auto get_distance(const int a, const int b) const -> float;
-      [[nodiscard]] auto get_closest(const int system_index) const -> std::vector<int>;
-      auto print_info() const -> void;
-   };
-
-
-
 
    struct node{
       int m_index;
@@ -44,7 +18,7 @@ namespace sfn {
    struct connection{
       int m_node_index0;
       int m_node_index1;
-      float m_distance;
+      float m_weight;
       
       [[nodiscard]] auto contains_node_index(const int node_index) const -> bool;
    };
@@ -81,17 +55,101 @@ namespace sfn {
       std::vector<id> m_sorted_connections;
 
       explicit graph() = default;
-      explicit graph(const universe& universe, const float jump_range);
 
-      [[nodiscard]] auto get_dijkstra(const int source_node_index, const universe& universe) const -> shortest_path_tree;
-      [[nodiscard]] auto get_jump_path(const int start_index, const int destination_index, const universe& universe) const -> std::optional<jump_path>;
+      template<typename T>
+      [[nodiscard]] auto get_dijkstra(const int source_node_index, const T& weight_getter) const -> shortest_path_tree;
+
+      template<typename T>
+      [[nodiscard]] auto get_jump_path(const int start_index, const int destination_index, const T& weight_getter) const -> std::optional<jump_path>;
 
    private:
       [[nodiscard]] auto are_neighbors(const int node_index_0, const int node_index_1) const -> bool;
    };
+}
 
-   [[nodiscard]] auto get_min_jump_dist(const universe& universe, const int start_index, const int dest_index) -> float;
-   [[nodiscard]] auto get_absolute_min_jump_range(const universe& universe) -> float;
-   [[nodiscard]] auto get_closest_distances_for_all(const universe& universe) -> std::vector<float>;
 
+template<typename T>
+[[nodiscard]] auto sfn::graph::get_dijkstra(
+   const int source_node_index,
+   const T& weight_getter
+) const -> shortest_path_tree
+{
+   shortest_path_tree tree(source_node_index, static_cast<int>(std::ssize(m_nodes)));
+
+   std::vector<int> visited;
+   visited.reserve(std::ssize(m_nodes));
+   std::vector<int> unvisited;
+   unvisited.reserve(std::ssize(m_nodes));
+   for (int i = 0; i < std::ssize(m_nodes); ++i)
+      unvisited.push_back(i);
+
+   int current_vertex = source_node_index;
+
+   while (unvisited.empty() == false)
+   {
+      std::vector<int> current_vertex_neighbors;
+      current_vertex_neighbors.reserve(10);
+      for (int i = 0; i < std::ssize(m_nodes); ++i)
+      {
+         if (this->are_neighbors(current_vertex, i) == false)
+            continue;
+         if (std::ranges::find(visited, i) != visited.cend())
+            continue;
+         current_vertex_neighbors.push_back(i);
+      }
+
+      for (const int neighbor : current_vertex_neighbors)
+      {
+         const float weight = weight_getter(current_vertex, neighbor);
+         if (weight < tree.m_entries[neighbor].m_shortest_distance)
+         {
+            tree.m_entries[neighbor].m_shortest_distance = weight;
+            tree.m_entries[neighbor].m_previous_vertex_index = current_vertex;
+         }
+      }
+
+      visited.push_back(current_vertex);
+      std::erase(unvisited, current_vertex);
+
+      if (unvisited.empty())
+         break;
+
+      // sort unvisited
+      const auto pred = [&](const int a, const int b) {
+         return tree.get_distance_from_source(a) < tree.get_distance_from_source(b);
+      };
+      std::ranges::sort(unvisited, pred);
+
+      current_vertex = unvisited.front();
+   }
+
+   return tree;
+}
+
+
+template<typename T>
+[[nodiscard]] auto sfn::graph::get_jump_path(
+   const int start_index,
+   const int destination_index,
+   const T& weight_getter
+) const -> std::optional<jump_path>
+{
+   const shortest_path_tree tree = this->get_dijkstra(start_index, weight_getter);
+
+   jump_path result;
+   int position = destination_index;
+
+   while (position != start_index)
+   {
+      result.m_stops.push_back(position);
+      position = tree.m_entries[position].m_previous_vertex_index;
+      if (position == -1)
+      {
+         return std::nullopt;
+      }
+   }
+   result.m_stops.push_back(start_index);
+   std::ranges::reverse(result.m_stops);
+
+   return result;
 }

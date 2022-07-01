@@ -1,10 +1,10 @@
 #include "engine.h"
 
-#include <GLFW/glfw3.h> // after glad
 
+
+#include <GLFW/glfw3.h> // after glad
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
-
 #include "fonts/FontAwesomeSolid.hpp"
 #include "fonts/DroidSans.hpp"
 #include "fonts/IconsFontAwesome5.h"
@@ -375,7 +375,7 @@ auto sfn::engine::gui_closest_stars() -> void
 auto sfn::engine::gui_plotter() -> void
 {
    static float jump_range = 20.0f;
-   static graph starfield_graph = graph(m_universe, jump_range);
+   static graph starfield_graph = get_graph_from_universe(m_universe, jump_range);
    static std::optional<jump_path> path;
 
    static bool first_plot = true;
@@ -418,9 +418,11 @@ auto sfn::engine::gui_plotter() -> void
    // Graph and path update
    if (course_changed)
    {
-      starfield_graph = graph(m_universe, jump_range);
+      starfield_graph = get_graph_from_universe(m_universe, jump_range);
       connection_line_mesh = build_connection_mesh_from_graph(starfield_graph);
-      path = starfield_graph.get_jump_path(m_source_index, m_destination_index, m_universe);
+
+      const auto distance_getter = [&](const int i, const int j) {return m_universe.get_distance(i, j); };
+      path = starfield_graph.get_jump_path(m_source_index, m_destination_index, distance_getter);
 
       if (path.has_value())
       {
@@ -667,10 +669,10 @@ auto sfn::engine::gui_draw() -> void
          {
             m_gui_mode = gui_mode::connections;
             static float connections_jump_range = 15.0f;
-            static graph connection_graph = graph(m_universe, connections_jump_range);
+            static graph connection_graph = get_graph_from_universe(m_universe, connections_jump_range);
             if(ImGui::SliderFloat("jump range", &connections_jump_range, 10, 30) || connection_line_mesh.empty())
             {
-               connection_graph = graph(m_universe, connections_jump_range);
+               connection_graph = get_graph_from_universe(m_universe, connections_jump_range);
 
                connection_line_mesh = build_connection_mesh_from_graph(connection_graph);
             }

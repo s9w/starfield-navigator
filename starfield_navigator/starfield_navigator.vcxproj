@@ -148,6 +148,7 @@
     <ClCompile Include="timing_provider.cpp" />
     <ClCompile Include="tools.cpp" />
     <ClCompile Include="type_support.cpp" />
+    <ClCompile Include="universe.cpp" />
     <ClCompile Include="vertex_data.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +165,7 @@
     <ClInclude Include="timing_provider.h" />
     <ClInclude Include="tools.h" />
     <ClInclude Include="type_support.h" />
+    <ClInclude Include="universe.h" />
     <ClInclude Include="vertex_data.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

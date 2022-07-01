@@ -4,6 +4,7 @@
 #include "vertex_data.h"
 #include "buffer.h"
 #include "timing_provider.h"
+#include "universe.h"
 
 
 namespace sfn

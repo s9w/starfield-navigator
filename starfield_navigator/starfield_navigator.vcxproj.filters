@@ -90,6 +90,9 @@
     <ClCompile Include="timing_provider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="universe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools.h">
@@ -132,6 +135,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="opengl_stringify.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="universe.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
