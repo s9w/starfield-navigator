@@ -139,7 +139,6 @@ auto get_starfield_universe() -> universe
    return starfield_universe;
 }
 
-// auto main(int /*argc*/, char* /*argv*/) -> int
 
 // Disable console window in release mode
 #if defined(_DEBUG) || defined(SHOW_CONSOLE)
