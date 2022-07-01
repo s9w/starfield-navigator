@@ -103,6 +103,19 @@ namespace
       return glm::vec3{ x, y, z };
    }
 
+
+   auto tooltip(const std::string& text) -> void
+   {
+      if (ImGui::IsItemHovered())
+      {
+         ImGui::BeginTooltip();
+         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+         ImGui::Text(text.c_str());
+         ImGui::PopTextWrapPos();
+         ImGui::EndTooltip();
+      }
+   }
+
 } // namespace {}
 
 
@@ -656,10 +669,12 @@ auto sfn::engine::gui_draw() -> void
 
       static int radio_selected = 0;
       ImGui::AlignTextToFramePadding();
+
       if(ImGui::RadioButton("Frontal", &radio_selected, 0))
       {
          m_camera_mode = wasd_mode{};
       }
+      tooltip("WAS to move");
       ImGui::SameLine();
       if (ImGui::RadioButton("Center selection", &radio_selected, 1))
       {
@@ -670,11 +685,13 @@ auto sfn::engine::gui_draw() -> void
             .vert_angle_offset = 0
          };
       }
+      tooltip("WASD to rotate\nMouse wheel to change distance");
       ImGui::SameLine();
       if (ImGui::RadioButton("Like reveal", &radio_selected, 2))
       {
          m_camera_mode = trailer_mode{};
       }
+      tooltip("Replays the camera movement from the reveal video");
 
       if (std::holds_alternative<circle_mode>(m_camera_mode))
       {
