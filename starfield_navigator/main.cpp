@@ -154,7 +154,7 @@ auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
             .res_x = 1280, .res_y = 720,
             .opengl_major_version = 4, .opengl_minor_version = 5,
             .vsync = true,
-            .window_title = "Starfield navigator"
+            .window_title = std::format("Starfield navigator {}", sfn_version_string)
          },
          get_starfield_universe()
       );

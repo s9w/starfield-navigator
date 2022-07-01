@@ -78,7 +78,7 @@ constexpr auto sfn::get_data_type_from_ogl(const GLint ogl_type) -> data_type
    case GL_INT:        return data_type::i;
    case GL_UNSIGNED_INT:return data_type::ui;
    }
-   log::error(std::format("data type not yet supported: {}", opengl_enum_to_str(ogl_type)).c_str());
+   log::error(std::format("data type not yet supported: {}", opengl_enum_to_str(ogl_type)));
    std::terminate();
 }
 
