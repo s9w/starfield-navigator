@@ -85,8 +85,6 @@ sfn::window_wrapper::window_wrapper(const config& config)
    }
    glfwMakeContextCurrent(m_window);
 
-   disable_maximize_button(glfwGetWin32Window(m_window));
-
    if (config.vsync)
       glfwSwapInterval(1);
 }

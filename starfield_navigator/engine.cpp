@@ -202,6 +202,9 @@ auto sfn::engine::resize_callback(
    [[maybe_unused]] int new_height
 ) -> void
 {
+   m_config.res_x = new_width;
+   m_config.res_y = new_height;
+   glViewport(0, 0, new_width, new_height);
    draw_frame();
 }
 
