@@ -157,6 +157,7 @@
     <ClInclude Include="framebuffers.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="logging.h" />
+    <ClInclude Include="opengl_stringify.h" />
     <ClInclude Include="setup.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="texture.h" />

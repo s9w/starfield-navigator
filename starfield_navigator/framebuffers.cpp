@@ -4,6 +4,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #pragma warning(pop)
 
+#include "logging.h"
+
 
 namespace
 {
@@ -17,7 +19,7 @@ namespace
       case fb_target::read:     return GL_READ_FRAMEBUFFER;
       case fb_target::draw:     return GL_DRAW_FRAMEBUFFER;
       }
-      // log::error("wrong enum");
+      log::error("wrong enum");
       std::terminate();
    }
 
@@ -68,7 +70,7 @@ sfn::framebuffer::framebuffer(
 
    if(this->is_complete(fb_target::full) == false)
    {
-      // log::error("fb not complete");
+      log::error("fb not complete");
       std::terminate();
    }
 }
@@ -167,7 +169,7 @@ auto framebuffer_manager::clear_color(
 {
    if(m_draw_bount != fb_id)
    {
-      // log::error("can't clear buffer that isn't draw-bound");
+      log::error("can't clear buffer that isn't draw-bound");
       std::terminate();
    }
    glClearNamedFramebufferfv(get_opengl_id(fb_id), GL_COLOR, color_buffer_attach_number, glm::value_ptr(rgba));
@@ -180,7 +182,7 @@ auto framebuffer_manager::clear_depth(
 {
    if (m_draw_bount != fb_id)
    {
-      // log::error("can't clear buffer that isn't draw-bound");
+      log::error("can't clear buffer that isn't draw-bound");
       std::terminate();
    }
    constexpr float depth_value = 1.0f; // I think this must always be 1.0
@@ -221,7 +223,7 @@ auto framebuffer_manager::get_fb_ref(const id fb_id) const -> const framebuffer&
    const auto it = std::ranges::find_if(m_framebuffers, has_target_id);
    if (it == std::end(m_framebuffers))
    {
-      // log::error("FB not found");
+      log::error("FB not found");
       std::terminate();
    }
    return *it;

@@ -7,6 +7,8 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 
+#include "logging.h"
+#include "opengl_stringify.h"
 
 
 namespace sfn
@@ -59,7 +61,7 @@ constexpr auto sfn::get_ogl_data_type(const data_type type) -> GLenum
    case data_type::i:     return GL_INT;
    case data_type::ui:    return GL_UNSIGNED_INT;
    }
-   // log::error("enum not yet supported");
+   log::error("enum not yet supported");
    std::terminate();
 }
 
@@ -76,7 +78,7 @@ constexpr auto sfn::get_data_type_from_ogl(const GLint ogl_type) -> data_type
    case GL_INT:        return data_type::i;
    case GL_UNSIGNED_INT:return data_type::ui;
    }
-   // log::error("data type not yet supported: {}", opengl_enum_to_str(ogl_type));
+   log::error(std::format("data type not yet supported: {}", opengl_enum_to_str(ogl_type)).c_str());
    std::terminate();
 }
 
@@ -92,7 +94,7 @@ constexpr auto sfn::get_attrib_format_breakdown(const data_type type) -> attrib_
    case data_type::fvec3: return attrib_format_breakdown{ .m_count = 3, .m_type = GL_FLOAT };
    case data_type::fvec4: return attrib_format_breakdown{ .m_count = 4, .m_type = GL_FLOAT };
    }
-   // log::error("data type not yet supported");
+   log::error("data type not yet supported");
    std::terminate();
 }
 
@@ -109,6 +111,6 @@ constexpr auto sfn::get_data_type_size(const data_type type) -> int
    case data_type::fvec4: return sizeof(float) * 4;
    case data_type::fmat4: return sizeof(float) * 16;
    }
-   // log::error("data type not yet supported");
+   log::error("data type not yet supported");
    std::terminate();
 }

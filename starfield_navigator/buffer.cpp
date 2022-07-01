@@ -1,5 +1,8 @@
 #include "buffer.h"
 
+#include "logging.h"
+
+
 namespace
 {
    using namespace sfn;
@@ -21,7 +24,7 @@ namespace
       case usage_pattern::static_draw:  return GL_STATIC_DRAW;
       case usage_pattern::dynamic_draw: return GL_DYNAMIC_DRAW;
       }
-      // log::error("bad enum");
+      log::error("bad enum");
       std::terminate();
    }
 
@@ -217,7 +220,7 @@ auto buffer::get_segment_offset(const id segment_id) const -> int
       }
       byte_count += segment.get_byte_count();
    }
-   // log::error("couldn't find segment");
+   log::error("couldn't find segment");
    std::terminate();
 }
 
@@ -231,7 +234,7 @@ auto buffer::get_segment_size(const id segment_id) const -> int
          return segment.get_byte_count();;
       }
    }
-   // log::error("couldn't find segment");
+   log::error("couldn't find segment");
    std::terminate();
 }
 
@@ -343,7 +346,7 @@ auto buffers::get_buffer_ref_from_segment_id(const id segment_id) const -> const
          return buffer;
       }
    }
-   // log::error("couldn't find buffer");
+   log::error("couldn't find buffer");
    std::terminate();
 }
 
@@ -358,7 +361,7 @@ auto buffers::get_segment_size(const id segment_id) const -> size_t
          return (*ref).get().get_byte_count();
       }
    }
-   // log::error("couldn't find buffer");
+   log::error("couldn't find buffer");
    std::terminate();
 }
 
@@ -373,7 +376,7 @@ auto buffers::get_vbo_ref(const id vbo_segment_id) const -> const vbo_segment&
          return (*ref).get();
       }
    }
-   // log::error("couldn't find buffer");
+   log::error("couldn't find buffer");
    std::terminate();
 }
 
@@ -496,7 +499,7 @@ sfn::vao::vao(
          {
             // integer attributes don't work on intel
             glVertexArrayAttribIFormat(m_vao_id, location, breakdown.m_count, breakdown.m_type, offset);
-            // log::error("Don't use integer vertex attributes. Bugged on intel drivers");
+            log::error("Don't use integer vertex attributes. Bugged on intel drivers");
             std::terminate();
          }
          else
