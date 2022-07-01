@@ -100,7 +100,7 @@ template<typename T>
 
       for (const int neighbor : current_vertex_neighbors)
       {
-         const float weight = weight_getter(current_vertex, neighbor);
+         const float weight = tree.get_distance_from_source(current_vertex) + weight_getter(current_vertex, neighbor);
          if (weight < tree.m_entries[neighbor].m_shortest_distance)
          {
             tree.m_entries[neighbor].m_shortest_distance = weight;

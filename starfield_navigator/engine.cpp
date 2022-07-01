@@ -394,7 +394,7 @@ auto sfn::engine::gui_closest_stars() -> void
 }
 
 
-auto sfn::engine::gui_plotter() -> void
+auto sfn::engine::draw_jump_calculations() -> void
 {
    static float jump_range = 20.0f;
    static graph starfield_graph = get_graph_from_universe(m_universe, jump_range);
@@ -743,7 +743,7 @@ auto sfn::engine::gui_draw() -> void
          if (ImGui::BeginTabItem("Jump calculations"))
          {
             m_gui_mode = gui_mode::jumps;
-            gui_plotter();
+            draw_jump_calculations();
             ImGui::EndTabItem();
          }
          // if (ImGui::BeginTabItem("game"))

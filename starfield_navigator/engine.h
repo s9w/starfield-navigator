@@ -119,7 +119,7 @@ namespace sfn
       auto gui_draw() -> void;
       auto draw_list() -> void;
       auto gui_closest_stars() -> void;
-      auto gui_plotter() -> void;
+      auto draw_jump_calculations() -> void;
       auto bind_ubo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;
       auto gpu_upload() const -> void;
       auto update_mvp_member() -> void;
