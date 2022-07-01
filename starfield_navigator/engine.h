@@ -67,6 +67,7 @@ namespace sfn
       id m_screen_rect_vbo_id{ no_init{} };
       id m_jump_lines_vbo_id{ no_init{} };
       id m_connection_lines_vbo_id{ no_init{} };
+      id m_closest_lines_vbo_id{ no_init{} };
       binding_point_man m_binding_point_man;
       mvp_type m_current_mvp{};
       shader_program m_shader_stars;
@@ -76,6 +77,7 @@ namespace sfn
       std::optional<vao> m_vao_stars;
       std::optional<vao> m_vao_jump_lines;
       std::optional<vao> m_vao_connection_lines;
+      std::optional<vao> m_vao_closest_lines;
       std::optional<vao> m_vao_screen_rect;
 
       explicit engine(const config& config, universe&& universe);
@@ -125,7 +127,8 @@ namespace sfn
       [[nodiscard]] auto get_view_matrix(const camera_mode& mode) const -> glm::mat4;
       [[nodiscard]] auto get_camera_target(const camera_mode& mode) const -> glm::vec3;
       auto draw_system_labels() const -> void;
-      auto build_connection_mesh_from_graph(const graph& connection_graph)->std::vector<line_vertex_data>;
+      auto build_connection_mesh_from_graph(const graph& connection_graph) const -> std::vector<line_vertex_data>;
+      auto build_neighbor_connection_mesh(const universe& universe, const int center_system) const -> std::vector<line_vertex_data>;
    };
 }
 

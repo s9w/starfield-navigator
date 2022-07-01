@@ -4,6 +4,7 @@
 
 #include <GLFW/glfw3.h> // after glad
 #include <imgui.h>
+#include <ranges>
 #include <glm/gtc/matrix_transform.hpp>
 #include "fonts/FontAwesomeSolid.hpp"
 #include "fonts/DroidSans.hpp"
@@ -76,6 +77,7 @@ namespace
    std::vector<position_vertex_data> star_mesh;
    std::vector<line_vertex_data> jump_line_mesh;
    std::vector<line_vertex_data> connection_line_mesh;
+   std::vector<line_vertex_data> closest_line_mesh;
    std::vector<position_vertex_data> screen_rect_mesh = {
       position_vertex_data{.m_position = { -1, -1, 0}},
       position_vertex_data{.m_position = {  1, -1, 0}},
@@ -158,12 +160,14 @@ sfn::engine::engine(const config& config, universe&& universe)
    buffer_layout.emplace_back(get_soa_vbo_segment(screen_rect_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
+   buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    const std::vector<id> segment_ids = m_buffers2.create_buffer(std::move(buffer_layout), usage_pattern::dynamic_draw);
    m_mvp_ubo_id = segment_ids[0];
    m_star_vbo_id = segment_ids[1];
    m_screen_rect_vbo_id = segment_ids[2];
    m_jump_lines_vbo_id = segment_ids[3];
    m_connection_lines_vbo_id = segment_ids[4]; // same layout
+   m_closest_lines_vbo_id = segment_ids[5]; // same layout
 
    m_binding_point_man.add(m_mvp_ubo_id);
    m_main_fb = m_framebuffers.get_efault_fb();
@@ -175,6 +179,7 @@ sfn::engine::engine(const config& config, universe&& universe)
    m_vao_stars.emplace(m_buffers2, m_star_vbo_id, m_shader_stars);
    m_vao_jump_lines.emplace(m_buffers2, m_jump_lines_vbo_id, m_shader_lines);
    m_vao_connection_lines.emplace(m_buffers2, m_connection_lines_vbo_id, m_shader_lines);
+   m_vao_closest_lines.emplace(m_buffers2, m_closest_lines_vbo_id, m_shader_lines);
    m_vao_screen_rect.emplace(m_buffers2, m_screen_rect_vbo_id, m_shader_stars);
 }
 
@@ -272,6 +277,15 @@ auto sfn::engine::draw_frame() -> void
       glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(connection_line_mesh.size()));
       // glDepthMask(true);
    }
+   else if(m_gui_mode == gui_mode::closest)
+   {
+      m_vao_closest_lines->bind();
+      m_shader_lines.use();
+      m_shader_lines.set_uniform("time", -1.0f);
+      glDepthMask(false);
+      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(closest_line_mesh.size()));
+      glDepthMask(true);
+   }
 
    m_vao_stars->bind();
    m_shader_stars.use();
@@ -337,11 +351,19 @@ auto sfn::engine::draw_list() -> void
 
 auto sfn::engine::gui_closest_stars() -> void
 {
+   static bool first_plot = true;
    static int selection = 14;
+
+   if(first_plot)
+   {
+      closest_line_mesh = build_neighbor_connection_mesh(m_universe, selection);
+      first_plot = false;
+   }
 
    if (ImGui::Button(std::format("Closest systems around: {} {}", m_universe.m_systems[selection].m_name, (const char*)ICON_FA_MAP_MARKER_ALT).c_str()))
    {
       selection = m_list_selection;
+      closest_line_mesh = build_neighbor_connection_mesh(m_universe, selection);
    }
    const std::vector<int> closest = m_universe.get_closest(selection);
 
@@ -526,6 +548,7 @@ auto engine::gpu_upload() const -> void
    m_buffers2.upload_vbo(m_star_vbo_id, as_bytes(star_mesh));
    m_buffers2.upload_vbo(m_jump_lines_vbo_id, as_bytes(jump_line_mesh));
    m_buffers2.upload_vbo(m_connection_lines_vbo_id, as_bytes(connection_line_mesh));
+   m_buffers2.upload_vbo(m_closest_lines_vbo_id, as_bytes(closest_line_mesh));
    m_buffers2.upload_vbo(m_screen_rect_vbo_id, as_bytes(screen_rect_mesh));
 }
 
@@ -564,26 +587,58 @@ auto engine::get_camera_pos() const -> glm::vec3
 }
 
 
-auto sfn::engine::build_connection_mesh_from_graph(const graph& connection_graph) -> std::vector<line_vertex_data>
+auto sfn::engine::build_connection_mesh_from_graph(
+   const graph& connection_graph
+) const -> std::vector<line_vertex_data>
 {
    std::vector<line_vertex_data> connection_mesh;
    connection_mesh.reserve(2 * connection_graph.m_connections.size());
-   for (const auto& [key, connection] : connection_graph.m_connections)
+   for (const connection& con : connection_graph.m_connections | std::views::values)
    {
       connection_mesh.push_back(
          line_vertex_data{
-            .m_position = m_universe.m_systems[connection.m_node_index0].m_position,
+            .m_position = m_universe.m_systems[con.m_node_index0].m_position,
             .m_progress = 0.0f
          }
       );
       connection_mesh.push_back(
          line_vertex_data{
-            .m_position = m_universe.m_systems[connection.m_node_index1].m_position,
+            .m_position = m_universe.m_systems[con.m_node_index1].m_position,
             .m_progress = 0.0f
          }
       );
    }
    return connection_mesh;
+}
+
+
+auto engine::build_neighbor_connection_mesh(
+   const universe& universe,
+   const int center_system
+) const -> std::vector<line_vertex_data>
+{
+   std::vector<line_vertex_data> result;
+   result.reserve(2*(universe.m_systems.size() - 1));
+
+   for(int i=0; i<std::ssize(universe.m_systems); ++i)
+   {
+      if(i == center_system)
+         continue;
+      result.push_back(
+         line_vertex_data{
+            .m_position = universe.m_systems[center_system].m_position,
+            .m_progress = 0.0f
+         }
+      );
+      result.push_back(
+         line_vertex_data{
+            .m_position = universe.m_systems[i].m_position,
+            .m_progress = 0.0f
+         }
+      );
+   }
+
+   return result;
 }
 
 
