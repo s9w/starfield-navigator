@@ -74,6 +74,37 @@ namespace
       return result;
    }
 
+
+   auto get_indicator_mesh(const glm::vec3& center) -> std::vector<position_vertex_data>
+   {
+      std::vector<position_vertex_data> result;
+      result.reserve(128);
+
+      constexpr float cross_extension = 1.0;
+      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{-cross_extension,   0, 0} });
+      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{ cross_extension,   0, 0} });
+      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{  0, -cross_extension, 0} });
+      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{  0,  cross_extension, 0} });
+      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{  0,  0, -cross_extension} });
+      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{  0,  0,  cross_extension} });
+
+      constexpr int circle_segments = 32;
+      const auto i_to_pos = [&](int i){
+         i = i % circle_segments;
+         const float angle = 1.0f * i / circle_segments * 2.0f * std::numbers::pi_v<float>;
+         const float x_rel = cross_extension * std::cos(angle);
+         const float y_rel = cross_extension * std::sin(angle);
+         return center + glm::vec3{ x_rel, y_rel, 0.0f };
+      };
+      for(int i=0; i<circle_segments; ++i)
+      {
+         result.push_back(position_vertex_data{ .m_position = i_to_pos(i)});
+         result.push_back(position_vertex_data{ .m_position = i_to_pos(i+1)});
+      }
+
+      return result;
+   }
+
    std::vector<position_vertex_data> star_mesh;
    std::vector<line_vertex_data> jump_line_mesh;
    std::vector<line_vertex_data> connection_line_mesh;
@@ -86,6 +117,7 @@ namespace
       position_vertex_data{.m_position = {  1,  1, 0}},
       position_vertex_data{.m_position = { -1,  1, 0}}
    };
+   std::vector<position_vertex_data> indicator_mesh;
 
 
    // written so it yields (0, -1, 0) for 0, 0, 1 parameters, which is how the geometry is set up
@@ -128,6 +160,7 @@ sfn::engine::engine(const config& config, universe&& universe)
    , m_buffers2(128)
    , m_shader_stars("star_shader")
    , m_shader_lines("line_shader")
+   , m_shader_indicator("indicator_shader")
    , m_framebuffers(m_textures)
 {
    {
@@ -174,13 +207,15 @@ sfn::engine::engine(const config& config, universe&& universe)
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
+   buffer_layout.emplace_back(get_soa_vbo_segment<position_vertex_data>(128));
    const std::vector<id> segment_ids = m_buffers2.create_buffer(std::move(buffer_layout), usage_pattern::dynamic_draw);
    m_mvp_ubo_id = segment_ids[0];
    m_star_vbo_id = segment_ids[1];
    m_screen_rect_vbo_id = segment_ids[2];
    m_jump_lines_vbo_id = segment_ids[3];
-   m_connection_lines_vbo_id = segment_ids[4]; // same layout
-   m_closest_lines_vbo_id = segment_ids[5]; // same layout
+   m_connection_lines_vbo_id = segment_ids[4]; //
+   m_closest_lines_vbo_id = segment_ids[5];
+   m_indicator_vbo_id = segment_ids[6];
 
    m_binding_point_man.add(m_mvp_ubo_id);
    m_main_fb = m_framebuffers.get_efault_fb();
@@ -194,6 +229,7 @@ sfn::engine::engine(const config& config, universe&& universe)
    m_vao_connection_lines.emplace(m_buffers2, m_connection_lines_vbo_id, m_shader_lines);
    m_vao_closest_lines.emplace(m_buffers2, m_closest_lines_vbo_id, m_shader_lines);
    m_vao_screen_rect.emplace(m_buffers2, m_screen_rect_vbo_id, m_shader_stars);
+   m_vao_indicator.emplace(m_buffers2, m_indicator_vbo_id, m_shader_indicator);
 }
 
 
@@ -299,6 +335,15 @@ auto sfn::engine::draw_frame() -> void
       glDepthMask(false);
       glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(closest_line_mesh.size()));
       glDepthMask(true);
+   }
+
+   if (std::holds_alternative<circle_mode>(m_camera_mode))
+   {
+      m_vao_indicator->bind();
+      m_shader_indicator.use();
+      glDisable(GL_DEPTH_TEST);
+      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(indicator_mesh.size()));
+      glEnable(GL_DEPTH_TEST);
    }
 
    m_vao_stars->bind();
@@ -550,6 +595,7 @@ auto engine::gpu_upload() const -> void
    m_buffers2.upload_vbo(m_connection_lines_vbo_id, as_bytes(connection_line_mesh));
    m_buffers2.upload_vbo(m_closest_lines_vbo_id, as_bytes(closest_line_mesh));
    m_buffers2.upload_vbo(m_screen_rect_vbo_id, as_bytes(screen_rect_mesh));
+   m_buffers2.upload_vbo(m_indicator_vbo_id, as_bytes(indicator_mesh));
 }
 
 
@@ -724,6 +770,8 @@ auto sfn::engine::gui_draw() -> void
       {
          std::get<circle_mode>(m_camera_mode).m_planet = m_list_selection;
       }
+
+      indicator_mesh = get_indicator_mesh(m_universe.m_systems[m_list_selection].m_position);
    }
 
    {

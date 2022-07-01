@@ -68,10 +68,12 @@ namespace sfn
       id m_jump_lines_vbo_id{ no_init{} };
       id m_connection_lines_vbo_id{ no_init{} };
       id m_closest_lines_vbo_id{ no_init{} };
+      id m_indicator_vbo_id{ no_init{} };
       binding_point_man m_binding_point_man;
       mvp_type m_current_mvp{};
       shader_program m_shader_stars;
       shader_program m_shader_lines;
+      shader_program m_shader_indicator;
       texture_manager m_textures{};
       framebuffer_manager m_framebuffers; // needs to be after texture manager
       std::optional<vao> m_vao_stars;
@@ -79,6 +81,7 @@ namespace sfn
       std::optional<vao> m_vao_connection_lines;
       std::optional<vao> m_vao_closest_lines;
       std::optional<vao> m_vao_screen_rect;
+      std::optional<vao> m_vao_indicator;
 
       explicit engine(const config& config, universe&& universe);
       [[nodiscard]] auto get_window() const->GLFWwindow*;
