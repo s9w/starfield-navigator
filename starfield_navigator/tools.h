@@ -69,8 +69,11 @@ namespace sfn
    };
    constexpr auto operator==(const id a, const id b) -> bool;
 
-   template<typename type_with_id>
-   [[nodiscard]] auto get_thing_by_id(const std::vector<type_with_id>& vec, const id target_id) -> const type_with_id&;
+   struct id_hash_callable {
+      [[nodiscard]] constexpr auto operator()(const id& p) const -> size_t {
+         return p.m_id;
+      }
+   };
 
    template <typename T, typename pred_type>
    auto find_obj(const std::vector<T>& vec, const pred_type& pred, const std::string& error_msg) -> const T&;

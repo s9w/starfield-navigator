@@ -245,7 +245,7 @@ auto sfn::engine::draw_frame() -> void
 
    // upload things
    gpu_upload();
-
+   glEnable(GL_DEPTH_CLAMP);
    // render things
    if (m_gui_mode == gui_mode::jumps)
    {
@@ -518,7 +518,7 @@ auto engine::bind_ubo(
 
 
 
-auto engine::gpu_upload() -> void
+auto engine::gpu_upload() const -> void
 {
    m_buffers2.upload_ubo(m_mvp_ubo_id, as_bytes(m_current_mvp));
    m_buffers2.upload_vbo(m_star_vbo_id, as_bytes(star_mesh));
@@ -526,6 +526,7 @@ auto engine::gpu_upload() -> void
    m_buffers2.upload_vbo(m_connection_lines_vbo_id, as_bytes(connection_line_mesh));
    m_buffers2.upload_vbo(m_screen_rect_vbo_id, as_bytes(screen_rect_mesh));
 }
+
 
 auto engine::update_mvp_member() -> void
 {
@@ -536,6 +537,7 @@ auto engine::update_mvp_member() -> void
       m_camera_mode
    );
 }
+
 
 auto engine::get_camera_pos() const -> glm::vec3
 {
@@ -708,33 +710,29 @@ auto sfn::engine::gui_draw() -> void
 }
 
 
-auto sfn::engine::get_view_matrix(const wasd_mode& wasd) const -> glm::mat4
+auto engine::get_view_matrix(const camera_mode& mode) const -> glm::mat4
 {
-   glm::mat4 view_matrix{ 1.0f };
-   view_matrix = glm::rotate(view_matrix, glm::radians(-90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
-   view_matrix = glm::translate(view_matrix, -wasd.m_camera_pos);
-   return view_matrix;
-}
-
-
-auto sfn::engine::get_view_matrix(const circle_mode& circle) const -> glm::mat4
-{
-   const glm::vec3& planet_pos = m_universe.m_systems[circle.m_planet].m_position;
-
+   constexpr glm::vec3 camera_up_vector{ 0, 0, 1 };
    return glm::lookAt(
-      get_camera_pos(),
-      planet_pos,
-      glm::vec3{ 0, 0, 1 }
+      this->get_camera_pos(),
+      get_camera_target(mode),
+      camera_up_vector
    );
 }
 
 
-auto engine::get_view_matrix([[maybe_unused]] const trailer_mode& trailer) const -> glm::mat4
+auto engine::get_camera_target(const camera_mode& mode) const -> glm::vec3
 {
-   glm::mat4 view_matrix{ 1.0f };
-   view_matrix = glm::rotate(view_matrix, glm::radians(-90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
-   view_matrix = glm::translate(view_matrix, -get_camera_pos());
-   return view_matrix;
+   if (std::holds_alternative<circle_mode>(mode))
+   {
+      const auto& circle = std::get<circle_mode>(mode);
+      return m_universe.m_systems[circle.m_planet].m_position;
+   }
+   else
+   {
+      constexpr glm::vec3 default_look_dir{ 0, 1, 0 };
+      return this->get_camera_pos() + default_look_dir;
+   }
 }
 
 
@@ -759,7 +757,7 @@ auto engine::draw_system_labels() const -> void
       const float pointsize = 500 / distance_from_cam;
       const float planet_radius = 0.5f * pointsize;
       imgui_draw_pos.y -= planet_radius + 8.0f;
-      ImColor text_color = ImColor(50.0f, 45.0f, 255.0f, 27.0f);
+      auto text_color = ImColor(50.0f, 45.0f, 255.0f, 27.0f);
       if (system.m_info_quality == info_quality::speculation)
          text_color = ImColor(0.0f, 255.0f, 0.0f, 127.0f);
       ImGui::GetBackgroundDrawList()->AddText(ImVec2(imgui_draw_pos[0], imgui_draw_pos[1]), text_color, system.m_name.c_str());

@@ -90,6 +90,17 @@ namespace sfn
          double xoffset, double yoffset
       ) -> void;
 
+
+
+      
+      auto draw_loop() -> void;
+
+      engine(const engine&) = delete;
+      engine& operator=(const engine&) = delete;
+      engine(engine&&) = delete;
+      engine& operator=(engine&&) = delete;
+
+   private:
       auto resize_callback(
          [[maybe_unused]] GLFWwindow* window,
          [[maybe_unused]] int new_width,
@@ -102,24 +113,16 @@ namespace sfn
       ) -> void;
 
       auto draw_frame() -> void;
-      auto draw_loop() -> void;
       auto gui_draw() -> void;
-
-      engine(const engine&) = delete;
-      engine& operator=(const engine&) = delete;
-      engine(engine&&) = delete;
-      engine& operator=(engine&&) = delete;
-
       auto draw_list() -> void;
       auto gui_closest_stars() -> void;
       auto gui_plotter() -> void;
       auto bind_ubo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;
-      auto gpu_upload() -> void;
+      auto gpu_upload() const -> void;
       auto update_mvp_member() -> void;
       auto get_camera_pos() const -> glm::vec3;
-      [[nodiscard]] auto get_view_matrix(const wasd_mode& wasd) const -> glm::mat4;
-      [[nodiscard]] auto get_view_matrix(const circle_mode& circle) const -> glm::mat4;
-      [[nodiscard]] auto get_view_matrix(const trailer_mode& trailer) const -> glm::mat4;
+      [[nodiscard]] auto get_view_matrix(const camera_mode& mode) const -> glm::mat4;
+      [[nodiscard]] auto get_camera_target(const camera_mode& mode) const -> glm::vec3;
       auto draw_system_labels() const -> void;
       auto build_connection_mesh_from_graph(const graph& connection_graph)->std::vector<line_vertex_data>;
    };

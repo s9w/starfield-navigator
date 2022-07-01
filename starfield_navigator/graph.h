@@ -51,7 +51,6 @@ namespace sfn {
    auto operator==(const connection& a, const connection& b) -> bool;
 
    struct shortest_path{
-      // int m_target_index;
       constexpr static inline float no_distance = std::numeric_limits<float>::max();
       float m_shortest_distance = no_distance;
       int m_previous_vertex_index = -1;
@@ -74,25 +73,21 @@ namespace sfn {
       [[nodiscard]] auto contains_connection(const connection& con) const -> bool;
    };
 
-   struct MyHashFunction {
-      constexpr auto operator()(const id& p) const -> size_t{
-         return p.m_id;
-      }
-   };
-
    struct graph
    {
       float m_jump_range = 0.0f;
       std::vector<node> m_nodes;
-      std::unordered_map<id, connection, MyHashFunction> m_connections;
+      std::unordered_map<id, connection, id_hash_callable> m_connections;
       std::vector<id> m_sorted_connections;
 
       explicit graph() = default;
       explicit graph(const universe& universe, const float jump_range);
 
       [[nodiscard]] auto get_dijkstra(const int source_node_index, const universe& universe) const -> shortest_path_tree;
-      [[nodiscard]] auto are_neighbors(const int node_index_0, const int node_index_1) const -> bool;
       [[nodiscard]] auto get_jump_path(const int start_index, const int destination_index, const universe& universe) const -> std::optional<jump_path>;
+
+   private:
+      [[nodiscard]] auto are_neighbors(const int node_index_0, const int node_index_1) const -> bool;
    };
 
    [[nodiscard]] auto get_min_jump_dist(const universe& universe, const int start_index, const int dest_index) -> float;

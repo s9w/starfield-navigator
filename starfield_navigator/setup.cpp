@@ -35,7 +35,7 @@ namespace
          GLuint,
          GLenum severity,
          GLsizei,
-         [[maybe_unused]] const GLchar* message,
+         const GLchar* message,
          const void*)
    {
       if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
@@ -43,7 +43,7 @@ namespace
       // ignoring performance warning for now. Maybe fixed with SPIRV?
       if (type == GL_DEBUG_TYPE_PERFORMANCE)
          return;
-      int end = 0;
+      log::error(message);
       // sg::log::warn(
       //    std::format(
       //       "OpenGL Error.\n\tType: {}\n\tSeverity: {}\n\tmessage: {}\n",
