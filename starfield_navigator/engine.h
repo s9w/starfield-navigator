@@ -121,6 +121,7 @@ namespace sfn
       [[nodiscard]] auto get_view_matrix(const circle_mode& circle) const -> glm::mat4;
       [[nodiscard]] auto get_view_matrix(const trailer_mode& trailer) const -> glm::mat4;
       auto draw_system_labels() const -> void;
+      auto build_connection_mesh_from_graph(const graph& connection_graph)->std::vector<line_vertex_data>;
    };
 }
 

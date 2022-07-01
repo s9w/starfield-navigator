@@ -249,12 +249,19 @@ auto sfn::engine::draw_frame() -> void
    // render things
    if (m_gui_mode == gui_mode::jumps)
    {
+      m_vao_connection_lines->bind();
+      m_shader_lines.use();
+      m_shader_lines.set_uniform("time", -1.0f);
+      glDepthMask(false);
+      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(connection_line_mesh.size()));
+      glDepthMask(true);
+
       m_vao_jump_lines->bind();
       m_shader_lines.use();
       m_shader_lines.set_uniform("time", timing_info.m_steady_time);
-      glDepthMask(false);
+      // glDepthMask(false);
       glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(jump_line_mesh.size()));
-      glDepthMask(true);
+      // glDepthMask(true);
    }
    else if (m_gui_mode == gui_mode::connections)
    {
@@ -412,6 +419,7 @@ auto sfn::engine::gui_plotter() -> void
    if (course_changed)
    {
       starfield_graph = graph(m_universe, jump_range);
+      connection_line_mesh = build_connection_mesh_from_graph(starfield_graph);
       path = starfield_graph.get_jump_path(m_source_index, m_destination_index, m_universe);
 
       if (path.has_value())
@@ -552,9 +560,31 @@ auto engine::get_camera_pos() const -> glm::vec3
 }
 
 
+auto sfn::engine::build_connection_mesh_from_graph(const graph& connection_graph) -> std::vector<line_vertex_data>
+{
+   std::vector<line_vertex_data> connection_mesh;
+   connection_mesh.reserve(2 * connection_graph.m_connections.size());
+   for (const auto& [key, connection] : connection_graph.m_connections)
+   {
+      connection_mesh.push_back(
+         line_vertex_data{
+            .m_position = m_universe.m_systems[connection.m_node_index0].m_position,
+            .m_progress = 0.0f
+         }
+      );
+      connection_mesh.push_back(
+         line_vertex_data{
+            .m_position = m_universe.m_systems[connection.m_node_index1].m_position,
+            .m_progress = 0.0f
+         }
+      );
+   }
+   return connection_mesh;
+}
+
+
 auto sfn::engine::gui_draw() -> void
 {
-   // glLineWidth(5);
    {
       normal_imgui_window w(glm::ivec2{ 200, 0 }, glm::ivec2{ 350, 60 }, "camera");
 
@@ -640,22 +670,7 @@ auto sfn::engine::gui_draw() -> void
             {
                connection_graph = graph(m_universe, connections_jump_range);
 
-               connection_line_mesh.clear();
-               for(const auto& [key, connection] : connection_graph.m_connections)
-               {
-                  connection_line_mesh.push_back(
-                     line_vertex_data{
-                        .m_position = m_universe.m_systems[connection.m_node_index0].m_position,
-                        .m_progress = 0.0f
-                     }
-                  );
-                  connection_line_mesh.push_back(
-                     line_vertex_data{
-                        .m_position = m_universe.m_systems[connection.m_node_index1].m_position,
-                        .m_progress = 0.0f
-                     }
-                  );
-               }
+               connection_line_mesh = build_connection_mesh_from_graph(connection_graph);
             }
             ImGui::EndTabItem();
          }
