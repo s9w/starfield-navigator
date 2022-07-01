@@ -632,7 +632,7 @@ auto engine::build_neighbor_connection_mesh(
 auto sfn::engine::gui_draw() -> void
 {
    {
-      normal_imgui_window w(glm::ivec2{ 200, 0 }, glm::ivec2{ 350, 60 }, "camera");
+      normal_imgui_window w(glm::ivec2{ 200, 0 }, glm::ivec2{ 350, 60 }, std::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
 
       const auto is_button_pressed = [&](const int key) -> bool {
          return glfwGetKey(m_window_wrapper.m_window, key) == GLFW_PRESS;
@@ -654,12 +654,14 @@ auto sfn::engine::gui_draw() -> void
          }
       }
 
-      if(ImGui::Button(std::format("{} Frontal", (const char*)ICON_FA_VIDEO).c_str()))
+      static int radio_selected = 0;
+      ImGui::AlignTextToFramePadding();
+      if(ImGui::RadioButton("Frontal", &radio_selected, 0))
       {
          m_camera_mode = wasd_mode{};
       }
       ImGui::SameLine();
-      if (ImGui::Button(std::format("{} Center (around {})", (const char*)ICON_FA_VIDEO, m_universe.m_systems[m_list_selection].m_name).c_str()))
+      if (ImGui::RadioButton("Center selection", &radio_selected, 1))
       {
          m_camera_mode = circle_mode{
             .m_planet = m_list_selection,
@@ -669,7 +671,7 @@ auto sfn::engine::gui_draw() -> void
          };
       }
       ImGui::SameLine();
-      if (ImGui::Button(std::format("{} Trailer", (const char*)ICON_FA_VIDEO).c_str()))
+      if (ImGui::RadioButton("Like reveal", &radio_selected, 2))
       {
          m_camera_mode = trailer_mode{};
       }
