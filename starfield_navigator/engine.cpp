@@ -821,6 +821,11 @@ auto engine::draw_system_labels() const -> void
       if (system.m_info_quality == info_quality::unknown)
          continue;
       glm::vec4 screen_pos_vec4 = m_current_mvp.m_projection * m_current_mvp.m_view * glm::vec4(system.m_position, 1.0f);
+
+      // Skip labels behind the camera
+      if (screen_pos_vec4[2] < 0)
+         continue;
+
       screen_pos_vec4 /= screen_pos_vec4[3];
 
       glm::vec2 imgui_draw_pos = 0.5f * (glm::vec2(screen_pos_vec4) + 1.0f);
