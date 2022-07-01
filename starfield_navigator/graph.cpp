@@ -327,7 +327,7 @@ auto sfn::get_min_jump_dist(
       // Plot a course through that graph
       // If no jump is possible, the previously calculated longest jump is the minimum required range
       const std::optional<jump_path> plot = minimum_graph.get_jump_path(start_index, dest_index, universe);
-      if (plot.has_value() == false)
+      if (plot.has_value() == false || plot->m_stops.size() == 1)
       {
          return necessary_jumprange;
       }
