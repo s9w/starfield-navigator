@@ -14,7 +14,6 @@ out float io_distance;
 void main()
 {
    vec4 pos = projection * view * vec4(position, 1.0);
-   pos /= pos.w;
    gl_Position = pos;
    
    float distance_from_cam = distance(position, camera_pos);
