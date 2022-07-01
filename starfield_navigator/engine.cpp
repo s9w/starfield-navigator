@@ -350,15 +350,13 @@ auto sfn::engine::draw_list() -> void
 }
 
 
-auto sfn::engine::gui_closest_stars() -> void
+auto sfn::engine::gui_closest_stars(const bool switched_into_tab) -> void
 {
-   static bool first_plot = true;
-   static int selection = 14;
+   static int selection = m_universe.get_index_by_name("SOL");
 
-   if(first_plot)
+   if(switched_into_tab)
    {
       closest_line_mesh = build_neighbor_connection_mesh(m_universe, selection);
-      first_plot = false;
    }
 
    if (ImGui::Button(std::format("Closest systems around: {} {}", m_universe.m_systems[selection].m_name, (const char*)ICON_FA_MAP_MARKER_ALT).c_str()))
@@ -395,7 +393,7 @@ auto sfn::engine::gui_closest_stars() -> void
 }
 
 
-auto sfn::engine::draw_jump_calculations() -> void
+auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
 {
    static float jump_range = 20.0f;
    static graph starfield_graph = get_graph_from_universe(m_universe, jump_range);
@@ -439,7 +437,7 @@ auto sfn::engine::draw_jump_calculations() -> void
 
    static std::vector<std::string> path_strings;
    // Graph and path update
-   if (course_changed)
+   if (course_changed || switched_into_tab)
    {
       starfield_graph = get_graph_from_universe(m_universe, jump_range);
       connection_line_mesh = build_connection_mesh_from_graph(starfield_graph);
@@ -718,15 +716,17 @@ auto sfn::engine::gui_draw() -> void
          ImGui::PushStyleColor(ImGuiCol_TabHovered, (ImVec4)ImColor::HSV(0.0f, 0.5f, 0.8f));
          ImGui::PushStyleColor(ImGuiCol_TabActive, (ImVec4)ImColor::HSV(0.0f, 0.5f, 0.9f));
 
+         static gui_mode old_gui_mode = gui_mode::connections;
          if (ImGui::BeginTabItem("Show connections"))
          {
             m_gui_mode = gui_mode::connections;
             static float connections_jump_range = 15.0f;
             static graph connection_graph = get_graph_from_universe(m_universe, connections_jump_range);
-            if(ImGui::SliderFloat("jump range", &connections_jump_range, 10, 30) || connection_line_mesh.empty())
+            bool changed = m_gui_mode != old_gui_mode;
+            changed |= ImGui::SliderFloat("jump range", &connections_jump_range, 10, 30) || connection_line_mesh.empty();
+            if(changed)
             {
                connection_graph = get_graph_from_universe(m_universe, connections_jump_range);
-
                connection_line_mesh = build_connection_mesh_from_graph(connection_graph);
             }
             ImGui::EndTabItem();
@@ -734,16 +734,18 @@ auto sfn::engine::gui_draw() -> void
          if (ImGui::BeginTabItem("Closest stars"))
          {
             m_gui_mode = gui_mode::closest;
-            gui_closest_stars();
+            gui_closest_stars(m_gui_mode != old_gui_mode);
             ImGui::EndTabItem();
          }
 
          if (ImGui::BeginTabItem("Jump calculations"))
          {
             m_gui_mode = gui_mode::jumps;
-            draw_jump_calculations();
+            draw_jump_calculations(m_gui_mode != old_gui_mode);
             ImGui::EndTabItem();
          }
+         old_gui_mode = m_gui_mode;
+
          // if (ImGui::BeginTabItem("game"))
          // {
          //    m_gui_mode = gui_mode::game;

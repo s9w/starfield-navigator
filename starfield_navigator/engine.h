@@ -118,8 +118,8 @@ namespace sfn
       auto draw_frame() -> void;
       auto gui_draw() -> void;
       auto draw_list() -> void;
-      auto gui_closest_stars() -> void;
-      auto draw_jump_calculations() -> void;
+      auto gui_closest_stars(const bool switched_into_tab) -> void;
+      auto draw_jump_calculations(const bool switched_into_tab) -> void;
       auto bind_ubo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;
       auto gpu_upload() const -> void;
       auto update_mvp_member() -> void;
