@@ -27,7 +27,7 @@ namespace sfn {
    struct shortest_path{
       constexpr static inline float no_distance = std::numeric_limits<float>::max();
       float m_shortest_distance = no_distance;
-      int m_previous_vertex_index = -1;
+      std::optional<int> m_previous_vertex_index;
    };
    [[nodiscard]] auto operator==(const shortest_path& a, const shortest_path& b) -> bool;
    
@@ -38,7 +38,6 @@ namespace sfn {
 
       explicit shortest_path_tree(const int source_node_index, const int node_count);
       [[nodiscard]] auto get_distance_from_source(const int node_index) const -> float;
-      friend auto operator<=>(const shortest_path_tree&, const shortest_path_tree&) = default;
    };
 
    struct jump_path{
@@ -137,13 +136,14 @@ template<typename T>
    const shortest_path_tree tree = this->get_dijkstra(start_index, weight_getter);
 
    jump_path result;
-   int position = destination_index;
+   result.m_stops.reserve(10);
+   std::optional<int> position = destination_index;
 
-   while (position != start_index)
+   while (*position != start_index)
    {
-      result.m_stops.push_back(position);
-      position = tree.m_entries[position].m_previous_vertex_index;
-      if (position == -1)
+      result.m_stops.push_back(*position);
+      position = tree.m_entries[*position].m_previous_vertex_index;
+      if (position.has_value() == false)
       {
          return std::nullopt;
       }

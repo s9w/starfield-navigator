@@ -674,7 +674,7 @@ auto sfn::engine::gui_draw() -> void
       {
          m_camera_mode = wasd_mode{};
       }
-      tooltip("WAS to move");
+      tooltip("WASD to move");
       ImGui::SameLine();
       if (ImGui::RadioButton("Center selection", &radio_selected, 1))
       {
