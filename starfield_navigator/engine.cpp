@@ -203,8 +203,8 @@ auto engine::static_scroll_callback(GLFWwindow* window, double xoffset, double y
 
 auto sfn::engine::resize_callback(
    [[maybe_unused]] GLFWwindow* window,
-   [[maybe_unused]] int new_width,
-   [[maybe_unused]] int new_height
+   int new_width,
+   int new_height
 ) -> void
 {
    m_config.res_x = new_width;
@@ -215,11 +215,12 @@ auto sfn::engine::resize_callback(
 
 
 auto sfn::engine::scroll_callback(
-   [[maybe_unused]] GLFWwindow* window,
-   [[maybe_unused]] double xoffset,
-   [[maybe_unused]] double yoffset
+   GLFWwindow* window,
+   double xoffset,
+   double yoffset
 ) -> void
 {
+   imgui_context::scroll_callback(window, xoffset, yoffset);
    if(std::holds_alternative<circle_mode>(m_camera_mode))
    {
       auto& mode = std::get<circle_mode>(m_camera_mode);
@@ -462,7 +463,7 @@ auto sfn::engine::draw_jump_calculations() -> void
 
             path_strings.push_back(std::format(
                "Jump {}: {} to {}. Distance: {:.1f} LY\n",
-               i,
+               i+1,
                m_universe.m_systems[this_stop_system].m_name,
                m_universe.m_systems[next_stop_system].m_name,
                dist
@@ -483,20 +484,17 @@ auto sfn::engine::draw_jump_calculations() -> void
                m_universe.m_systems[next_stop_system].m_position
             );
 
-            const float this_progress = travelled_distance;
-            travelled_distance += dist;
-            const float next_progress = travelled_distance;
-
             jump_line_mesh.push_back(
                line_vertex_data{
                   .m_position = m_universe.m_systems[this_stop_system].m_position,
-                  .m_progress = this_progress
+                  .m_progress = travelled_distance
                }
             );
+            travelled_distance += dist;
             jump_line_mesh.push_back(
                line_vertex_data{
                   .m_position = m_universe.m_systems[next_stop_system].m_position,
-                  .m_progress = next_progress
+                  .m_progress = travelled_distance
                }
             );
          }

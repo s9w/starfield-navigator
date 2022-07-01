@@ -163,6 +163,16 @@ auto sfn::imgui_context::frame_end() const -> void
 }
 
 
+auto imgui_context::scroll_callback(
+   GLFWwindow* window,
+   double xoffset,
+   double yoffset
+) -> void
+{
+   ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+}
+
+
 sfn::normal_imgui_window::normal_imgui_window(
    const char* name,
    const ImGuiWindowFlags extra_flags

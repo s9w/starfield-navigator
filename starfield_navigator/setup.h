@@ -68,6 +68,7 @@ namespace sfn
       ~imgui_context();
       auto frame_begin() const -> void;
       auto frame_end() const -> void;
+      static auto scroll_callback(GLFWwindow* window, double, double) -> void;
 
       imgui_context(const imgui_context&) = delete;
       imgui_context& operator=(const imgui_context&) = delete;

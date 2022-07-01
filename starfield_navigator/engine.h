@@ -105,14 +105,14 @@ namespace sfn
 
    private:
       auto resize_callback(
-         [[maybe_unused]] GLFWwindow* window,
-         [[maybe_unused]] int new_width,
-         [[maybe_unused]] int new_height
+         GLFWwindow* window,
+         int new_width,
+         int new_height
       ) -> void;
       auto scroll_callback(
-         [[maybe_unused]] GLFWwindow* window,
-         [[maybe_unused]] double xoffset,
-         [[maybe_unused]] double yoffset
+         GLFWwindow* window,
+         double xoffset,
+         double yoffset
       ) -> void;
 
       auto draw_frame() -> void;
