@@ -553,7 +553,7 @@ auto sfn::engine::gui_draw() -> void
 {
    // glLineWidth(5);
    {
-      normal_imgui_window w(glm::ivec2{ 200, 0 }, glm::ivec2{ 450, 60 }, "camera");
+      normal_imgui_window w(glm::ivec2{ 200, 0 }, glm::ivec2{ 350, 60 }, "camera");
 
       const auto is_button_pressed = [&](const int key) -> bool {
          return glfwGetKey(m_window_wrapper.m_window, key) == GLFW_PRESS;
@@ -574,11 +574,7 @@ auto sfn::engine::gui_draw() -> void
             camera_pos.x += +0.1f;
          }
       }
-      if (ImGui::Button(std::format("{} Trailer", (const char*)ICON_FA_VIDEO).c_str()))
-      {
-         m_camera_mode = trailer_mode{};
-      }
-      ImGui::SameLine();
+
       if(ImGui::Button(std::format("{} Frontal", (const char*)ICON_FA_VIDEO).c_str()))
       {
          m_camera_mode = wasd_mode{};
@@ -592,6 +588,11 @@ auto sfn::engine::gui_draw() -> void
             .horiz_angle_offset = 0,
             .vert_angle_offset = 0
          };
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(std::format("{} Trailer", (const char*)ICON_FA_VIDEO).c_str()))
+      {
+         m_camera_mode = trailer_mode{};
       }
 
       if (std::holds_alternative<circle_mode>(m_camera_mode))
@@ -710,7 +711,7 @@ auto sfn::engine::get_view_matrix(const circle_mode& circle) const -> glm::mat4
 }
 
 
-auto engine::get_view_matrix(const trailer_mode& trailer) const -> glm::mat4
+auto engine::get_view_matrix([[maybe_unused]] const trailer_mode& trailer) const -> glm::mat4
 {
    glm::mat4 view_matrix{ 1.0f };
    view_matrix = glm::rotate(view_matrix, glm::radians(-90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
