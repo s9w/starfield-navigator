@@ -54,7 +54,7 @@ namespace sfn
       imgui_context m_imgui_context;
 
       universe m_universe;
-      int m_list_selection = 0;
+      int m_list_selection = m_universe.get_index_by_name("SOL");
       int m_source_index = m_universe.get_index_by_name("SOL");
       int m_destination_index = m_universe.get_index_by_name("PORRIMA");
       gui_mode m_gui_mode = gui_mode::connections;
