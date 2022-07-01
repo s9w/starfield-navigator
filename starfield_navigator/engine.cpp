@@ -316,11 +316,12 @@ auto sfn::engine::draw_loop() -> void
 
 
 
-auto sfn::engine::draw_list() -> void
+auto sfn::engine::draw_list() -> bool
 {
    static ImGuiTextFilter filter;
    filter.Draw((const char*)ICON_FA_SEARCH " Filter");
 
+   int old_selection = m_list_selection;
    if (ImGui::BeginTable("##table_selector", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
    {
       ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
@@ -347,24 +348,14 @@ auto sfn::engine::draw_list() -> void
       }
       ImGui::EndTable();
    }
+   return m_list_selection == old_selection;
 }
 
 
 auto sfn::engine::gui_closest_stars(const bool switched_into_tab) -> void
 {
-   static int selection = m_universe.get_index_by_name("SOL");
-
-   if(switched_into_tab)
-   {
-      closest_line_mesh = build_neighbor_connection_mesh(m_universe, selection);
-   }
-
-   if (ImGui::Button(std::format("Closest systems around: {} {}", m_universe.m_systems[selection].m_name, (const char*)ICON_FA_MAP_MARKER_ALT).c_str()))
-   {
-      selection = m_list_selection;
-      closest_line_mesh = build_neighbor_connection_mesh(m_universe, selection);
-   }
-   const std::vector<int> closest = m_universe.get_closest(selection);
+   ImGui::Text(std::format("Closest stars around {}:", m_universe.m_systems[m_list_selection].m_name).c_str());
+   const std::vector<int> closest = m_universe.get_closest(m_list_selection);
 
    if (ImGui::BeginTable("##table_closest", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
    {
@@ -379,7 +370,7 @@ auto sfn::engine::gui_closest_stars(const bool switched_into_tab) -> void
 
          ImGui::TableSetColumnIndex(0);
          const float dist = glm::distance(
-            m_universe.m_systems[selection].m_position,
+            m_universe.m_systems[m_list_selection].m_position,
             m_universe.m_systems[closest[i]].m_position
          );
          right_align_text(std::format("{:.1f}", dist));
@@ -701,9 +692,19 @@ auto sfn::engine::gui_draw() -> void
       }
    }
 
+   bool selection_changed = false;
    {
       normal_imgui_window w(glm::ivec2{ 0, 0 }, glm::ivec2{ 200, 500 }, "System selector");
-      draw_list();
+      selection_changed = draw_list();
+   }
+   if(selection_changed)
+   {
+      closest_line_mesh = build_neighbor_connection_mesh(m_universe, m_list_selection);
+
+      if(std::holds_alternative<circle_mode>(m_camera_mode))
+      {
+         std::get<circle_mode>(m_camera_mode).m_planet = m_list_selection;
+      }
    }
 
    {
