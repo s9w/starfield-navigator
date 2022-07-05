@@ -45,10 +45,12 @@ auto sfn::system::get_starfield_name() const -> std::string
    return m_name;
 }
 
-sfn::system::system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name)
+
+sfn::system::system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name, const system_size size)
    : m_name(name)
    , m_astronomic_name(astronomic_name)
    , m_position(pos)
+   , m_size(size)
 {
    static int unnamed_count = 0;
    if (name.empty())

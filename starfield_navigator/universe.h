@@ -11,16 +11,18 @@ namespace sfn
 {
 
    enum class factions { uc, freestar, crimson };
+   enum class system_size{big, small};
 
    struct system {
       std::string m_name;
       std::string m_astronomic_name;
       glm::vec3 m_position;
+      system_size m_size = system_size::big;
       [[nodiscard]] auto get_useful_name() const -> std::optional<std::string>;
       [[nodiscard]] auto get_name() const -> std::string;
       [[nodiscard]] auto get_starfield_name() const -> std::string;
 
-      explicit system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name);
+      explicit system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name, const system_size size);
    };
 
    struct cs

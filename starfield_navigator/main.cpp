@@ -215,6 +215,23 @@ auto get_real_entries() -> real_universe
    return result;
 }
 
+auto get_name_and_size(std::string name, system_size& size_target) -> std::string
+{
+   if (name.starts_with("big_"))
+   {
+      size_target = system_size::big;
+      name = name.substr(4);
+   }
+   else if (name.starts_with("small_"))
+   {
+      size_target = system_size::small;
+      name = name.substr(6);
+   }
+   else
+      std::terminate();
+   return name;
+}
+
 
 auto get_starfield_universe() -> universe
 {
@@ -226,14 +243,14 @@ auto get_starfield_universe() -> universe
    for (std::string line; getline(input, line); )
    {
       const std::vector<std::string> split = get_split_string(line, ";");
-      const std::string name = split[0];
+      system_size size;
+      const std::string name = get_name_and_size(split[0], size);
       const std::string astronomic_name = split[4];
       
       const float x = static_cast<float>(std::stod(get_trimmed_str(split[1])));
       const float y = static_cast<float>(std::stod(get_trimmed_str(split[2])));
       const float z = static_cast<float>(std::stod(get_trimmed_str(split[3])));
-
-      starfield_universe.m_systems.emplace_back(c4d_convert(glm::vec3{ x, y, z }), name, astronomic_name);
+      starfield_universe.m_systems.emplace_back(c4d_convert(glm::vec3{ x, y, z }), name, astronomic_name, size);
    }
 
    auto original_sun_pos = starfield_universe.get_position_by_name("SOL");
