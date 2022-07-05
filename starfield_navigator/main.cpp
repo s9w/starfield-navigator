@@ -304,7 +304,7 @@ auto get_starfield_universe() -> universe
          {
             const float dist = glm::distance(pos0, real_universe.m_stars[closest[i]].m_coordinates);
             const float relative_error = dist / glm::length(real_universe.m_stars[closest[i]].m_coordinates);
-            printf(fmt::format("{}: {}, dist: {:.1f}, rel error: {:.1f}\n", i, real_universe.get_name_by_index(closest[i]), dist, 100.0f* relative_error).c_str());
+            fmt::print("{}: {}, dist: {:.1f}, rel error: {:.1f}\n", i, real_universe.get_name_by_index(closest[i]), dist, 100.0f* relative_error);
          }
       };
       const auto candidates_for_real = [&](const std::string& real_name)
@@ -324,7 +324,7 @@ auto get_starfield_universe() -> universe
          {
             const float dist = glm::distance(pos0, starfield_universe.m_systems[closest[i]].m_position);
             const float relative_error = dist / glm::length(starfield_universe.m_systems[closest[i]].m_position);
-            printf(fmt::format("{}: {}, dist: {:.1f}, rel error: {:.1f}\n", i, starfield_universe.m_systems[closest[i]].m_name, dist, 100.0f * relative_error).c_str());
+            fmt::print("{}: {}, dist: {:.1f}, rel error: {:.1f}\n", i, starfield_universe.m_systems[closest[i]].m_name, dist, 100.0f * relative_error);
          }
       };
 
@@ -365,20 +365,20 @@ auto get_starfield_universe() -> universe
          starfield_universe.get_position_by_name(name_a),
          starfield_universe.get_position_by_name(name_b)
       );
-      printf(fmt::format("dist {}<->{}: {:.2f} LY\n", name_a, name_b, dist).c_str());
+      fmt::print("dist {}<->{}: {:.2f} LY\n", name_a, name_b, dist);
    };
    dist_report("User 64", "User 65");
    dist_report("User 62", "User 63");
 
    // {
    //    const float sufficient_jump_range = get_absolute_min_jump_range(starfield_universe);
-   //    printf(fmt::format("sufficient_jump_range: {:.1f}\n", sufficient_jump_range).c_str());
+   //    fmt::print("sufficient_jump_range: {:.1f}\n", sufficient_jump_range);
    // }
 
    {
       const auto closest = get_closest_distances_for_all(starfield_universe);
-      printf(fmt::format("avg of closest: {:.2f}\n", get_average(closest)).c_str());
-      printf(fmt::format("max of closest: {:.2f}\n", *std::ranges::max_element(closest)).c_str());
+      fmt::print("avg of closest: {:.2f}\n", get_average(closest));
+      fmt::print("max of closest: {:.2f}\n", *std::ranges::max_element(closest));
    }
 
    starfield_universe.print_info();

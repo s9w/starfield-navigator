@@ -14,11 +14,11 @@ using dbl_ms = std::chrono::duration<double, std::milli>;
 
 namespace sfn
 {
-   // template <typename... param_types>
-   // auto print(const std::string_view fmt, const param_types&... arg) -> void
-   // {
-   //    fmt::format(fmt, arg...);
-   // }
+   template <typename... param_types>
+   auto print(const std::string_view fmt, const param_types&&... arg) -> void
+   {
+      fmt::format(fmt, arg...);
+   }
 
    template<typename T>
    auto as_bytes(const std::vector<T>& vec) -> auto
@@ -45,7 +45,7 @@ namespace sfn
       {
          const auto t1 = std::chrono::high_resolution_clock::now();
          const dbl_ms duration = dbl_ms(t1 - m_t0);
-         printf(fmt::format("timer: {} ms\n", static_cast<int>(duration.count())).c_str()) ;
+         fmt::print("timer: {} ms\n", static_cast<int>(duration.count()));
       }
    };
 
@@ -147,7 +147,7 @@ constexpr auto sfn::sfn_assert(const bool condition, const std::string& msg) -> 
    }
    if (msg.empty() == false)
    {
-      printf(fmt::format("error: {}\n", msg).c_str());
+      fmt::print("error: {}\n", msg);
    }
 
    std::terminate();
