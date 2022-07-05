@@ -368,7 +368,7 @@ auto sfn::engine::draw_list() -> bool
 
       for (int i = 0; i < m_universe.m_systems.size(); i++)
       {
-         if (filter.PassFilter(m_universe.m_systems[i].m_name.c_str()) == false)
+         if (filter.PassFilter(m_universe.m_systems[i].get_name().c_str()) == false)
             continue;
          const bool is_selected = (m_list_selection == i);
 
