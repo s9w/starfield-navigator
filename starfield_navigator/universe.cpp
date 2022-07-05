@@ -38,6 +38,12 @@ auto sfn::system::get_name() const -> std::string
    return result;
 }
 
+auto sfn::system::get_starfield_name() const -> std::string
+{
+   if (m_name.starts_with("User"))
+      return "";
+   return m_name;
+}
 
 sfn::system::system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name)
    : m_name(name)

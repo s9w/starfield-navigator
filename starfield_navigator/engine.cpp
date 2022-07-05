@@ -16,26 +16,6 @@ namespace
 {
    using namespace sfn;
 
-   auto print_system(
-      const universe& universe,
-      const int i,
-      const bool* selected_target
-   ) -> std::optional<int>
-   {
-      std::optional<int> return_selection;
-      const std::string imgui_label = std::format("{} ##{}", universe.m_systems[i].get_name(), i);
-      if (selected_target == nullptr)
-         ImGui::Text(imgui_label.c_str());
-      else
-      {
-         if (ImGui::Selectable(imgui_label.c_str(), *selected_target))
-         {
-            return_selection = i;
-         }
-      }
-      return return_selection;
-   }
-
 
    auto right_align_text(const std::string& text) -> void
    {
@@ -378,11 +358,12 @@ auto sfn::engine::draw_list() -> bool
    filter.Draw((const char*)ICON_FA_SEARCH " Filter");
 
    int old_selection = m_list_selection;
-   if (ImGui::BeginTable("##table_selector", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+   if (ImGui::BeginTable("##table_selector", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
    {
       ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
       ImGui::TableSetupColumn("idx", ImGuiTableColumnFlags_WidthFixed, 30.0f);
-      ImGui::TableSetupColumn("name", ImGuiTableColumnFlags_None);
+      ImGui::TableSetupColumn("SF name", ImGuiTableColumnFlags_None);
+      ImGui::TableSetupColumn("real name", ImGuiTableColumnFlags_None);
       ImGui::TableHeadersRow();
 
       for (int i = 0; i < m_universe.m_systems.size(); i++)
@@ -394,11 +375,23 @@ auto sfn::engine::draw_list() -> bool
          ImGui::TableNextRow();
          ImGui::TableSetColumnIndex(0);
          right_align_text(std::format("{}", i));
-         ImGui::TableSetColumnIndex(1);
 
-         if (const auto x = print_system(m_universe, i, &is_selected); x.has_value())
+         
          {
-            m_list_selection = *x;
+            ImGui::TableSetColumnIndex(1);
+            const std::string imgui_label = std::format("{} ##LC{}", m_universe.m_systems[i].get_starfield_name(), i);
+            if (ImGui::Selectable(imgui_label.c_str(), is_selected))
+            {
+               m_list_selection = i;
+            }
+         }
+         {
+            ImGui::TableSetColumnIndex(2);
+            const std::string imgui_label = std::format("{} ##RC{}", m_universe.m_systems[i].m_astronomic_name, i);
+            if (ImGui::Selectable(imgui_label.c_str(), is_selected))
+            {
+               m_list_selection = i;
+            }
          }
       }
       ImGui::EndTable();
@@ -431,7 +424,7 @@ auto sfn::engine::gui_closest_stars(const bool switched_into_tab) -> void
          right_align_text(std::format("{:.1f}", dist));
 
          ImGui::TableSetColumnIndex(1);
-         print_system(m_universe, closest[i], nullptr);
+         ImGui::Text(m_universe.m_systems[i].get_name().c_str());
       }
 
       ImGui::EndTable();
@@ -688,7 +681,7 @@ auto engine::build_neighbor_connection_mesh(
 auto sfn::engine::gui_draw() -> void
 {
    {
-      normal_imgui_window w(glm::ivec2{ 200, 0 }, glm::ivec2{ 350, 60 }, std::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
+      normal_imgui_window w(glm::ivec2{ 250, 0 }, glm::ivec2{ 350, 60 }, std::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
 
       const auto is_button_pressed = [&](const int key) -> bool {
          return glfwGetKey(m_window_wrapper.m_window, key) == GLFW_PRESS;
@@ -756,7 +749,7 @@ auto sfn::engine::gui_draw() -> void
 
    bool selection_changed = false;
    {
-      normal_imgui_window w(glm::ivec2{ 0, 0 }, glm::ivec2{ 200, 500 }, "System selector");
+      normal_imgui_window w(glm::ivec2{ 0, 0 }, glm::ivec2{ 250, 500 }, "System selector");
       selection_changed = draw_list();
    }
    if(selection_changed)

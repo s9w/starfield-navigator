@@ -18,6 +18,7 @@ namespace sfn
       glm::vec3 m_position;
       [[nodiscard]] auto get_useful_name() const -> std::optional<std::string>;
       [[nodiscard]] auto get_name() const -> std::string;
+      [[nodiscard]] auto get_starfield_name() const -> std::string;
 
       explicit system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name);
    };
