@@ -234,6 +234,8 @@ auto sfn::engine::resize_callback(
    int new_height
 ) -> void
 {
+   if (new_width == 0 || new_height == 0)
+      return;
    m_config.res_x = new_width;
    m_config.res_y = new_height;
    glViewport(0, 0, new_width, new_height);

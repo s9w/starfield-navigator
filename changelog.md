@@ -1,6 +1,7 @@
 # 0.4
 - System selector now properly differentiates ingame and real-life names of systems
 - Fixed messed up system labels in closest star tab
+- Fixed crash on minimize
 
 # 0.3
 - Fixed visual distortions when resizing a window to a non 16/9 aspect
