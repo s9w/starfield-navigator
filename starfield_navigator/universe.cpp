@@ -8,6 +8,7 @@
 #pragma warning(push, 0)    
 #include <glm/geometric.hpp>
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/vector_query.hpp>
 #pragma warning(pop)
 
 
@@ -46,6 +47,18 @@ sfn::system::system(const glm::vec3& pos, const std::string& name, const std::st
    static int unnamed_count = 0;
    if (name.empty())
       m_name = std::format("UNNAMED {}", unnamed_count++);
+}
+
+cs::cs(const glm::vec3& front, const glm::vec3& up)
+   : m_front(front)
+   , m_up(up)
+   , m_right(glm::cross(front, up))
+{
+   constexpr float tol = 0.001f;
+   if(glm::isNormalized(m_front, tol) && glm::isNormalized(m_up, tol) && glm::isNormalized(m_right, tol) == false)
+   {
+      std::terminate();
+   }
 }
 
 

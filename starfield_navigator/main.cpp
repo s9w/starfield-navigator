@@ -46,14 +46,15 @@ using namespace sfn;
       systems.erase(it);
       return copy;
    };
-   cam_info result{};
-   result.m_cam_pos0 = generator("cam0");
-   result.m_cam_pos1 = generator("cam1");
-   const glm::vec3 forward_target = generator("cam_front");
-   const glm::vec3 up_target = generator("cam_up");
-   result.m_default_look_dir = glm::normalize(forward_target - result.m_cam_pos0);
-   result.m_camera_up = glm::normalize(up_target - result.m_cam_pos0);
-   return result;
+   const glm::vec3 cam0 = generator("cam0");
+   const glm::vec3 cam1 = generator("cam1");
+   const glm::vec3 cam_up = generator("cam_up");
+   const glm::vec3 cam_front = generator("cam_front");
+   return cam_info{
+      .m_cs = cs(glm::normalize(cam_front - cam0), glm::normalize(cam_up - cam0)),
+      .m_cam_pos0 = cam0,
+      .m_cam_pos1 = cam1
+   };
 }
 
 struct alignment_stars
@@ -219,7 +220,7 @@ auto get_starfield_universe() -> universe
 {
    const real_universe real_universe = get_real_entries();
 
-   universe starfield_universe;
+   universe starfield_universe{};
    std::ifstream input("system_data.txt");
 
    for (std::string line; getline(input, line); )

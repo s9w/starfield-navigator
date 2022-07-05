@@ -68,18 +68,21 @@ namespace
    }
 
 
-   auto get_indicator_mesh(const glm::vec3& center) -> std::vector<position_vertex_data>
+   [[nodiscard]] auto get_indicator_mesh(
+      const glm::vec3& center,
+      const cs& cs
+   ) -> std::vector<position_vertex_data>
    {
       std::vector<position_vertex_data> result;
       result.reserve(128);
 
       constexpr float cross_extension = 1.0;
-      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{-cross_extension,   0, 0} });
-      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{ cross_extension,   0, 0} });
-      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{  0, -cross_extension, 0} });
-      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{  0,  cross_extension, 0} });
-      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{  0,  0, -cross_extension} });
-      result.push_back(position_vertex_data{ .m_position = center + glm::vec3{  0,  0,  cross_extension} });
+      result.push_back(position_vertex_data{ .m_position = center - cross_extension* cs.m_front });
+      result.push_back(position_vertex_data{ .m_position = center + cross_extension* cs.m_front });
+      result.push_back(position_vertex_data{ .m_position = center - cross_extension* cs.m_right });
+      result.push_back(position_vertex_data{ .m_position = center + cross_extension* cs.m_right });
+      result.push_back(position_vertex_data{ .m_position = center - cross_extension* cs.m_up });
+      result.push_back(position_vertex_data{ .m_position = center + cross_extension* cs.m_up });
 
       constexpr int circle_segments = 32;
       const auto i_to_pos = [&](int i){
@@ -87,7 +90,7 @@ namespace
          const float angle = 1.0f * i / circle_segments * 2.0f * std::numbers::pi_v<float>;
          const float x_rel = cross_extension * std::cos(angle);
          const float y_rel = cross_extension * std::sin(angle);
-         return center + glm::vec3{ x_rel, y_rel, 0.0f };
+         return center + cs.m_right * x_rel + cs.m_front * y_rel;
       };
       for(int i=0; i<circle_segments; ++i)
       {
@@ -691,19 +694,18 @@ auto sfn::engine::gui_draw() -> void
       };
       if (std::holds_alternative<wasd_mode>(m_camera_mode))
       {
-         const glm::vec3 right_vector = glm::cross(m_universe.m_cam_info.m_default_look_dir, m_universe.m_cam_info.m_camera_up);
          auto& camera_pos = std::get<wasd_mode>(m_camera_mode).m_camera_pos;
          if (is_button_pressed(GLFW_KEY_W)) {
-            camera_pos += 0.1f * m_universe.m_cam_info.m_default_look_dir;
+            camera_pos += 0.1f * m_universe.m_cam_info.m_cs.m_front;
          }
          if (is_button_pressed(GLFW_KEY_S)) {
-            camera_pos += -0.1f * m_universe.m_cam_info.m_default_look_dir;
+            camera_pos += -0.1f * m_universe.m_cam_info.m_cs.m_front;
          }
          if (is_button_pressed(GLFW_KEY_A)) {
-            camera_pos += -0.1f * right_vector;
+            camera_pos += -0.1f * m_universe.m_cam_info.m_cs.m_right;
          }
          if (is_button_pressed(GLFW_KEY_D)) {
-            camera_pos += 0.1f * right_vector;
+            camera_pos += 0.1f * m_universe.m_cam_info.m_cs.m_right;
          }
       }
 
@@ -765,7 +767,7 @@ auto sfn::engine::gui_draw() -> void
          std::get<circle_mode>(m_camera_mode).m_planet = m_list_selection;
       }
 
-      indicator_mesh = get_indicator_mesh(m_universe.m_systems[m_list_selection].m_position);
+      indicator_mesh = get_indicator_mesh(m_universe.m_systems[m_list_selection].m_position, m_universe.m_cam_info.m_cs);
    }
 
    {
@@ -834,7 +836,7 @@ auto engine::get_view_matrix(const camera_mode& mode) const -> glm::mat4
    return glm::lookAt(
       this->get_camera_pos(),
       get_camera_target(mode),
-      m_universe.m_cam_info.m_camera_up
+      m_universe.m_cam_info.m_cs.m_up
    );
 }
 
@@ -848,7 +850,7 @@ auto engine::get_camera_target(const camera_mode& mode) const -> glm::vec3
    }
    else
    {
-      return this->get_camera_pos() + m_universe.m_cam_info.m_default_look_dir;
+      return this->get_camera_pos() + m_universe.m_cam_info.m_cs.m_front;
    }
 }
 

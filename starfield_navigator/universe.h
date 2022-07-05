@@ -22,10 +22,18 @@ namespace sfn
       explicit system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name);
    };
 
+   struct cs
+   {
+      glm::vec3 m_front{};
+      glm::vec3 m_up{};
+      glm::vec3 m_right{};
+      cs() = default;
+      explicit cs(const glm::vec3& front, const glm::vec3& up);
+   };
+
    struct cam_info
    {
-      glm::vec3 m_default_look_dir;
-      glm::vec3 m_camera_up;
+      cs m_cs;
       glm::vec3 m_cam_pos0;
       glm::vec3 m_cam_pos1;
    };
