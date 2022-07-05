@@ -30,6 +30,9 @@ namespace sfn
       return std::as_bytes(std::span{ &object, 1 });
    }
 
+   [[nodiscard]] auto get_split_string( std::string source, const std::string& delim) -> std::vector<std::string>;
+   [[nodiscard]] auto get_trimmed_str(const std::string& str, const std::string& to_trim = " ") -> std::string;
+
    struct timer{
       std::chrono::high_resolution_clock::time_point m_t0;
       explicit timer()

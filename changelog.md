@@ -1,7 +1,12 @@
+# 0.3
+- Internal change to galactic coordinates
+- Added more likely stars
+- Change to different reference data, distances might have changed slightly
+
 # 0.2
 - In the jump calculation mode, all possible connections are now shown, too
 - In the closest stars mode, lines to the closest stars are now drawn
-- In center view, a plane/XYZ indicator is now drawn on the active planet
+- In center view, a plane/XYZ indicator is now drawn on the active system
 - The window can now be properly resized
 - Closest stars always use the currently selected system
 - Center camera automatically switches to the selected system (and keeps orientation, distance)

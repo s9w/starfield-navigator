@@ -15,25 +15,33 @@ namespace
 {
    using namespace sfn;
 
-   auto get_name_iq(const std::string& name) -> info_quality
-   {
-      const static std::vector<std::string> known_systems{
-         "SOL", "NARION", "ALPHA CENTAURI", "CHEYENNE", "PORRIMA", "VOLII", "JAFFA"
-      };
-      if (name.starts_with("User"))
-         return info_quality::unknown;
-      if (std::ranges::find(known_systems, name) != std::end(known_systems))
-         return info_quality::confirmed;
-      return info_quality::speculation;
-   }
-
 }
 
 
-sfn::system::system(const glm::vec3& pos, const std::string& name)
+auto sfn::system::get_useful_name() const -> std::optional<std::string>
+{
+   if (m_name.starts_with("User") && m_astronomic_name.empty())
+      return std::nullopt;
+   return this->get_name();
+}
+
+auto sfn::system::get_name() const -> std::string
+{
+   std::string result;
+   if (m_name.starts_with("User"))
+      result += "---";
+   else
+      result += m_name;
+   if (m_astronomic_name.empty() == false)
+      result += std::format(" ({})", m_astronomic_name);
+   return result;
+}
+
+
+sfn::system::system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name)
    : m_name(name)
+   , m_astronomic_name(astronomic_name)
    , m_position(pos)
-   , m_info_quality(get_name_iq(name))
 {
    static int unnamed_count = 0;
    if (name.empty())

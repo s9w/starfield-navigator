@@ -22,23 +22,16 @@ namespace
       const bool* selected_target
    ) -> std::optional<int>
    {
-      if (universe.m_systems[i].m_info_quality == info_quality::unknown)
-         ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor::HSV(0.0f, 0.0f, 0.7f));
-      else if (universe.m_systems[i].m_info_quality == info_quality::speculation)
-         ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor::HSV(0.3f, 1.0f, 1.0f));
-
       std::optional<int> return_selection;
       if (selected_target == nullptr)
-         ImGui::Text(universe.m_systems[i].m_name.c_str());
+         ImGui::Text(universe.m_systems[i].get_name().c_str());
       else
       {
-         if (ImGui::Selectable(universe.m_systems[i].m_name.c_str(), *selected_target))
+         if (ImGui::Selectable(universe.m_systems[i].get_name().c_str(), *selected_target))
          {
             return_selection = i;
          }
       }
-      if (universe.m_systems[i].m_info_quality != info_quality::confirmed)
-         ImGui::PopStyleColor();
       return return_selection;
    }
 
@@ -619,7 +612,7 @@ auto engine::get_camera_pos() const -> glm::vec3
    else if (std::holds_alternative<trailer_mode>(m_camera_mode))
    {
       const trailer_mode& mode = std::get<trailer_mode>(m_camera_mode);
-      const glm::vec3 camera_pos = glm::mix(trailer_mode::pos0, trailer_mode::pos1, mode.m_progress);
+      const glm::vec3 camera_pos = glm::mix(m_universe.m_cam_info.m_cam_pos0, m_universe.m_cam_info.m_cam_pos1, mode.m_progress);
       return camera_pos;
    }
    else if(std::holds_alternative<circle_mode>(m_camera_mode))
@@ -698,18 +691,19 @@ auto sfn::engine::gui_draw() -> void
       };
       if (std::holds_alternative<wasd_mode>(m_camera_mode))
       {
+         const glm::vec3 right_vector = glm::cross(m_universe.m_cam_info.m_default_look_dir, m_universe.m_cam_info.m_camera_up);
          auto& camera_pos = std::get<wasd_mode>(m_camera_mode).m_camera_pos;
          if (is_button_pressed(GLFW_KEY_W)) {
-            camera_pos.y += 0.1f;
+            camera_pos += 0.1f * m_universe.m_cam_info.m_default_look_dir;
          }
          if (is_button_pressed(GLFW_KEY_S)) {
-            camera_pos.y += -0.1f;
+            camera_pos += -0.1f * m_universe.m_cam_info.m_default_look_dir;
          }
          if (is_button_pressed(GLFW_KEY_A)) {
-            camera_pos.x += -0.1f;
+            camera_pos += -0.1f * right_vector;
          }
          if (is_button_pressed(GLFW_KEY_D)) {
-            camera_pos.x += +0.1f;
+            camera_pos += 0.1f * right_vector;
          }
       }
 
@@ -718,7 +712,7 @@ auto sfn::engine::gui_draw() -> void
 
       if(ImGui::RadioButton("Frontal", &radio_selected, 0))
       {
-         m_camera_mode = wasd_mode{};
+         m_camera_mode = wasd_mode{.m_camera_pos = m_universe.m_cam_info.m_cam_pos0};
       }
       tooltip("WASD to move");
       ImGui::SameLine();
@@ -837,11 +831,10 @@ auto sfn::engine::gui_draw() -> void
 
 auto engine::get_view_matrix(const camera_mode& mode) const -> glm::mat4
 {
-   constexpr glm::vec3 camera_up_vector{ 0, 0, 1 };
    return glm::lookAt(
       this->get_camera_pos(),
       get_camera_target(mode),
-      camera_up_vector
+      m_universe.m_cam_info.m_camera_up
    );
 }
 
@@ -855,8 +848,7 @@ auto engine::get_camera_target(const camera_mode& mode) const -> glm::vec3
    }
    else
    {
-      constexpr glm::vec3 default_look_dir{ 0, 1, 0 };
-      return this->get_camera_pos() + default_look_dir;
+      return this->get_camera_pos() + m_universe.m_cam_info.m_default_look_dir;
    }
 }
 
@@ -866,7 +858,7 @@ auto engine::draw_system_labels() const -> void
    const glm::vec3 cam_pos = this->get_camera_pos();
    for (const system& system : m_universe.m_systems)
    {
-      if (system.m_info_quality == info_quality::unknown)
+      if (system.get_useful_name().has_value() == false)
          continue;
       glm::vec4 screen_pos_vec4 = m_current_mvp.m_projection * m_current_mvp.m_view * glm::vec4(system.m_position, 1.0f);
 
@@ -879,7 +871,9 @@ auto engine::draw_system_labels() const -> void
       glm::vec2 imgui_draw_pos = 0.5f * (glm::vec2(screen_pos_vec4) + 1.0f);
       imgui_draw_pos[1] = 1.0f - imgui_draw_pos[1];
       imgui_draw_pos *= glm::vec2{ m_config.res_x, m_config.res_y };
-      const ImVec2 text_size = ImGui::CalcTextSize(system.m_name.c_str());
+      std::string text = system.get_useful_name().value();
+
+      const ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
       imgui_draw_pos.x -= 0.5f * text_size.x;
       imgui_draw_pos.y -= 0.5f * text_size.y;
 
@@ -888,8 +882,6 @@ auto engine::draw_system_labels() const -> void
       const float planet_radius = 0.5f * pointsize;
       imgui_draw_pos.y -= planet_radius + 8.0f;
       auto text_color = ImColor(50.0f, 45.0f, 255.0f, 27.0f);
-      if (system.m_info_quality == info_quality::speculation)
-         text_color = ImColor(0.0f, 255.0f, 0.0f, 127.0f);
-      ImGui::GetBackgroundDrawList()->AddText(ImVec2(imgui_draw_pos[0], imgui_draw_pos[1]), text_color, system.m_name.c_str());
+      ImGui::GetBackgroundDrawList()->AddText(ImVec2(imgui_draw_pos[0], imgui_draw_pos[1]), text_color, text.c_str());
    }
 }

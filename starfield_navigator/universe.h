@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 #include <glm/vec3.hpp>
 
@@ -10,18 +11,28 @@ namespace sfn
 {
 
    enum class factions { uc, freestar, crimson };
-   enum class info_quality { confirmed, speculation, unknown };
 
    struct system {
       std::string m_name;
+      std::string m_astronomic_name;
       glm::vec3 m_position;
-      info_quality m_info_quality = info_quality::unknown;
+      [[nodiscard]] auto get_useful_name() const -> std::optional<std::string>;
+      [[nodiscard]] auto get_name() const -> std::string;
 
-      explicit system(const glm::vec3& pos, const std::string& name = "");
+      explicit system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name);
+   };
+
+   struct cam_info
+   {
+      glm::vec3 m_default_look_dir;
+      glm::vec3 m_camera_up;
+      glm::vec3 m_cam_pos0;
+      glm::vec3 m_cam_pos1;
    };
 
    struct universe {
       std::vector<system> m_systems;
+      cam_info m_cam_info;
 
       [[nodiscard]] auto get_position_by_name(const std::string& name) const->glm::vec3;
       [[nodiscard]] auto get_index_by_name(const std::string& name) const -> int;

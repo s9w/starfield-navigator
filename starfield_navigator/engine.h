@@ -21,8 +21,7 @@ namespace sfn
 
    struct wasd_mode
    {
-      glm::vec3 m_camera_pos{ 9.76780128, -19.2952900, -0.248474315 };
-      // glm::vec3 m_camera_pos{ 6, -12, 0 };
+      glm::vec3 m_camera_pos{};
    };
    struct circle_mode
    {
@@ -32,8 +31,6 @@ namespace sfn
       float vert_angle_offset;
    };
    struct trailer_mode{
-      constexpr static glm::vec3 pos0{};
-      constexpr static glm::vec3 pos1{ 9.76780128, -19.2952900, -0.248474315 };
       float m_progress = 0.0;
    };
 
@@ -59,7 +56,7 @@ namespace sfn
       int m_destination_index = m_universe.get_index_by_name("PORRIMA");
       gui_mode m_gui_mode = gui_mode::connections;
 
-      camera_mode m_camera_mode = wasd_mode{};
+      camera_mode m_camera_mode = wasd_mode{ m_universe.m_cam_info.m_cam_pos0 };
       buffers m_buffers2;
       id m_mvp_ubo_id{ no_init{} };
       id m_main_fb{ no_init{} };
