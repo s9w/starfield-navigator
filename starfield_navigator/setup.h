@@ -14,7 +14,7 @@ struct ImGuiTextFilter;
 namespace sfn
 {
 
-   const std::string sfn_version_string = "0.3";
+   const std::string sfn_version_string = "0.4";
 
    struct config {
       int res_x = 1280;
