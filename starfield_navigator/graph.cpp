@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <execution>
-#include <ranges>
 
 
 

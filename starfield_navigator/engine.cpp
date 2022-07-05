@@ -4,7 +4,6 @@
 
 #include <GLFW/glfw3.h> // after glad
 #include <imgui.h>
-#include <ranges>
 #include <glm/gtc/matrix_transform.hpp>
 #include "fonts/FontAwesomeSolid.hpp"
 #include "fonts/DroidSans.hpp"
