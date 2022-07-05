@@ -23,11 +23,12 @@ namespace
    ) -> std::optional<int>
    {
       std::optional<int> return_selection;
+      const std::string imgui_label = std::format("{} ##{}", universe.m_systems[i].get_name(), i);
       if (selected_target == nullptr)
-         ImGui::Text(universe.m_systems[i].get_name().c_str());
+         ImGui::Text(imgui_label.c_str());
       else
       {
-         if (ImGui::Selectable(universe.m_systems[i].get_name().c_str(), *selected_target))
+         if (ImGui::Selectable(imgui_label.c_str(), *selected_target))
          {
             return_selection = i;
          }
@@ -393,7 +394,6 @@ auto sfn::engine::draw_list() -> bool
          ImGui::TableNextRow();
          ImGui::TableSetColumnIndex(0);
          right_align_text(std::format("{}", i));
-         // ImGui::Text(std::format("{:0>2}", i).c_str());
          ImGui::TableSetColumnIndex(1);
 
          if (const auto x = print_system(m_universe, i, &is_selected); x.has_value())
