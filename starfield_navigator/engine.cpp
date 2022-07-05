@@ -120,7 +120,8 @@ namespace
    [[nodiscard]] auto get_cartesian_from_spherical(
       const float phi_offset,
       const float theta,
-      const float r
+      const float r,
+      const cs& cs
    ) -> glm::vec3
    {
       const float phi = -std::numbers::pi_v<float> / 2 + phi_offset;
@@ -128,7 +129,7 @@ namespace
       const float x = r * std::cos(phi) * std::sin(equation_theta);
       const float y = r * std::sin(phi) * std::sin(equation_theta);
       const float z = r * std::cos(equation_theta);
-      return glm::vec3{ x, y, z };
+      return glm::vec3{} + x * cs.m_right + y * cs.m_front + z * cs.m_up;
    }
 
 
@@ -622,7 +623,7 @@ auto engine::get_camera_pos() const -> glm::vec3
    {
       const circle_mode& mode = std::get<circle_mode>(m_camera_mode);
       const glm::vec3& planet_pos = m_universe.m_systems[mode.m_planet].m_position;
-      const glm::vec3 offset = get_cartesian_from_spherical(mode.horiz_angle_offset, mode.vert_angle_offset, mode.distance);
+      const glm::vec3 offset = get_cartesian_from_spherical(mode.horiz_angle_offset, mode.vert_angle_offset, mode.distance, m_universe.m_cam_info.m_cs);
       return planet_pos + offset;
    }
    std::terminate();
