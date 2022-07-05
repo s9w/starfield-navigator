@@ -10,6 +10,8 @@ https://user-images.githubusercontent.com/6044318/176746031-0618f746-c8c0-4785-8
 
 :red_circle: :yellow_circle: :green_circle: :rocket: [**Latest version download**](https://github.com/s9w/starfield-navigator/releases/latest/download/starfield_navigator.zip) :rocket: :green_circle: :yellow_circle: :red_circle:
 
+:parrot: :rabbit2: :turtle: [Changelog is here](changelog.md) :sauropod: :frog: :elephant:
+
 (If you get a dll error, you're missing a recent [C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe))
 
 <br/><br/>
