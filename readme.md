@@ -6,8 +6,13 @@ The Starfield Navigator is a small program uses that data in a couple of ways:
 
 https://user-images.githubusercontent.com/6044318/176746031-0618f746-c8c0-4785-8a17-996b1aab303a.mp4
 
-- A zip file with the windows binary can be downloaded [here](https://github.com/s9w/starfield-navigator/releases/latest/download/starfield_navigator.zip). See [changelog](changelog.md) for changes.
-- If you get a dll error, you're missing a recent [C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe).
+<br/><br/>
+
+:red_circle: :yellow_circle: :green_circle: :rocket: [**Latest version download**](https://github.com/s9w/starfield-navigator/releases/latest/download/starfield_navigator.zip) :rocket: :green_circle: :yellow_circle: :red_circle:
+
+(If you get a dll error, you're missing a recent [C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe))
+
+<br/><br/>
 
 ## Insights
 A couple of insights were gained from the data:
