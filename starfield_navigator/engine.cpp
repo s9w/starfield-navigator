@@ -48,9 +48,9 @@ namespace
 
 
 
-   auto get_projection_matrxi() -> glm::mat4
+   auto get_projection_matrxi(const config& config) -> glm::mat4
    {
-      constexpr float aspect = 1280.0f / 720.0f;
+      const float aspect = static_cast<float>(config.res_x) / config.res_y;
       const float x_fov = glm::radians(63.0f);
       const float y_fov = x_fov / aspect;
       return glm::perspective(y_fov, aspect, 0.1f, 3000.0f);
@@ -599,7 +599,7 @@ auto engine::gpu_upload() const -> void
 auto engine::update_mvp_member() -> void
 {
    m_current_mvp.m_cam_pos = get_camera_pos();
-   m_current_mvp.m_projection = get_projection_matrxi();
+   m_current_mvp.m_projection = get_projection_matrxi(m_config);
    m_current_mvp.m_view = std::visit(
       [&](const auto& x) {return get_view_matrix(x); },
       m_camera_mode

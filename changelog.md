@@ -1,4 +1,5 @@
 # 0.3
+- Fixed visual distortions when resizing a window to a non 16/9 aspect
 - Internal change to galactic coordinates
 - Added more likely stars
 - Change to different reference data, distances might have changed slightly
