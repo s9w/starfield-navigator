@@ -1,4 +1,5 @@
 # 0.4
+- Stars are now drawn either red (was a big dot in the reveal video) or blue (was a small dot)
 - System selector now properly differentiates ingame and real-life names of systems
 - Fixed messed up system labels in closest star tab
 - Fixed crash on minimize

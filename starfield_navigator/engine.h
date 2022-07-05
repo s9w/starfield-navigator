@@ -19,6 +19,19 @@ namespace sfn
       alignas(sizeof(glm::vec4)) glm::mat4 m_projection{ 1.0f };
    };
 
+   struct alignas(4 * sizeof(float)) star_prop_element{
+      alignas(sizeof(glm::vec4)) glm::vec3 color;
+   };
+
+   struct star_props_ssbo : ubo_type
+   {
+      star_prop_element m_stars[256];
+      auto get_byte_count() const -> int
+      {
+         return sizeof(star_props_ssbo);
+      }
+   };
+
    struct wasd_mode
    {
       glm::vec3 m_camera_pos{};
@@ -66,8 +79,10 @@ namespace sfn
       id m_connection_lines_vbo_id{ no_init{} };
       id m_closest_lines_vbo_id{ no_init{} };
       id m_indicator_vbo_id{ no_init{} };
+      id m_star_ssbo_id{ no_init{} };
       binding_point_man m_binding_point_man;
       mvp_type m_current_mvp{};
+      star_props_ssbo m_star_props_ssbo;
       shader_program m_shader_stars;
       shader_program m_shader_lines;
       shader_program m_shader_indicator;
@@ -121,6 +136,7 @@ namespace sfn
       auto gui_closest_stars(const bool switched_into_tab) -> void;
       auto draw_jump_calculations(const bool switched_into_tab) -> void;
       auto bind_ubo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;
+      auto bind_ssbo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;
       auto gpu_upload() const -> void;
       auto update_mvp_member() -> void;
       auto get_camera_pos() const -> glm::vec3;

@@ -168,6 +168,14 @@ sfn::engine::engine(const config& config, universe&& universe)
 
       // ImGui_ImplOpenGL3_DestroyFontsTexture();
       // ImGui_ImplOpenGL3_CreateFontsTexture();
+
+      for(int i=0; i<m_universe.m_systems.size(); ++i)
+      {
+         glm::vec3 color{1.0f, 0.5f, 0.5f};
+         if (m_universe.m_systems[i].m_size == system_size::small)
+            color = glm::vec3{0.5f, 1.0f, 0.5f};
+         m_star_props_ssbo.m_stars[i].color = color;
+      }
    }
 
    if (engine_ptr != nullptr)
@@ -186,6 +194,7 @@ sfn::engine::engine(const config& config, universe&& universe)
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<position_vertex_data>(128));
+   buffer_layout.emplace_back(ssbo_segment(m_star_props_ssbo.get_byte_count(), "star_ssbo"));
    const std::vector<id> segment_ids = m_buffers2.create_buffer(std::move(buffer_layout), usage_pattern::dynamic_draw);
    m_mvp_ubo_id = segment_ids[0];
    m_star_vbo_id = segment_ids[1];
@@ -194,13 +203,16 @@ sfn::engine::engine(const config& config, universe&& universe)
    m_connection_lines_vbo_id = segment_ids[4]; //
    m_closest_lines_vbo_id = segment_ids[5];
    m_indicator_vbo_id = segment_ids[6];
+   m_star_ssbo_id = segment_ids[7];
 
    m_binding_point_man.add(m_mvp_ubo_id);
+   m_binding_point_man.add(m_star_ssbo_id);
    m_main_fb = m_framebuffers.get_efault_fb();
 
    const buffer& buffer_ref = m_buffers2.get_single_buffer_ref();
    bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_stars);
    bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_lines);
+   bind_ssbo("star_ssbo", buffer_ref, m_star_ssbo_id, m_shader_stars);
 
    m_vao_stars.emplace(m_buffers2, m_star_vbo_id, m_shader_stars);
    m_vao_jump_lines.emplace(m_buffers2, m_jump_lines_vbo_id, m_shader_lines);
@@ -328,6 +340,7 @@ auto sfn::engine::draw_frame() -> void
 
    m_vao_stars->bind();
    m_shader_stars.use();
+   // m_shader_stars.set_uniform("color", glm::vec3{1.0f, 0.5f, 0.5f});
    glDisable(GL_DEPTH_TEST);
    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_universe.m_systems.size()));
    glEnable(GL_DEPTH_TEST);
@@ -578,6 +591,24 @@ auto engine::bind_ubo(
 }
 
 
+auto engine::bind_ssbo(
+   const std::string& name,
+   const buffer& buffer_ref,
+   const id segment_id,
+   const shader_program& shader
+) const -> void
+{
+   const GLuint block_index = glGetProgramResourceIndex(shader.m_opengl_id, GL_SHADER_STORAGE_BLOCK, name.c_str());
+
+   const int binding_point = m_binding_point_man.get_point(segment_id);
+   glShaderStorageBlockBinding(shader.m_opengl_id, block_index, binding_point);
+   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding_point, buffer_ref.m_buffer_opengl_id);
+
+   const auto segment_size = buffer_ref.get_segment_size(segment_id);
+   const auto offset_in_buffer = buffer_ref.get_segment_offset(segment_id);
+   glBindBufferRange(GL_SHADER_STORAGE_BUFFER, binding_point, buffer_ref.m_buffer_opengl_id, offset_in_buffer, segment_size);
+}
+
 
 auto engine::gpu_upload() const -> void
 {
@@ -588,6 +619,8 @@ auto engine::gpu_upload() const -> void
    m_buffers2.upload_vbo(m_closest_lines_vbo_id, as_bytes(closest_line_mesh));
    m_buffers2.upload_vbo(m_screen_rect_vbo_id, as_bytes(screen_rect_mesh));
    m_buffers2.upload_vbo(m_indicator_vbo_id, as_bytes(indicator_mesh));
+
+   m_buffers2.upload_ssbo(m_star_ssbo_id, as_bytes(m_star_props_ssbo), 0);
 }
 
 

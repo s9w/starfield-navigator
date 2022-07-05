@@ -9,7 +9,15 @@ layout (std140) uniform ubo_mvp
     mat4 projection;
 };
 
+struct star_prop_element{
+  vec3 color;
+};
+layout (std140) buffer star_ssbo{
+    star_prop_element ssbo_data[];
+};
+
 out float io_distance;
+out vec3 io_color;
 
 void main()
 {
@@ -19,4 +27,5 @@ void main()
    float distance_from_cam = distance(position, camera_pos);
    gl_PointSize = 500/distance_from_cam;
    io_distance = distance_from_cam;
+   io_color = ssbo_data[gl_VertexID].color;
 }
