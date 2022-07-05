@@ -1,13 +1,15 @@
 #pragma once
 
 #include <cstdio>
-#include <format>
+#include <string>
+#include <fmt/format.h>
+
 
 namespace sfn::log
 {
 
    inline auto error(const std::string& msg) -> void
    {
-      printf(std::format("ERROR: {}", msg).c_str());
+      printf(fmt::format("ERROR: {}", msg).c_str());
    }
 }

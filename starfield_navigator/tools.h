@@ -1,12 +1,14 @@
 #pragma once
 
-#include <format>
+
 #include <string_view>
 #include <chrono>
 #include <unordered_map>
 #include <span>
 
 #include <s9w_core.h>
+
+#include <fmt/format.h>
 
 using dbl_ms = std::chrono::duration<double, std::milli>;
 
@@ -15,7 +17,7 @@ namespace sfn
    // template <typename... param_types>
    // auto print(const std::string_view fmt, const param_types&... arg) -> void
    // {
-   //    std::format(fmt, arg...);
+   //    fmt::format(fmt, arg...);
    // }
 
    template<typename T>
@@ -43,7 +45,7 @@ namespace sfn
       {
          const auto t1 = std::chrono::high_resolution_clock::now();
          const dbl_ms duration = dbl_ms(t1 - m_t0);
-         printf(std::format("timer: {} ms\n", static_cast<int>(duration.count())).c_str()) ;
+         printf(fmt::format("timer: {} ms\n", static_cast<int>(duration.count())).c_str()) ;
       }
    };
 
@@ -145,7 +147,7 @@ constexpr auto sfn::sfn_assert(const bool condition, const std::string& msg) -> 
    }
    if (msg.empty() == false)
    {
-      printf(std::format("error: {}\n", msg).c_str());
+      printf(fmt::format("error: {}\n", msg).c_str());
    }
 
    std::terminate();

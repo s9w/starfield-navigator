@@ -389,12 +389,12 @@ auto sfn::engine::draw_list() -> bool
 
          ImGui::TableNextRow();
          ImGui::TableSetColumnIndex(0);
-         right_align_text(std::format("{}", i));
+         right_align_text(fmt::format("{}", i));
 
          
          {
             ImGui::TableSetColumnIndex(1);
-            const std::string imgui_label = std::format("{} ##LC{}", m_universe.m_systems[i].get_starfield_name(), i);
+            const std::string imgui_label = fmt::format("{} ##LC{}", m_universe.m_systems[i].get_starfield_name(), i);
             if (ImGui::Selectable(imgui_label.c_str(), is_selected))
             {
                m_list_selection = i;
@@ -402,7 +402,7 @@ auto sfn::engine::draw_list() -> bool
          }
          {
             ImGui::TableSetColumnIndex(2);
-            const std::string imgui_label = std::format("{} ##RC{}", m_universe.m_systems[i].m_astronomic_name, i);
+            const std::string imgui_label = fmt::format("{} ##RC{}", m_universe.m_systems[i].m_astronomic_name, i);
             if (ImGui::Selectable(imgui_label.c_str(), is_selected))
             {
                m_list_selection = i;
@@ -417,7 +417,7 @@ auto sfn::engine::draw_list() -> bool
 
 auto sfn::engine::gui_closest_stars(const bool switched_into_tab) -> void
 {
-   ImGui::Text(std::format("Closest stars around {}:", m_universe.m_systems[m_list_selection].m_name).c_str());
+   ImGui::Text(fmt::format("Closest stars around {}:", m_universe.m_systems[m_list_selection].m_name).c_str());
    const std::vector<int> closest = m_universe.get_closest(m_list_selection);
 
    if (ImGui::BeginTable("##table_closest", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
@@ -436,7 +436,7 @@ auto sfn::engine::gui_closest_stars(const bool switched_into_tab) -> void
             m_universe.m_systems[m_list_selection].m_position,
             m_universe.m_systems[closest[i]].m_position
          );
-         right_align_text(std::format("{:.1f}", dist));
+         right_align_text(fmt::format("{:.1f}", dist));
 
          ImGui::TableSetColumnIndex(1);
          ImGui::Text(m_universe.m_systems[i].get_name().c_str());
@@ -458,13 +458,13 @@ auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
    first_plot = false;
 
 
-   if (ImGui::Button(std::format("Source: {} {}", m_universe.m_systems[m_source_index].m_name, (const char*)ICON_FA_MAP_MARKER_ALT).c_str()))
+   if (ImGui::Button(fmt::format("Source: {} {}", m_universe.m_systems[m_source_index].m_name, (const char*)ICON_FA_MAP_MARKER_ALT).c_str()))
    {
       course_changed = true;
       m_source_index = m_list_selection;
    }
    ImGui::SameLine();
-   if (ImGui::Button(std::format("Destination: {} {}", m_universe.m_systems[m_destination_index].m_name, (const char*)ICON_FA_MAP_MARKER_ALT).c_str()))
+   if (ImGui::Button(fmt::format("Destination: {} {}", m_universe.m_systems[m_destination_index].m_name, (const char*)ICON_FA_MAP_MARKER_ALT).c_str()))
    {
       course_changed = true;
       m_destination_index = m_list_selection;
@@ -472,7 +472,7 @@ auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
 
 
 
-   ImGui::Text(std::format(
+   ImGui::Text(fmt::format(
       "Total distance: {:.1f} LY",
       m_universe.get_distance(m_source_index, m_destination_index)
    ).c_str());
@@ -513,7 +513,7 @@ auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
             );
             travelled_distance += dist;
 
-            path_strings.push_back(std::format(
+            path_strings.push_back(fmt::format(
                "Jump {}: {} to {}. Distance: {:.1f} LY\n",
                i+1,
                m_universe.m_systems[this_stop_system].m_name,
@@ -522,7 +522,7 @@ auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
             ));
          }
          path_strings.push_back("-----");
-         path_strings.push_back(std::format("Travelled distance: {:.1f} LY", travelled_distance));
+         path_strings.push_back(fmt::format("Travelled distance: {:.1f} LY", travelled_distance));
 
          // update vertices
          jump_line_mesh.clear();
@@ -664,7 +664,7 @@ auto sfn::engine::build_connection_mesh_from_graph(
 {
    std::vector<line_vertex_data> connection_mesh;
    connection_mesh.reserve(2 * connection_graph.m_connections.size());
-   for (const connection& con : connection_graph.m_connections | std::views::values)
+   for (const auto& [key, con] : connection_graph.m_connections)
    {
       connection_mesh.push_back(
          line_vertex_data{
@@ -716,7 +716,7 @@ auto engine::build_neighbor_connection_mesh(
 auto sfn::engine::gui_draw() -> void
 {
    {
-      normal_imgui_window w(glm::ivec2{ 250, 0 }, glm::ivec2{ 350, 60 }, std::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
+      normal_imgui_window w(glm::ivec2{ 250, 0 }, glm::ivec2{ 350, 60 }, fmt::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
 
       const auto is_button_pressed = [&](const int key) -> bool {
          return glfwGetKey(m_window_wrapper.m_window, key) == GLFW_PRESS;

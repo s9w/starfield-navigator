@@ -42,7 +42,7 @@ namespace
       {
          return shader_type::compute;
       }
-      log::error(std::format("unknown shader extension: {}", filename));
+      log::error(fmt::format("unknown shader extension: {}", filename));
       std::terminate();
    }
 
@@ -138,7 +138,7 @@ namespace
       {
          return obj.m_name == name;
       };
-      return find_obj(vec, pred, std::format("Thing \"{}\" couldn't be found", name));
+      return find_obj(vec, pred, fmt::format("Thing \"{}\" couldn't be found", name));
    }
 
 
@@ -182,7 +182,7 @@ namespace
       {
          const std::string& key = shader_variable_lookup[i];
          const std::string& value = shader_variable_lookup[i+1];
-         replace_all(result, std::format("{{{{{}}}}}", key), value);
+         replace_all(result, fmt::format("{{{{{}}}}}", key), value);
       }
       return result;
    }
@@ -224,7 +224,7 @@ sfn::shader::shader(
    const fs::path path = get_shader_path(filename.string());
    if(exists(path) == false)
    {
-      log::error(std::format("path doesn't exist: {}", path.string()));
+      log::error(fmt::format("path doesn't exist: {}", path.string()));
       std::terminate();
    }
 
@@ -246,7 +246,7 @@ sfn::shader::shader(
       std::string msg;
       msg.resize(msg_length);
       glGetShaderInfoLog(m_opengl_id, msg_length, NULL, msg.data());
-      log::error(std::format("shader compilation error: {}", msg));
+      log::error(fmt::format("shader compilation error: {}", msg));
       std::terminate();
    }
 
@@ -301,7 +301,7 @@ shader_program::shader_program(
       std::string msg;
       msg.resize(msg_length);
       glGetProgramInfoLog(m_opengl_id, msg_length, NULL, msg.data());
-      log::error(std::format("shader program link error: {}", msg));
+      log::error(fmt::format("shader program link error: {}", msg));
       std::terminate();
    }
 
@@ -349,7 +349,7 @@ auto binding_point_man::get_point(const id id) const -> int
       if (id == m_ids[i])
          return i;
    }
-   log::error( std::format("binding point for id not found"));
+   log::error( fmt::format("binding point for id not found"));
    std::terminate();
 }
 
@@ -373,7 +373,7 @@ auto sfn::shader_program::set_uniform(
    const shader_io& uni = get_uniform(name);
    if (get_data_type_v<T> != uni.m_data_type)
    {
-      log::error(std::format("types don't match in set_uniform()"));
+      log::error(fmt::format("types don't match in set_uniform()"));
       std::terminate();
    }
 

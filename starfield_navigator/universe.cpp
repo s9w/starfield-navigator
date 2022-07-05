@@ -1,6 +1,6 @@
 #include "universe.h"
 
-#include <format>
+
 #include <execution>
 
 #include "graph.h"
@@ -34,7 +34,7 @@ auto sfn::system::get_name() const -> std::string
    else
       result += m_name;
    if (m_astronomic_name.empty() == false)
-      result += std::format(" ({})", m_astronomic_name);
+      result += fmt::format(" ({})", m_astronomic_name);
    return result;
 }
 
@@ -54,7 +54,7 @@ sfn::system::system(const glm::vec3& pos, const std::string& name, const std::st
 {
    static int unnamed_count = 0;
    if (name.empty())
-      m_name = std::format("UNNAMED {}", unnamed_count++);
+      m_name = fmt::format("UNNAMED {}", unnamed_count++);
 }
 
 cs::cs(const glm::vec3& front, const glm::vec3& up)
@@ -105,8 +105,8 @@ auto sfn::universe::print_info() const -> void
       min = glm::min(min, system.m_position);
       max = glm::max(max, system.m_position);
    }
-   printf(std::format("BB min: {:.1f} {:.1f}, {:.1f}\n", min[0], min[1], min[2]).c_str());
-   printf(std::format("BB max: {:.1f} {:.1f}, {:.1f}\n", max[0], max[1], max[2]).c_str());
+   printf(fmt::format("BB min: {:.1f} {:.1f}, {:.1f}\n", min[0], min[1], min[2]).c_str());
+   printf(fmt::format("BB max: {:.1f} {:.1f}, {:.1f}\n", max[0], max[1], max[2]).c_str());
 }
 
 

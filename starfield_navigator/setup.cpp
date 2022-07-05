@@ -45,7 +45,7 @@ namespace
          return;
       log::error(message);
       // sg::log::warn(
-      //    std::format(
+      //    fmt::format(
       //       "OpenGL Error.\n\tType: {}\n\tSeverity: {}\n\tmessage: {}\n",
       //       sg::opengl_enum_to_str(type),
       //       sg::opengl_enum_to_str(severity),
@@ -132,7 +132,7 @@ sfn::imgui_context::imgui_context(const config& config, GLFWwindow* window)
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
    ImGui_ImplGlfw_InitForOpenGL(window, true);
-   const std::string glsl_version = std::format("#version {}{}0", config.opengl_major_version, config.opengl_minor_version);
+   const std::string glsl_version = fmt::format("#version {}{}0", config.opengl_major_version, config.opengl_minor_version);
    ImGui_ImplOpenGL3_Init(glsl_version.c_str());
 
    ImGui::GetStyle().FrameBorderSize = 1.0f;
