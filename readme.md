@@ -4,7 +4,7 @@ On 2022-06-12, Bethesda released the [first ingame footage](https://www.youtube.
 
 The Starfield Navigator is a small program uses that data in a couple of ways:
 
-https://user-images.githubusercontent.com/6044318/176746031-0618f746-c8c0-4785-8a17-996b1aab303a.mp4
+https://user-images.githubusercontent.com/6044318/177479550-c8bf36b0-9571-4ade-a45a-d1f4a05bc733.mp4
 
 <br/><br/>
 
