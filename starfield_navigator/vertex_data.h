@@ -21,7 +21,6 @@ namespace sfn
       template<typename T>
       auto visit(const char* vertex_attrib_name) -> void
       {
-         // constexpr bool default_normalized = false; // TODO
          m_vbo_classes.emplace_back(get_data_type_v<T>, vertex_attrib_name, false);
       }
    };

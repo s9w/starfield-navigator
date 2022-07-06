@@ -138,7 +138,7 @@ namespace
       {
          return obj.m_name == name;
       };
-      return find_obj(vec, pred, fmt::format("Thing \"{}\" couldn't be found", name));
+      return *std::ranges::find_if(vec, pred);
    }
 
 

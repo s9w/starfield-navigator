@@ -325,7 +325,7 @@ auto sfn::buffers::get_buffer_ref(const id buffer_id) const -> const buffer&
    {
       return boof.m_id == buffer_id;
    };
-   return find_obj(m_buffers, pred, "couldn't find buffer");
+   return *std::ranges::find_if(m_buffers, pred);
 }
 
 

@@ -1,3 +1,6 @@
+# 0.6
+- 
+
 # 0.5
 - Switched star colors: Big in the reveal is green, small is red
 - bugfix: wrong system name was shown in closest tab

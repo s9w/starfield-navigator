@@ -417,7 +417,7 @@ auto sfn::engine::draw_list() -> bool
 }
 
 
-auto sfn::engine::gui_closest_stars(const bool switched_into_tab) -> void
+auto sfn::engine::gui_closest_stars([[maybe_unused]] const bool switched_into_tab) -> void
 {
    ImGui::Text(fmt::format("Closest stars around {}:", m_universe.m_systems[m_list_selection].m_name).c_str());
    const std::vector<int> closest = m_universe.get_closest(m_list_selection);
@@ -886,6 +886,32 @@ auto engine::get_camera_target(const camera_mode& mode) const -> glm::vec3
 }
 
 
+auto engine::draw_text(
+   const std::string& text,
+   const glm::vec3& pos,
+   const glm::vec2& center_offset,
+   const glm::vec4& color
+) const -> void
+{
+   const glm::vec3 screen_pos = apply_trafo(m_current_mvp.m_projection * m_current_mvp.m_view, pos);
+   // Skip labels behind the camera
+   if (screen_pos[2] < 0)
+      return;
+
+   glm::vec2 imgui_draw_pos = 0.5f * (glm::vec2(screen_pos) + 1.0f);
+   imgui_draw_pos[1] = 1.0f - imgui_draw_pos[1];
+   imgui_draw_pos *= glm::vec2{ m_config.res_x, m_config.res_y };
+
+   const ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
+   imgui_draw_pos.x -= 0.5f * text_size.x;
+   imgui_draw_pos.y -= 0.5f * text_size.y;
+
+   imgui_draw_pos += center_offset;
+   const auto text_color = ImColor(color[0], color[1], color[2], color[3]);
+   ImGui::GetBackgroundDrawList()->AddText(ImVec2(imgui_draw_pos[0], imgui_draw_pos[1]), text_color, text.c_str());
+}
+
+
 auto engine::draw_system_labels() const -> void
 {
    const glm::vec3 cam_pos = this->get_camera_pos();
@@ -893,28 +919,11 @@ auto engine::draw_system_labels() const -> void
    {
       if (system.get_useful_name().has_value() == false)
          continue;
-      glm::vec4 screen_pos_vec4 = m_current_mvp.m_projection * m_current_mvp.m_view * glm::vec4(system.m_position, 1.0f);
-
-      // Skip labels behind the camera
-      if (screen_pos_vec4[2] < 0)
-         continue;
-
-      screen_pos_vec4 /= screen_pos_vec4[3];
-
-      glm::vec2 imgui_draw_pos = 0.5f * (glm::vec2(screen_pos_vec4) + 1.0f);
-      imgui_draw_pos[1] = 1.0f - imgui_draw_pos[1];
-      imgui_draw_pos *= glm::vec2{ m_config.res_x, m_config.res_y };
-      std::string text = system.get_useful_name().value();
-
-      const ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
-      imgui_draw_pos.x -= 0.5f * text_size.x;
-      imgui_draw_pos.y -= 0.5f * text_size.y;
 
       const float distance_from_cam = glm::distance(cam_pos, system.m_position);
       const float pointsize = 500 / distance_from_cam;
       const float planet_radius = 0.5f * pointsize;
-      imgui_draw_pos.y -= planet_radius + 8.0f;
-      auto text_color = ImColor(50.0f, 45.0f, 255.0f, 27.0f);
-      ImGui::GetBackgroundDrawList()->AddText(ImVec2(imgui_draw_pos[0], imgui_draw_pos[1]), text_color, text.c_str());
+      const glm::vec2 offset{0, planet_radius + 8.0f };
+      this->draw_text(system.get_useful_name().value(), system.m_position, offset, glm::vec4{1, 1, 1, 0.7f});
    }
 }

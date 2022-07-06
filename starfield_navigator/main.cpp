@@ -65,17 +65,6 @@ struct alignment_stars
 };
 
 
-[[nodiscard]] auto apply_trafo(
-   const glm::mat4& trafo,
-   const glm::vec3& pos
-) -> glm::vec3
-{
-   glm::vec4 result = trafo * glm::vec4{ pos, 1.0f };
-   result /= result[3];
-   return glm::vec3{ result };
-}
-
-
 auto get_trafo_a(
    const alignment_stars& source,
    const alignment_stars& target

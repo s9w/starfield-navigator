@@ -35,6 +35,17 @@ auto sfn::get_trimmed_str(
 }
 
 
+auto sfn::apply_trafo(
+   const glm::mat4& trafo,
+   const glm::vec3& pos
+) -> glm::vec3
+{
+   glm::vec4 result = trafo * glm::vec4{ pos, 1.0f };
+   result /= result[3];
+   return glm::vec3{ result };
+}
+
+
 auto sfn::id::create() -> id
 {
    static std::atomic<id::underlying_type> next_id_value = 0;

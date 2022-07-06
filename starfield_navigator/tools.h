@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include <string_view>
 #include <chrono>
 #include <unordered_map>
 #include <span>
@@ -9,16 +8,11 @@
 #include <s9w_core.h>
 
 #include <fmt/format.h>
-
-using dbl_ms = std::chrono::duration<double, std::milli>;
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 
 namespace sfn
 {
-   template <typename... param_types>
-   auto print(const std::string_view fmt, const param_types&&... arg) -> void
-   {
-      fmt::format(fmt, arg...);
-   }
 
    template<typename T>
    auto as_bytes(const std::vector<T>& vec) -> auto
@@ -34,6 +28,11 @@ namespace sfn
 
    [[nodiscard]] auto get_split_string( std::string source, const std::string& delim) -> std::vector<std::string>;
    [[nodiscard]] auto get_trimmed_str(const std::string& str, const std::string& to_trim = " ") -> std::string;
+   [[nodiscard]] auto apply_trafo(
+      const glm::mat4& trafo,
+      const glm::vec3& pos
+   ) -> glm::vec3
+   ;
 
    struct timer{
       std::chrono::high_resolution_clock::time_point m_t0;
@@ -44,6 +43,8 @@ namespace sfn
       ~timer()
       {
          const auto t1 = std::chrono::high_resolution_clock::now();
+
+         using dbl_ms = std::chrono::duration<double, std::milli>;
          const dbl_ms duration = dbl_ms(t1 - m_t0);
          fmt::print("timer: {} ms\n", static_cast<int>(duration.count()));
       }
@@ -80,9 +81,6 @@ namespace sfn
       }
    };
 
-   template <typename T, typename pred_type>
-   auto find_obj(const std::vector<T>& vec, const pred_type& pred, const std::string& error_msg) -> const T&;
-
    [[nodiscard]] auto get_average(const std::vector<float>& vec) -> float;
 
    template <std::floating_point T>
@@ -114,19 +112,6 @@ constexpr auto sfn::srgb_to_linear_fp(const T x) -> T
 auto constexpr sfn::srgb_to_linear_ui8(const uint8_t in) -> uint8_t
 {
    return static_cast<uint8_t>(s9w::round(srgb_to_linear_fp(in / 255.0) * 255.0));
-}
-
-
-template <typename T, typename pred_type>
-auto sfn::find_obj(
-   const std::vector<T>& vec,
-   const pred_type& pred,
-   const std::string& error_msg
-) -> const T&
-{
-   const auto it = std::ranges::find_if(vec, pred);
-   sfn_assert(it != std::cend(vec), error_msg);
-   return *it;
 }
 
 
