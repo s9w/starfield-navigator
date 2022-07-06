@@ -24,7 +24,7 @@ void main()
 {
     if(time<0)
     {
-        float intensity = ease(io_distance, 20, 220, 1, 0.3);
+        float intensity = ease(io_distance, 20, 220, 1, 0.2);
         vec3 base_color = vec3(0.5, 0.5, 1.0);
         FragColor = vec4( intensity * base_color, 0.5);
     }

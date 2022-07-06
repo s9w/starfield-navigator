@@ -170,10 +170,9 @@ sfn::engine::engine(const config& config, universe&& universe)
 
       for(int i=0; i<m_universe.m_systems.size(); ++i)
       {
-         glm::vec3 color{1.0f, 0.5f, 0.5f};
-         if (m_universe.m_systems[i].m_size == system_size::small)
-            color = glm::vec3{0.5f, 1.0f, 0.5f};
-         m_star_props_ssbo.m_stars[i].color = color;
+         constexpr glm::vec3 red{1.0f, 0.5f, 0.5f};
+         constexpr glm::vec3 green{ 0.5f, 1.0f, 0.5f };
+         m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_size == system_size::small) ? red : green;
       }
    }
 

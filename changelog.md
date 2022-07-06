@@ -1,5 +1,5 @@
 # 0.5
-- 
+- Switched star colors: Big in the reveal is green, small is red
 
 # 0.4
 - Stars are now drawn either red (was a big dot in the reveal video) or blue (was a small dot)
