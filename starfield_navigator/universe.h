@@ -31,7 +31,7 @@ namespace sfn
       glm::vec3 m_up{};
       glm::vec3 m_right{};
       cs() = default;
-      explicit cs(const glm::vec3& front, const glm::vec3& up);
+      explicit cs(const glm::vec3& front, const glm::vec3& up); // TODO: constexpr
    };
 
    struct cam_info

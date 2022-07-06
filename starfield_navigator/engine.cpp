@@ -260,12 +260,14 @@ auto sfn::engine::scroll_callback(
 ) -> void
 {
    imgui_context::scroll_callback(window, xoffset, yoffset);
-   if(std::holds_alternative<circle_mode>(m_camera_mode))
-   {
-      auto& mode = std::get<circle_mode>(m_camera_mode);
-      mode.distance += -5.0f * static_cast<float>(yoffset);
-      mode.distance = std::clamp(mode.distance, 8.0f, 200.0f);
-   }
+   const auto zoom = [&]<typename T>(T& mode){
+      if constexpr (centery<T>)
+      {
+         mode.distance += -5.0f * static_cast<float>(yoffset);
+         mode.distance = std::clamp(mode.distance, 8.0f, 200.0f);
+      }
+   };
+   std::visit(zoom, m_camera_mode);
 }
 
 
@@ -327,6 +329,7 @@ auto sfn::engine::draw_frame() -> void
       glDepthMask(true);
    }
 
+   
    if (std::holds_alternative<circle_mode>(m_camera_mode))
    {
       m_vao_indicator->bind();
@@ -334,6 +337,26 @@ auto sfn::engine::draw_frame() -> void
       glDisable(GL_DEPTH_TEST);
       glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(indicator_mesh.size()));
       glEnable(GL_DEPTH_TEST);
+   }
+   else if (std::holds_alternative<galactic_circle_mode>(m_camera_mode))
+   {
+      m_vao_indicator->bind();
+      m_shader_indicator.use();
+      glDisable(GL_DEPTH_TEST);
+      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(indicator_mesh.size()));
+      glEnable(GL_DEPTH_TEST);
+
+      const glm::vec3 system_pos = m_universe.m_systems[m_list_selection].m_position;
+      const float distance = glm::distance(system_pos, this->get_camera_pos());
+      if (distance < 50.0f)
+      {
+         constexpr float dist_from_center = 1.1f;
+         constexpr glm::vec4 color{ 1, 0, 0, 1 };
+         this->draw_text("0",   system_pos + dist_from_center * glm::vec3{  1,  0, 0 }, glm::vec2{}, color);
+         this->draw_text("90",  system_pos + dist_from_center * glm::vec3{  0,  1, 0 }, glm::vec2{}, color);
+         this->draw_text("180", system_pos + dist_from_center * glm::vec3{ -1,  0, 0 }, glm::vec2{}, color);
+         this->draw_text("270", system_pos + dist_from_center * glm::vec3{  0, -1, 0 }, glm::vec2{}, color);
+      }
    }
 
    m_vao_stars->bind();
@@ -639,24 +662,22 @@ auto engine::update_mvp_member() -> void
 
 auto engine::get_camera_pos() const -> glm::vec3
 {
-   if(std::holds_alternative<wasd_mode>(m_camera_mode))
-   {
-      return std::get<wasd_mode>(m_camera_mode).m_camera_pos;
-   }
-   else if (std::holds_alternative<trailer_mode>(m_camera_mode))
-   {
-      const trailer_mode& mode = std::get<trailer_mode>(m_camera_mode);
-      const glm::vec3 camera_pos = glm::mix(m_universe.m_cam_info.m_cam_pos0, m_universe.m_cam_info.m_cam_pos1, mode.m_progress);
-      return camera_pos;
-   }
-   else if(std::holds_alternative<circle_mode>(m_camera_mode))
-   {
-      const circle_mode& mode = std::get<circle_mode>(m_camera_mode);
-      const glm::vec3& planet_pos = m_universe.m_systems[mode.m_planet].m_position;
-      const glm::vec3 offset = get_cartesian_from_spherical(mode.horiz_angle_offset, mode.vert_angle_offset, mode.distance, m_universe.m_cam_info.m_cs);
-      return planet_pos + offset;
-   }
-   std::terminate();
+   const auto visitor = [&]<typename T>(const T& mode) -> glm::vec3{
+      if constexpr(std::same_as<T, wasd_mode>)
+      {
+         return mode.m_camera_pos;
+      }
+      else if constexpr (std::same_as<T, trailer_mode>)
+      {
+         return glm::mix(m_universe.m_cam_info.m_cam_pos0, m_universe.m_cam_info.m_cam_pos1, mode.m_progress);
+      }
+      else if constexpr (centery<T>)
+      {
+         const glm::vec3 offset = get_cartesian_from_spherical(mode.horiz_angle_offset, mode.vert_angle_offset, mode.distance, get_cs());
+         return m_universe.m_systems[mode.m_planet].m_position + offset;
+      }
+   };
+   return std::visit(visitor, m_camera_mode);
 }
 
 
@@ -717,8 +738,9 @@ auto engine::build_neighbor_connection_mesh(
 
 auto sfn::engine::gui_draw() -> void
 {
+   bool view_mode_changed = false;
    {
-      normal_imgui_window w(glm::ivec2{ 250, 0 }, glm::ivec2{ 350, 60 }, fmt::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
+      normal_imgui_window w(glm::ivec2{ 250, 0 }, glm::ivec2{ 500, 60 }, fmt::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
 
       const auto is_button_pressed = [&](const int key) -> bool {
          return glfwGetKey(m_window_wrapper.m_window, key) == GLFW_PRESS;
@@ -741,6 +763,7 @@ auto sfn::engine::gui_draw() -> void
       }
 
       static int radio_selected = 0;
+      const int old_selected = radio_selected;
       ImGui::AlignTextToFramePadding();
 
       if(ImGui::RadioButton("Frontal", &radio_selected, 0))
@@ -759,29 +782,41 @@ auto sfn::engine::gui_draw() -> void
          };
       }
       tooltip("WASD to rotate\nMouse wheel to change distance");
+
       ImGui::SameLine();
-      if (ImGui::RadioButton("Like reveal", &radio_selected, 2))
+      if (ImGui::RadioButton("Center selection (galactic)", &radio_selected, 2))
+      {
+         m_camera_mode = galactic_circle_mode{
+            .m_planet = m_list_selection,
+            .distance = 100.0f,
+            .horiz_angle_offset = 0,
+            .vert_angle_offset = 0
+         };
+      }
+      tooltip("Galactic coordinates.\nWASD to rotate\nMouse wheel to change distance");
+
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Like reveal", &radio_selected, 3))
       {
          m_camera_mode = trailer_mode{};
       }
+      view_mode_changed = old_selected != radio_selected;
       tooltip("Replays the camera movement from the reveal video");
 
-      if (std::holds_alternative<circle_mode>(m_camera_mode))
-      {
-         circle_mode& mode = std::get<circle_mode>(m_camera_mode);
-         if (is_button_pressed(GLFW_KEY_W)) {
-            mode.vert_angle_offset += 0.01f;
+      const auto center_tiler = [&]<typename T>(T& mode){
+         if constexpr (centery<T>)
+         {
+            if (is_button_pressed(GLFW_KEY_W))
+               mode.vert_angle_offset += 0.01f;
+            if (is_button_pressed(GLFW_KEY_S))
+               mode.vert_angle_offset -= 0.01f;
+            if (is_button_pressed(GLFW_KEY_A))
+               mode.horiz_angle_offset -= 0.01f;
+            if (is_button_pressed(GLFW_KEY_D))
+               mode.horiz_angle_offset += 0.01f;
          }
-         if (is_button_pressed(GLFW_KEY_S)) {
-            mode.vert_angle_offset -= 0.01f;
-         }
-         if (is_button_pressed(GLFW_KEY_A)) {
-            mode.horiz_angle_offset -= 0.01f;
-         }
-         if (is_button_pressed(GLFW_KEY_D)) {
-            mode.horiz_angle_offset += 0.01f;
-         }
-      }
+      };
+      std::visit(center_tiler, m_camera_mode);
    }
 
    bool selection_changed = false;
@@ -789,16 +824,19 @@ auto sfn::engine::gui_draw() -> void
       normal_imgui_window w(glm::ivec2{ 0, 0 }, glm::ivec2{ 250, 500 }, "System selector");
       selection_changed = draw_list();
    }
-   if(selection_changed)
+   if(selection_changed || view_mode_changed)
    {
       closest_line_mesh = build_neighbor_connection_mesh(m_universe, m_list_selection);
 
-      if(std::holds_alternative<circle_mode>(m_camera_mode))
-      {
-         std::get<circle_mode>(m_camera_mode).m_planet = m_list_selection;
-      }
+      const auto center_updater = [&]<typename T>(T& alternative){
+         if constexpr(centery<T>)
+         {
+            alternative.m_planet = m_list_selection;
+         }
+      };
+      std::visit(center_updater, m_camera_mode);
 
-      indicator_mesh = get_indicator_mesh(m_universe.m_systems[m_list_selection].m_position, m_universe.m_cam_info.m_cs);
+      indicator_mesh = get_indicator_mesh(m_universe.m_systems[m_list_selection].m_position, this->get_cs());
    }
 
    {
@@ -864,25 +902,29 @@ auto sfn::engine::gui_draw() -> void
 
 auto engine::get_view_matrix(const camera_mode& mode) const -> glm::mat4
 {
+   glm::vec3 up_vector = m_universe.m_cam_info.m_cs.m_up;
+   if(std::holds_alternative<galactic_circle_mode>(mode))
+   {
+      up_vector = glm::vec3{ 0, 0, 1 };
+   }
+
    return glm::lookAt(
       this->get_camera_pos(),
       get_camera_target(mode),
-      m_universe.m_cam_info.m_cs.m_up
+      up_vector
    );
 }
 
 
 auto engine::get_camera_target(const camera_mode& mode) const -> glm::vec3
 {
-   if (std::holds_alternative<circle_mode>(mode))
-   {
-      const auto& circle = std::get<circle_mode>(mode);
-      return m_universe.m_systems[circle.m_planet].m_position;
-   }
-   else
-   {
-      return this->get_camera_pos() + m_universe.m_cam_info.m_cs.m_front;
-   }
+   const auto visitor = [&]<typename T>(const T& alternative) {
+      if constexpr(centery<T>)
+         return m_universe.m_systems[alternative.m_planet].m_position;
+      else if constexpr(std::same_as<T, wasd_mode> || std::same_as<T, trailer_mode>)
+         return this->get_camera_pos() + m_universe.m_cam_info.m_cs.m_front;
+   };
+   return std::visit(visitor, mode);
 }
 
 
@@ -909,6 +951,19 @@ auto engine::draw_text(
    imgui_draw_pos += center_offset;
    const auto text_color = ImColor(color[0], color[1], color[2], color[3]);
    ImGui::GetBackgroundDrawList()->AddText(ImVec2(imgui_draw_pos[0], imgui_draw_pos[1]), text_color, text.c_str());
+}
+
+
+auto engine::get_cs() const -> cs
+{
+   if(std::holds_alternative<galactic_circle_mode>(m_camera_mode))
+   {
+      return cs(glm::vec3{ 0, 1, 0 }, glm::vec3{ 0, 0, 1 });
+   }
+   else
+   {
+      return m_universe.m_cam_info.m_cs;
+   }
 }
 
 

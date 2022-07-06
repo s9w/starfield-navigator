@@ -43,11 +43,21 @@ namespace sfn
       float horiz_angle_offset;
       float vert_angle_offset;
    };
+   struct galactic_circle_mode
+   {
+      int m_planet;
+      float distance;
+      float horiz_angle_offset;
+      float vert_angle_offset;
+   };
    struct trailer_mode{
       float m_progress = 0.0;
    };
 
-   using camera_mode = std::variant<wasd_mode, circle_mode, trailer_mode>;
+   using camera_mode = std::variant<wasd_mode, circle_mode, galactic_circle_mode, trailer_mode>;
+
+   template<typename T>
+   concept centery = std::same_as<T, circle_mode> || std::same_as<T, galactic_circle_mode>;
 
    enum class gui_mode{closest, jumps, connections, game};
 
@@ -146,6 +156,7 @@ namespace sfn
       auto build_connection_mesh_from_graph(const graph& connection_graph) const -> std::vector<line_vertex_data>;
       auto build_neighbor_connection_mesh(const universe& universe, const int center_system) const -> std::vector<line_vertex_data>;
       auto draw_text(const std::string& text, const glm::vec3& pos, const glm::vec2& center_offset, const glm::vec4& color) const -> void;
+      [[nodiscard]] auto get_cs() const -> cs;
    };
 }
 

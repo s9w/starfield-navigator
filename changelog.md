@@ -1,5 +1,5 @@
 # 0.6
-- 
+- Added [galactic coordinate](https://en.wikipedia.org/wiki/Galactic_coordinate_system) mode. Mainly for people who want to go planet hunting
 
 # 0.5
 - Switched star colors: Big in the reveal is green, small is red
