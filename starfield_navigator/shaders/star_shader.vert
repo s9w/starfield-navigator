@@ -2,19 +2,7 @@
 
 layout (location = 1) in vec3 position;
 
-layout (std140) uniform ubo_mvp
-{
-    vec3 camera_pos;
-    mat4 view;
-    mat4 projection;
-};
-
-struct star_prop_element{
-  vec3 color;
-};
-layout (std140) buffer star_ssbo{
-    star_prop_element ssbo_data[];
-};
+{{ubo_code}}
 
 out float io_distance;
 out vec3 io_color;

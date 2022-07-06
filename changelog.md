@@ -1,3 +1,6 @@
+# 0.7
+- In galactic coordinate mode, lines can now be drawn down to the ecliptic of the selected planet
+
 # 0.6
 - Added [galactic coordinate](https://en.wikipedia.org/wiki/Galactic_coordinate_system) mode. Mainly for people who want to go planet hunting
 - Hovering over the names in the system selector now shows a popup with the original name, even for the unknown ones. Mainly for people who want to go planet hunting

@@ -14,19 +14,21 @@ namespace sfn
 
    struct mvp_type : ubo_type
    {
-      alignas(glm::vec4) glm::vec3 m_cam_pos;
+      alignas(sizeof(glm::vec4)) glm::vec3 m_cam_pos;
+      alignas(sizeof(glm::vec4)) glm::vec3 m_selected_system_pos;
       alignas(sizeof(glm::vec4)) glm::mat4 m_view{ 1.0f };
       alignas(sizeof(glm::vec4)) glm::mat4 m_projection{ 1.0f };
    };
 
    struct alignas(4 * sizeof(float)) star_prop_element{
+      alignas(sizeof(glm::vec4)) glm::vec3 position;
       alignas(sizeof(glm::vec4)) glm::vec3 color;
    };
 
    struct star_props_ssbo : ubo_type
    {
       star_prop_element m_stars[256];
-      auto get_byte_count() const -> int
+      [[nodiscard]] auto get_byte_count() const -> int
       {
          return sizeof(star_props_ssbo);
       }
@@ -78,6 +80,7 @@ namespace sfn
       int m_source_index = m_universe.get_index_by_name("SOL");
       int m_destination_index = m_universe.get_index_by_name("PORRIMA");
       gui_mode m_gui_mode = gui_mode::connections;
+      float m_dropline_range = 20.0f;
 
       camera_mode m_camera_mode = wasd_mode{ m_universe.m_cam_info.m_cam_pos0 };
       buffers m_buffers2;
@@ -89,6 +92,7 @@ namespace sfn
       id m_connection_lines_vbo_id{ no_init{} };
       id m_closest_lines_vbo_id{ no_init{} };
       id m_indicator_vbo_id{ no_init{} };
+      id m_drops_vbo_id{ no_init{} };
       id m_star_ssbo_id{ no_init{} };
       binding_point_man m_binding_point_man;
       mvp_type m_current_mvp{};
@@ -96,6 +100,7 @@ namespace sfn
       shader_program m_shader_stars;
       shader_program m_shader_lines;
       shader_program m_shader_indicator;
+      shader_program m_shader_droplines;
       texture_manager m_textures{};
       framebuffer_manager m_framebuffers; // needs to be after texture manager
       std::optional<vao> m_vao_stars;
@@ -104,6 +109,7 @@ namespace sfn
       std::optional<vao> m_vao_closest_lines;
       std::optional<vao> m_vao_screen_rect;
       std::optional<vao> m_vao_indicator;
+      std::optional<vao> m_vao_drops;
 
       explicit engine(const config& config, universe&& universe);
       [[nodiscard]] auto get_window() const->GLFWwindow*;

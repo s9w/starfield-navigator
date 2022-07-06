@@ -2,12 +2,7 @@
 
 layout (location = 1) in vec3 position;
 
-layout (std140) uniform ubo_mvp
-{
-    vec3 camera_pos;
-    mat4 view;
-    mat4 projection;
-};
+{{ubo_code}}
 
 void main()
 {

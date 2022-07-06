@@ -3,12 +3,7 @@ out vec4 FragColor;
 
 uniform float time;
 
-layout (std140) uniform ubo_mvp
-{
-    vec3 camera_pos;
-    mat4 view;
-    mat4 projection;
-};
+{{ubo_code}}
 
 in float io_progress;
 in float io_distance;

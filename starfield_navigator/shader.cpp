@@ -169,7 +169,6 @@ namespace
 
 
    const std::vector<std::string> shader_variable_lookup{
-      "shadow_amount", "0.3",
       "ubo_code", get_file_str(fs::path("shaders/ubo.txt"))
    };
 
