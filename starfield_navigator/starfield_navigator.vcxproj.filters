@@ -93,6 +93,9 @@
     <ClCompile Include="universe.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\libs\src\fmt\format.cc">
+      <Filter>external_libs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools.h">
