@@ -424,6 +424,7 @@ auto sfn::engine::draw_list() -> bool
                m_list_selection = i;
             }
             ImGui::PopStyleColor();
+            tooltip(fmt::format("original name: {}", m_universe.m_systems[i].m_name));
          }
          {
             ImGui::TableSetColumnIndex(2);
