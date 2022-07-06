@@ -441,7 +441,7 @@ auto sfn::engine::gui_closest_stars(const bool switched_into_tab) -> void
          right_align_text(fmt::format("{:.1f}", dist));
 
          ImGui::TableSetColumnIndex(1);
-         ImGui::Text(m_universe.m_systems[i].get_name().c_str());
+         ImGui::Text(m_universe.m_systems[closest[i]].get_name().c_str());
       }
 
       ImGui::EndTable();
