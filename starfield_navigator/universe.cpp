@@ -38,10 +38,11 @@ auto sfn::system::get_name() const -> std::string
    return result;
 }
 
-auto sfn::system::get_starfield_name() const -> std::string
+
+auto sfn::system::get_starfield_name() const -> std::optional<std::string>
 {
    if (m_name.starts_with("User"))
-      return "";
+      return std::nullopt;
    return m_name;
 }
 

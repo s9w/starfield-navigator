@@ -392,11 +392,15 @@ auto sfn::engine::draw_list() -> bool
          
          {
             ImGui::TableSetColumnIndex(1);
-            const std::string imgui_label = fmt::format("{} ##LC{}", m_universe.m_systems[i].get_starfield_name(), i);
+            const std::optional<std::string> name = m_universe.m_systems[i].get_starfield_name();
+            ImVec4 text_color = name.has_value() ? (ImVec4)ImColor::HSV(1.0f, 0.0f, 1.0f) : (ImVec4)ImColor::HSV(0.0f, 0.0f, 0.5f);
+            ImGui::PushStyleColor(ImGuiCol_Text, text_color);
+            const std::string imgui_label = fmt::format("{} ##LC{}", name.value_or("unknown"), i);
             if (ImGui::Selectable(imgui_label.c_str(), is_selected))
             {
                m_list_selection = i;
             }
+            ImGui::PopStyleColor();
          }
          {
             ImGui::TableSetColumnIndex(2);
