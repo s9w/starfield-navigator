@@ -176,14 +176,6 @@ sfn::engine::engine(const config& config, universe&& universe)
       ImFontConfig configMerge;
       configMerge.MergeMode = true;
 
-      static const ImWchar rangesBasic[] = {
-        0x0020, 0x00FF, // Basic Latin + Latin Supplement
-        0x03BC, 0x03BC, // micro
-        0x03C3, 0x03C3, // small sigma
-        0x2013, 0x2013, // en dash
-        0x2264, 0x2264, // less-than or equal to
-        0,
-      };
       static const ImWchar rangesIcons[] = {
           ICON_MIN_FA, ICON_MAX_FA,
           0
@@ -192,7 +184,7 @@ sfn::engine::engine(const config& config, universe&& universe)
       constexpr float icon_font_size = 15.0f;
 
       io.Fonts->Clear();
-      io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, round(normal_font_size), &configBasic, rangesBasic);
+      io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, round(normal_font_size), &configBasic);
       io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesomeSolid_compressed_data, FontAwesomeSolid_compressed_size, round(icon_font_size), &configMerge, rangesIcons);
 
       // ImGui_ImplOpenGL3_DestroyFontsTexture();
@@ -456,7 +448,11 @@ auto sfn::engine::draw_list() -> bool
          ImGui::TableSetColumnIndex(0);
          right_align_text(fmt::format("{}", i));
 
-         
+         const galactic_coord gc = get_galactic(m_universe.m_systems[i].m_position);
+         const std::string tooltip_str = fmt::format(
+            "Original name: {}\nGalactic coord:\nl: {:.1f} deg\nb: {:.1f} deg\ndist: {:.1f} LY",
+            m_universe.m_systems[i].m_name, glm::degrees(gc.m_l), glm::degrees(gc.m_b), gc.m_dist
+         );
          {
             ImGui::TableSetColumnIndex(1);
             const std::optional<std::string> name = m_universe.m_systems[i].get_starfield_name();
@@ -468,7 +464,9 @@ auto sfn::engine::draw_list() -> bool
                m_list_selection = i;
             }
             ImGui::PopStyleColor();
-            tooltip(fmt::format("original name: {}", m_universe.m_systems[i].m_name));
+
+            
+            tooltip(tooltip_str);
          }
          {
             ImGui::TableSetColumnIndex(2);
@@ -477,6 +475,7 @@ auto sfn::engine::draw_list() -> bool
             {
                m_list_selection = i;
             }
+            tooltip(tooltip_str);
          }
       }
       ImGui::EndTable();

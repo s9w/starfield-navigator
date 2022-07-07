@@ -178,14 +178,11 @@ auto get_real_entries() -> real_universe
       if(catalog_name == "Sun")
          continue;
 
-      const float dist = std::stof(split[8]);
-      const float galactic_l = glm::radians(std::stof(split[2]));
-      const float galactic_b = glm::radians(std::stof(split[3]));
-      const float theta = glm::radians(90.0f) - galactic_b;
-      const float x = dist * std::cos(galactic_l) * std::sin(theta);
-      const float y = dist * std::sin(galactic_l) * std::sin(theta);
-      
-      const float z = dist * std::cos(theta);
+      const galactic_coord galactic{
+         .m_l = glm::radians(std::stof(split[2])),
+         .m_b = glm::radians(std::stof(split[3])),
+         .m_dist = std::stof(split[8])
+      };
       
 
       const std::string gliese_number = get_trimmed_str(split[9]);
@@ -195,7 +192,7 @@ auto get_real_entries() -> real_universe
       result.m_stars.push_back(
          real{
             .m_catalog_name = catalog_name,
-            .m_coordinates = glm::vec3{x, y, z},
+            .m_coordinates = galactic.get_cartesian(),
             .m_proper_name = proper_name
          }
       );

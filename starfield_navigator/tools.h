@@ -14,6 +14,16 @@
 namespace sfn
 {
 
+   // l and b in radians
+   struct galactic_coord {
+      float m_l;
+      float m_b;
+      float m_dist;
+
+      [[nodiscard]] auto get_cartesian() const -> glm::vec3;
+   };
+   [[nodiscard]] auto get_galactic(const glm::vec3& cartesian) -> galactic_coord;
+
    template<typename T>
    auto as_bytes(const std::vector<T>& vec) -> auto
    {

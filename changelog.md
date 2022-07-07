@@ -1,5 +1,11 @@
 # 0.7
-- In galactic coordinate mode, lines can now be drawn down to the ecliptic of the selected planet
+- In galactic coordinate mode, lines can now be drawn down to the ecliptic of the selected planet:
+
+![image](https://user-images.githubusercontent.com/6044318/177693717-96c296a1-ff00-4a52-8b7a-bf2d67f094dc.png)
+
+- Hovering in system selector now shows (reconstructed) galactic coordinates:
+
+![image](https://user-images.githubusercontent.com/6044318/177693521-921fbcb2-d50c-4bf5-9e0e-1f3991944d54.png)
 
 # 0.6
 - Added [galactic coordinate](https://en.wikipedia.org/wiki/Galactic_coordinate_system) mode. Mainly for people who want to go planet hunting

@@ -1,5 +1,32 @@
 #include "tools.h"
 
+#include <glm/trigonometric.hpp>
+
+
+auto sfn::galactic_coord::get_cartesian() const -> glm::vec3
+{
+   const float theta = glm::radians(90.0f) - m_b;
+   const float x = m_dist * std::cos(m_l) * std::sin(theta);
+   const float y = m_dist * std::sin(m_l) * std::sin(theta);
+   const float z = m_dist * std::cos(theta);
+   return glm::vec3{ x, y, z };
+}
+
+
+auto sfn::get_galactic(const glm::vec3& cartesian) -> galactic_coord
+{
+   const float theta = std::atan2(std::sqrt(cartesian[0]* cartesian[0]+ cartesian[1]* cartesian[1]), cartesian[2]);
+   galactic_coord result{
+      .m_l = std::atan2(cartesian[1], cartesian[0]),
+      .m_b = glm::radians(90.0f) - theta,
+      .m_dist = std::sqrt(cartesian[0]* cartesian[0] + cartesian[1]* cartesian[1] + cartesian[2]* cartesian[2])
+   };
+   constexpr float two_pi = 2.0f * std::numbers::pi_v<float>;
+   result.m_l = std::fmod(result.m_l + two_pi, two_pi);
+   result.m_b = std::fmod(result.m_b + two_pi, two_pi);
+   return result;
+}
+
 
 auto sfn::get_split_string(
    std::string source,
