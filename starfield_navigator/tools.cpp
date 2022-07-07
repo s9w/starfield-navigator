@@ -23,7 +23,8 @@ auto sfn::get_galactic(const glm::vec3& cartesian) -> galactic_coord
    };
    constexpr float two_pi = 2.0f * std::numbers::pi_v<float>;
    result.m_l = std::fmod(result.m_l + two_pi, two_pi);
-   result.m_b = std::fmod(result.m_b + two_pi, two_pi);
+   if (result.m_b > glm::radians(90.0f))
+      result.m_b = -(two_pi - result.m_b);
    return result;
 }
 
