@@ -1031,6 +1031,10 @@ auto engine::draw_system_labels() const -> void
       const float pointsize = 500 / distance_from_cam;
       const float planet_radius = 0.5f * pointsize;
       const glm::vec2 offset{0, planet_radius + 8.0f };
-      this->draw_text(system.get_useful_name().value(), system.m_position, offset, glm::vec4{1, 1, 1, 0.7f});
+      constexpr float label_opacity = 0.7f;
+      constexpr glm::vec4 normal_color{ 1, 1, 1, label_opacity };
+      constexpr glm::vec4 speculation_color{ 1, 0.6, 0.95, label_opacity };
+      const glm::vec4 color = system.get_starfield_name().has_value() ? normal_color : speculation_color;
+      this->draw_text(system.get_useful_name().value(), system.m_position, offset, color);
    }
 }
