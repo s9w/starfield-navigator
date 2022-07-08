@@ -1,5 +1,9 @@
 # 0.8
-- Speculative systems now have purple labels in the main view
+- In frontal view, the selected system is now indicated with a ring around the star in the main view
+
+- ![](https://user-images.githubusercontent.com/6044318/177981869-7493a4ed-6d91-4fb8-9632-cfb394014a52.png)
+
+- Systems with speculative names are now written in purple in the main view
 - Removed two wrong identifications, added seven
 
 # 0.7

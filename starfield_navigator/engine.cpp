@@ -394,6 +394,14 @@ auto sfn::engine::draw_frame() -> void
          this->draw_text("270", system_pos + dist_from_center * glm::vec3{  0, -1, 0 }, glm::vec2{}, color);
       }
    }
+   if(std::holds_alternative<wasd_mode>(m_camera_mode))
+   {
+      const glm::vec3 system_pos = m_universe.m_systems[m_list_selection].m_position;
+      const float distance_from_cam = glm::distance(this->get_camera_pos(), system_pos);
+      const float pointsize = 500 / distance_from_cam;
+      const float planet_radius = 0.5f * pointsize;
+      draw_circle(system_pos, planet_radius + 4.0f, glm::vec4{1, 1, 1, 0.7f});
+   }
 
    m_vao_stars->bind();
    m_shader_stars.use();
@@ -1006,6 +1014,19 @@ auto engine::draw_text(
 }
 
 
+auto engine::draw_circle(const glm::vec3& pos, const float radius, const glm::vec4& color) const -> void
+{
+   const glm::vec3 screen_pos = apply_trafo(m_current_mvp.m_projection * m_current_mvp.m_view, pos);
+   if (screen_pos[2] < 0)
+      return;
+   glm::vec2 imgui_draw_pos = 0.5f * (glm::vec2(screen_pos) + 1.0f);
+   imgui_draw_pos[1] = 1.0f - imgui_draw_pos[1];
+   imgui_draw_pos *= glm::vec2{ m_config.res_x, m_config.res_y };
+   const auto imgui_color = ImColor(color[0], color[1], color[2], color[3]);
+   ImGui::GetBackgroundDrawList()->AddCircle(ImVec2(imgui_draw_pos[0], imgui_draw_pos[1]), radius, imgui_color);
+}
+
+
 auto engine::get_cs() const -> cs
 {
    if(std::holds_alternative<galactic_circle_mode>(m_camera_mode))
@@ -1031,7 +1052,7 @@ auto engine::draw_system_labels() const -> void
       const float pointsize = 500 / distance_from_cam;
       const float planet_radius = 0.5f * pointsize;
       const glm::vec2 offset{0, planet_radius + 8.0f };
-      constexpr float label_opacity = 0.7f;
+      constexpr float label_opacity = 0.8f;
       constexpr glm::vec4 normal_color{ 1, 1, 1, label_opacity };
       constexpr glm::vec4 speculation_color{ 1, 0.6, 0.95, label_opacity };
       const glm::vec4 color = system.get_starfield_name().has_value() ? normal_color : speculation_color;

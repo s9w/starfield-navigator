@@ -162,6 +162,7 @@ namespace sfn
       auto build_connection_mesh_from_graph(const graph& connection_graph) const -> std::vector<line_vertex_data>;
       auto build_neighbor_connection_mesh(const universe& universe, const int center_system) const -> std::vector<line_vertex_data>;
       auto draw_text(const std::string& text, const glm::vec3& pos, const glm::vec2& center_offset, const glm::vec4& color) const -> void;
+      auto draw_circle(const glm::vec3& pos, const float radius, const glm::vec4& color) const -> void;
       [[nodiscard]] auto get_cs() const -> cs;
    };
 }
