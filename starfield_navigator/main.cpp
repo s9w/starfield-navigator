@@ -244,6 +244,12 @@ auto get_starfield_universe() -> universe
 
    auto original_sun_pos = starfield_universe.get_position_by_name("SOL");
 
+   // Sort from left to right before transformation is applied
+   const auto pred = [](const sfn::system& a, const sfn::system& b) {
+      return a.m_position.x < b.m_position.x;
+   };
+   std::ranges::sort(starfield_universe.m_systems, pred);
+
    // 1. Sun to center
    {
       
@@ -340,12 +346,6 @@ auto get_starfield_universe() -> universe
       candidates_for_real("Procyon");
    }
 
-
-   // sort from left to right
-   const auto pred = [](const sfn::system& a, const sfn::system& b){
-      return a.m_position.x < b.m_position.x;
-   };
-   std::ranges::sort(starfield_universe.m_systems, pred);
 
    starfield_universe.m_cam_info = get_and_delete_cam_info(starfield_universe.m_systems);
 

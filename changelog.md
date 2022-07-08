@@ -5,10 +5,10 @@
 
 - Systems with speculative names are now written in purple in the main view
 - Removed two wrong identifications, added seven
+- System list is now sorted according to position in Starfield (from left to right). Makes it easier to find things in the frontal view
 
 # 0.7
 - In galactic coordinate mode, lines can now be drawn down to the ecliptic of the selected planet:
-
 ![image](https://user-images.githubusercontent.com/6044318/177693717-96c296a1-ff00-4a52-8b7a-bf2d67f094dc.png)
 
 - Hovering in system selector now shows (reconstructed) galactic coordinates:
