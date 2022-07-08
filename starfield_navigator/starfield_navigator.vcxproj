@@ -146,6 +146,7 @@
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="implementations.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="reality.cpp" />
     <ClCompile Include="setup.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="texture.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="graph.h" />
     <ClInclude Include="logging.h" />
     <ClInclude Include="opengl_stringify.h" />
+    <ClInclude Include="reality.h" />
     <ClInclude Include="setup.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="texture.h" />

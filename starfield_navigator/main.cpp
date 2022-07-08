@@ -11,6 +11,7 @@
 #include <rng.h>
 
 #include "tools.h"
+#include "reality.h"
 
 #pragma warning(push, 0)   
 #include <glm/trigonometric.hpp>
@@ -221,6 +222,8 @@ auto get_name_and_size(std::string name, system_size& size_target) -> std::strin
 
 auto get_starfield_universe() -> universe
 {
+   read_real_stars();
+
    const real_universe real_universe = get_real_entries();
 
    universe starfield_universe{};
