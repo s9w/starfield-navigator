@@ -222,7 +222,7 @@ auto get_name_and_size(std::string name, system_size& size_target) -> std::strin
 
 auto get_starfield_universe() -> universe
 {
-   read_real_stars();
+   // read_real_stars();
 
    const real_universe real_universe = get_real_entries();
 

@@ -1,7 +1,6 @@
 #include "reality.h"
 
 #include <fstream>
-#include <format>
 
 #include <glm/trigonometric.hpp>
 
@@ -36,7 +35,7 @@ auto sfn::read_real_stars() -> std::vector<real_star>
    int counter = 1;
    for (std::string line; getline(input, line); )
    {
-      const std::string start_str = std::format("{:<4}|", counter);
+      const std::string start_str = fmt::format("{:<4}|", counter);
       const bool relevant = line.starts_with(start_str);
       if(relevant == false)
          continue;
