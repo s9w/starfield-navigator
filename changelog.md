@@ -1,5 +1,6 @@
 # 0.8
 - Speculative systems now have purple labels in the main view
+- Removed two wrong identifications, added seven
 
 # 0.7
 - In galactic coordinate mode, lines can now be drawn down to the ecliptic of the selected planet:
