@@ -106,8 +106,6 @@ auto sfn::universe::print_info() const -> void
       min = glm::min(min, system.m_position);
       max = glm::max(max, system.m_position);
    }
-   fmt::print("BB min: {:.1f} {:.1f}, {:.1f}\n", min[0], min[1], min[2]);
-   fmt::print("BB max: {:.1f} {:.1f}, {:.1f}\n", max[0], max[1], max[2]);
 }
 
 

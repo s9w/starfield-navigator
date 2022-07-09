@@ -96,3 +96,13 @@ auto sfn::get_average(const std::vector<float>& vec) -> float
       sum += elem;
    return sum / std::size(vec);
 }
+
+
+auto sfn::get_aad(const std::vector<float>& vec) -> float
+{
+   const float average = get_average(vec);
+   float deviation_sum = 0.0f;
+   for (const float value : vec)
+      deviation_sum += std::abs(value - average);
+   return deviation_sum / std::ssize(vec);
+}

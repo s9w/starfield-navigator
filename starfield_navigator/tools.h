@@ -92,6 +92,7 @@ namespace sfn
    };
 
    [[nodiscard]] auto get_average(const std::vector<float>& vec) -> float;
+   [[nodiscard]] auto get_aad(const std::vector<float>& vec) -> float;
 
    template <std::floating_point T>
    constexpr auto srgb_to_linear_fp(const T x)->T;
