@@ -995,8 +995,10 @@ auto engine::draw_text(
    const glm::vec4& color
 ) const -> void
 {
-   const glm::vec3 screen_pos = apply_trafo(m_current_mvp.m_projection * m_current_mvp.m_view, pos);
-   // Skip labels behind the camera
+   glm::vec4 screen_pos = m_current_mvp.m_projection * m_current_mvp.m_view * glm::vec4{ pos, 1.0f };
+   if (screen_pos[3] < 0)
+      return;
+   screen_pos /= screen_pos[3];
    if (screen_pos[2] < 0)
       return;
 
