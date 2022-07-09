@@ -10,7 +10,8 @@ New-Item -Path "." -Name $release_dir -ItemType "directory" | Out-Null
 $name = "starfield_navigator"
 Copy-Item ("x64/Release/{0}.exe" -f $name) -Destination $release_dir
 Copy-Item ("{0}/system_data.txt" -f $name) -Destination $release_dir
-Copy-Item ("{0}/50lys.txt" -f $name) -Destination $release_dir
+Copy-Item ("{0}/cc_hip1997.txt" -f $name) -Destination $release_dir
+Copy-Item ("{0}/cc_hip2007.txt" -f $name) -Destination $release_dir
 Copy-Item ("{0}/shaders" -f $name) -Destination $release_dir -Recurse
 
 $zip_path = "builds/starfield_navigator.zip"

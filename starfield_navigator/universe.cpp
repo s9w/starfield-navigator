@@ -81,7 +81,7 @@ auto sfn::universe::get_index_by_name(const std::string& name) const -> int
 {
    for (int i = 0; i < std::ssize(m_systems); ++i)
    {
-      if (m_systems[i].m_name == name)
+      if (m_systems[i].m_name == name || m_systems[i].m_astronomic_name == name)
          return i;
    }
    std::terminate();
