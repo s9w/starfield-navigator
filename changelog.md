@@ -1,3 +1,6 @@
+# 0.9
+- Massive number of new identifications
+
 # 0.8
 - In frontal view, the selected system is now indicated with a ring around the star in the main view
 
