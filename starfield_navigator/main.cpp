@@ -7,13 +7,13 @@
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
 #include <rng.h>
 
 #include "tools.h"
 #include "reality.h"
 
 #pragma warning(push, 0)   
+#include <biteopt.h>
 #include <glm/trigonometric.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtx/vector_angle.hpp>
@@ -58,83 +58,6 @@ using namespace sfn;
    };
 }
 
-struct alignment_stars
-{
-   glm::vec3 m_sol;
-   glm::vec3 m_alpha_centauri;
-   glm::vec3 m_porrima;
-};
-
-
-auto get_trafo_a(
-   const alignment_stars& source,
-   const alignment_stars& target
-) -> glm::mat4
-{
-   glm::mat4 trafo(1.0f);
-
-   // 1. scale to porrima
-   const float scale = glm::length(target.m_porrima) / glm::length(source.m_porrima);
-   trafo = glm::scale(trafo, glm::vec3{ scale, scale, scale });
-
-   // 3. Rotate Alpha Centauri old to new
-   {
-      const glm::vec3 axis = glm::normalize(target.m_porrima);
-      const float angle = glm::orientedAngle(glm::normalize(source.m_alpha_centauri), glm::normalize(target.m_alpha_centauri), axis);
-      trafo = glm::rotate(trafo, angle, axis);
-   }
-
-   // 2. Rotate porrima old to new
-   {
-      const glm::vec3 axis = glm::cross(glm::normalize(source.m_porrima), glm::normalize(target.m_porrima));
-      const float angle = glm::orientedAngle(glm::normalize(source.m_porrima), glm::normalize(target.m_porrima), axis);
-      trafo = glm::rotate(trafo, angle, axis);
-   }
-   return trafo;
-}
-
-
-auto get_trafo_b(
-   const alignment_stars& source,
-   const alignment_stars& target
-) -> glm::mat4
-{
-   glm::mat4 trafo(1.0f);
-
-   // 3. Rotate Alpha Centauri old to new
-   {
-      const glm::vec3 axis = glm::normalize(target.m_porrima);
-      const float angle = glm::orientedAngle(glm::normalize(source.m_alpha_centauri), glm::normalize(target.m_alpha_centauri), axis);
-      trafo = glm::rotate(trafo, angle, axis);
-   }
-   return trafo;
-}
-
-
-auto get_trafo(
-   const alignment_stars& source,
-   const alignment_stars& target
-) -> glm::mat4
-{
-   const glm::mat4 trafo_shift = glm::translate(glm::mat4(1.0f), -source.m_sol);
-   alignment_stars new_source = alignment_stars{
-      .m_sol = apply_trafo(trafo_shift, source.m_sol),
-      .m_alpha_centauri = apply_trafo(trafo_shift, source.m_alpha_centauri),
-      .m_porrima = apply_trafo(trafo_shift, source.m_porrima)
-   };
-
-   const glm::mat4 trafo_a = get_trafo_a(new_source, target);
-
-   new_source = alignment_stars{
-      .m_sol = apply_trafo(trafo_a, new_source.m_sol),
-      .m_alpha_centauri = apply_trafo(trafo_a, new_source.m_alpha_centauri),
-      .m_porrima = apply_trafo(trafo_a, new_source.m_porrima)
-   };
-   const glm::mat4 trafo_b = get_trafo_b(new_source, target);
-
-   return trafo_b * trafo_a * trafo_shift;
-}
-
 
 struct real {
    std::string m_hip;
@@ -165,8 +88,8 @@ struct real_universe{
 
 auto get_real_entries() -> real_universe
 {
-   std::ifstream input("cc_hip1997.txt");
-   // std::ifstream input("cc_hip2007.txt");
+   // std::ifstream input("cc_hip1997.txt");
+   std::ifstream input("cc_hip2007.txt");
    real_universe result;
    for (std::string line; getline(input, line); )
    {
@@ -210,6 +133,62 @@ auto get_name_and_size(std::string name, system_size& size_target) -> std::strin
 }
 
 
+[[nodiscard]] auto get_error(
+   const universe& fiction,
+   const ::real_universe& real,
+   const std::string& fictional_name,
+   const std::string& hip
+) -> float
+{
+   const glm::vec3 fiction_pos = fiction.get_position_by_name(fictional_name);
+   const glm::vec3 real_pos = real.get_pos_by_hip(hip);
+   return glm::distance(fiction_pos, real_pos);
+};
+
+
+[[nodiscard]] auto get_metric(
+   const universe& univ,
+   const ::real_universe& real
+) -> float
+{
+   std::vector<float> errors;
+   errors.reserve(20);
+   errors.push_back(get_error(univ, real, "PORRIMA", "61941"));
+   errors.push_back(get_error(univ, real, "Luyten's Star", "36208"));
+   errors.push_back(get_error(univ, real, "Sirius", "32349"));
+   errors.push_back(get_error(univ, real, "61 Virginis", "64924"));
+   errors.push_back(get_error(univ, real, "Kapteyn's Star", "24186"));
+   errors.push_back(get_error(univ, real, "Xi Bootis", "72659"));
+   errors.push_back(get_error(univ, real, "Barnard", "87937"));
+   errors.push_back(get_error(univ, real, "Gliese 674", "85523"));
+   errors.push_back(get_error(univ, real, "70 Ophiuchi", "88601"));
+   errors.push_back(get_error(univ, real, "Delta Pavonis", "99240"));
+   errors.push_back(get_error(univ, real, "18 Scorpii", "79672"));
+   errors.push_back(get_error(univ, real, "Altair", "97649"));
+   errors.push_back(get_error(univ, real, "e Eridani", "15510"));
+   errors.push_back(get_error(univ, real, "Wolf 28", "3829"));
+   return get_average(errors);
+};
+
+
+[[nodiscard]] auto get_generic_trafo(
+   const float x_angle,
+   const float y_angle,
+   const float z_angle,
+   const glm::vec3& scale,
+   const glm::vec3& shift
+) -> glm::mat4
+{
+   glm::mat4 trafo(1.0f);
+   trafo = glm::translate(trafo, shift);
+   trafo = glm::scale(trafo, scale);
+   trafo = glm::rotate(trafo, x_angle, glm::vec3{ 1, 0, 0 });
+   trafo = glm::rotate(trafo, y_angle, glm::vec3{ 0, 1, 0 });
+   trafo = glm::rotate(trafo, z_angle, glm::vec3{ 0, 0, 1 });
+   return trafo;
+}
+
+
 auto get_starfield_universe() -> universe
 {
    // read_real_stars();
@@ -238,79 +217,156 @@ auto get_starfield_universe() -> universe
    };
    std::ranges::sort(starfield_universe.m_systems, pred);
 
-   // 3-point transform
-   {
-      const auto trafo = get_trafo(
-         alignment_stars{
-            .m_sol = starfield_universe.get_position_by_name("SOL"),
-            .m_alpha_centauri = starfield_universe.get_position_by_name("ALPHA CENTAURI"),
-            .m_porrima = starfield_universe.get_position_by_name("PORRIMA")
-         },
-         alignment_stars{
-            .m_sol = glm::vec3{},
-            .m_alpha_centauri = real_universe.get_pos_by_hip("71683"),
-            .m_porrima = real_universe.get_pos_by_hip("61941")
-         }
-      );
 
-      for (sfn::system& sys : starfield_universe.m_systems)
+
+
+   struct CTestOpt : public CBiteOpt
+   {
+      const universe* fiction_ref;
+      const ::real_universe* real_ref;
+      // 0, 1, 2: rotation angles
+      // 3, 4, 5: scale factors
+      // 6, 7, 8: translation
+      CTestOpt()
       {
-         sys.m_position = apply_trafo(trafo, sys.m_position);
+         updateDims(9);
+      }
+
+      void getMinValues(double* const p) const override
+      {
+         p[0] = 0.0;
+         p[1] = 0.0;
+         p[2] = 0.0;
+         p[3] = 0.01;
+         p[4] = 0.01;
+         p[5] = 0.01;
+         p[6] = -100.0;
+         p[7] = -100.0;
+         p[8] = -100.0;
+      }
+
+      void getMaxValues(double* const p) const override
+      {
+         p[0] = 2.0*std::numbers::pi_v<double>;
+         p[1] = 2.0*std::numbers::pi_v<double>;
+         p[2] = 2.0*std::numbers::pi_v<double>;
+         p[3] = 10.0;
+         p[4] = 10.0;
+         p[5] = 10.0;
+         p[6] = 100.0;
+         p[7] = 100.0;
+         p[8] = 100.0;
+      }
+      [[nodiscard]] static auto get_trafo_from_vector(const double* const p) -> glm::mat4
+      {
+         return get_generic_trafo(p[0], p[1], p[2], glm::vec3{ p[3], p[4], p[5] }, glm::vec3{ p[6], p[7], p[8] });
+      }
+
+      double optcost(const double* const p) override
+      {
+         universe transformed_universe = *fiction_ref;
+         const glm::mat4 trafo = get_trafo_from_vector(p);
+         for(sfn::system& elem : transformed_universe.m_systems)
+         {
+            elem.m_position = apply_trafo(trafo, elem.m_position);
+         }
+         return static_cast<double>(get_metric(transformed_universe, *real_ref));
+      }
+   };
+   CBiteRnd rnd;
+   rnd.init(1); // Needs to be seeded with different values on each run.
+   CTestOpt opt;
+   opt.fiction_ref = &starfield_universe;
+   opt.real_ref = &real_universe;
+   opt.init(rnd);
+   int i = 0;
+   for (; i < 20000; i++)
+   {
+      opt.optimize(rnd);
+      // constexpr double tol = 0.000001;
+      constexpr double tol = 0.001;
+      if (opt.getBestCost() < tol)
+      {
+         break;
       }
    }
+   printf("IterCount: %i\n", i);
+   printf("BestCost: %f\n", opt.getBestCost());
+   // for (int p = 0; p < 9; ++p)
+   //    fmt::print("best params {}: {:.2f}\n", p, opt.getBestParams()[p]);
 
-
-   // check
+   // test best trafo
+   const glm::mat4 best_trafo = CTestOpt::get_trafo_from_vector(opt.getBestParams());
+   for (sfn::system& sys : starfield_universe.m_systems)
    {
-      const auto candidates_for_fictional = [&](const std::string& fictional_name, const std::optional<std::string>& hip = std::nullopt)
-      {
-         const glm::vec3 pos0 = starfield_universe.get_position_by_name(fictional_name);
-         std::vector<int> real_closest;
-         for (int i = 0; i < std::ssize(real_universe.m_stars); ++i)
-            real_closest.push_back(i);
-         const auto pred = [&](const int i, const int j)
-         {
-            const float dist_i = glm::distance(pos0, real_universe.m_stars[i].m_coordinates);
-            const float dist_j = glm::distance(pos0, real_universe.m_stars[j].m_coordinates);
-            return dist_i < dist_j;
-         };
-         std::ranges::sort(real_closest, pred);
-         fmt::print("\n");
-         for (int i = 0; i < 3; ++i)
-         {
-            const float dist = glm::distance(pos0, real_universe.m_stars[real_closest[i]].m_coordinates);
-            const float relative_error = dist / glm::length(real_universe.m_stars[real_closest[i]].m_coordinates);
-            std::string guess_str;
-            if (hip.has_value() && real_universe.get_index_by_name(*hip) == real_closest[i])
-               guess_str = "CHOICE";
-            fmt::print(
-               "{}: {}, dist: {:.1f}, rel error: {:.1f} {}\n",
-               i, real_universe.get_name_by_index(real_closest[i]), dist, 100.0f* relative_error, guess_str
-            );
-         }
-      };
-      const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
-      {
-         const glm::vec3 fiction_pos = starfield_universe.get_position_by_name(fictional_name);
-         const glm::vec3 real_pos = real_universe.get_pos_by_hip(hip);
-         const float dist = glm::distance(fiction_pos, real_pos);
-         fmt::print("{:<15} dist: {:>3.1f} LY (+-{:.1f}%)\n", fictional_name, dist, 100.0f*dist / glm::length(real_pos));
-      };
-
-      error_report("Luyten's Star", "36208");
-      error_report("Sirius", "32349");
-      error_report("61 Virginis", "64924");
-      error_report("Kapteyn's Star", "24186");
-      error_report("Xi Bootis", "72659");
-      error_report("Barnard", "87937");
-      error_report("Gliese 674", "85523");
-      error_report("70 Ophiuchi", "88601");
-      error_report("Delta Pavonis", "99240");
-      error_report("18 Scorpii", "79672");
-      error_report("Altair", "97649");
-      error_report("e Eridani", "15510");
-      error_report("Wolf 28", "3829");
+      sys.m_position = apply_trafo(best_trafo, sys.m_position);
    }
+   fmt::print("metric with optimized trafo: {:.2f} LY\n",get_metric(starfield_universe, real_universe));
+
+
+   const auto candidates_for_fictional = [&](const std::string& fictional_name, const std::optional<std::string>& hip = std::nullopt)
+   {
+      const glm::vec3 pos0 = starfield_universe.get_position_by_name(fictional_name);
+      std::vector<int> real_closest;
+      for (int i = 0; i < std::ssize(real_universe.m_stars); ++i)
+         real_closest.push_back(i);
+      const auto pred = [&](const int i, const int j)
+      {
+         const float dist_i = glm::distance(pos0, real_universe.m_stars[i].m_coordinates);
+         const float dist_j = glm::distance(pos0, real_universe.m_stars[j].m_coordinates);
+         return dist_i < dist_j;
+      };
+      std::ranges::sort(real_closest, pred);
+      fmt::print("\n");
+      for (int i = 0; i < 3; ++i)
+      {
+         const float dist = glm::distance(pos0, real_universe.m_stars[real_closest[i]].m_coordinates);
+         const float relative_error = dist / glm::length(real_universe.m_stars[real_closest[i]].m_coordinates);
+         std::string guess_str;
+         if (hip.has_value() && real_universe.get_index_by_name(*hip) == real_closest[i])
+            guess_str = "CHOICE";
+         fmt::print(
+            "{}: {}, dist: {:.1f}, rel error: {:.1f} {}\n",
+            i, real_universe.get_name_by_index(real_closest[i]), dist, 100.0f* relative_error, guess_str
+         );
+      }
+   };
+   // candidates_for_fictional("User 29"); // no good match
+   // candidates_for_fictional("User 17"); // no good match
+   // candidates_for_fictional("User 30"); // no good match
+   // candidates_for_fictional("User 40"); // no good match
+   // candidates_for_fictional("User 35"); // no good match
+   // candidates_for_fictional("User 50"); // no good match
+   // candidates_for_fictional("User 56"); // no good match
+   // candidates_for_fictional("User 52"); // no good match
+   // candidates_for_fictional("User 24"); // no good match
+   // candidates_for_fictional("User 20"); // no good match
+   // all right ones are awful
+   candidates_for_fictional("User 27"); // two good but hidden matches
+   //candidates_for_fictional("User 61"); // not sure which one
+   // candidates_for_fictional("User 56"); // this is Wolf 359
+   
+   const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
+   {
+      const glm::vec3 fiction_pos = starfield_universe.get_position_by_name(fictional_name);
+      const glm::vec3 real_pos = real_universe.get_pos_by_hip(hip);
+      const float dist = glm::distance(fiction_pos, real_pos);
+      fmt::print("{:<15} dist: {:>3.1f} LY\n", fictional_name, dist);
+   };
+
+   error_report("Luyten's Star", "36208");
+   error_report("Sirius", "32349");
+   error_report("61 Virginis", "64924");
+   error_report("Kapteyn's Star", "24186");
+   error_report("Xi Bootis", "72659");
+   error_report("Barnard", "87937");
+   error_report("Gliese 674", "85523");
+   error_report("70 Ophiuchi", "88601");
+   error_report("Delta Pavonis", "99240");
+   error_report("18 Scorpii", "79672");
+   error_report("Altair", "97649");
+   error_report("e Eridani", "15510");
+   error_report("Wolf 28", "3829");
 
 
    starfield_universe.m_cam_info = get_and_delete_cam_info(starfield_universe.m_systems);
@@ -340,7 +396,6 @@ auto get_starfield_universe() -> universe
    return starfield_universe;
 }
 
-
 // Disable console window in release mode
 #if defined(_DEBUG) || defined(SHOW_CONSOLE)
 auto main(int /*argc*/, char* /*argv*/) -> int
@@ -348,6 +403,7 @@ auto main(int /*argc*/, char* /*argv*/) -> int
 auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nCmdShow*/) -> int
 #endif
 {
+
    engine engine(
       config{
          .res_x = 1280, .res_y = 720,
