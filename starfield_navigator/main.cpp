@@ -89,7 +89,8 @@ struct real_universe{
 auto get_real_entries() -> real_universe
 {
    // std::ifstream input("cc_hip1997.txt");
-   std::ifstream input("cc_hip2007.txt");
+   // std::ifstream input("cc_hip2007.txt");
+   std::ifstream input("../catalogs/cc_hyg.txt");
    real_universe result;
    for (std::string line; getline(input, line); )
    {
@@ -292,8 +293,8 @@ auto get_starfield_universe() -> universe
    }
    printf("IterCount: %i\n", i);
    printf("BestCost: %f\n", opt.getBestCost());
-   // for (int p = 0; p < 9; ++p)
-   //    fmt::print("best params {}: {:.2f}\n", p, opt.getBestParams()[p]);
+   for (int p = 0; p < 9; ++p)
+      fmt::print("best params {}: {:.2f}\n", p, opt.getBestParams()[p]);
 
    // test best trafo
    const glm::mat4 best_trafo = CTestOpt::get_trafo_from_vector(opt.getBestParams());
@@ -302,6 +303,9 @@ auto get_starfield_universe() -> universe
       sys.m_position = apply_trafo(best_trafo, sys.m_position);
    }
    fmt::print("metric with optimized trafo: {:.2f} LY\n",get_metric(starfield_universe, real_universe));
+
+   // galactic_coord gc{ .m_l = glm::radians(195.844640), .m_b = glm::radians(-48.0512), .m_dist = 10.501583 };
+   // starfield_universe.m_systems.push_back(sfn::system(gc.get_cartesian(), "EE", "EE", system_size::big));
 
 
    const auto candidates_for_fictional = [&](const std::string& fictional_name, const std::optional<std::string>& hip = std::nullopt)
@@ -321,30 +325,20 @@ auto get_starfield_universe() -> universe
       for (int i = 0; i < 3; ++i)
       {
          const float dist = glm::distance(pos0, real_universe.m_stars[real_closest[i]].m_coordinates);
-         const float relative_error = dist / glm::length(real_universe.m_stars[real_closest[i]].m_coordinates);
          std::string guess_str;
          if (hip.has_value() && real_universe.get_index_by_name(*hip) == real_closest[i])
             guess_str = "CHOICE";
          fmt::print(
-            "{}: {}, dist: {:.1f}, rel error: {:.1f} {}\n",
-            i, real_universe.get_name_by_index(real_closest[i]), dist, 100.0f* relative_error, guess_str
+            "{}: {}, dist: {:.1f}, {}\n",
+            i, real_universe.get_name_by_index(real_closest[i]), dist,  guess_str
          );
       }
    };
-   // candidates_for_fictional("User 29"); // no good match
-   // candidates_for_fictional("User 17"); // no good match
-   // candidates_for_fictional("User 30"); // no good match
-   // candidates_for_fictional("User 40"); // no good match
-   // candidates_for_fictional("User 35"); // no good match
-   // candidates_for_fictional("User 50"); // no good match
-   // candidates_for_fictional("User 56"); // no good match
-   // candidates_for_fictional("User 52"); // no good match
-   // candidates_for_fictional("User 24"); // no good match
-   // candidates_for_fictional("User 20"); // no good match
-   // all right ones are awful
-   candidates_for_fictional("User 27"); // two good but hidden matches
-   //candidates_for_fictional("User 61"); // not sure which one
-   // candidates_for_fictional("User 56"); // this is Wolf 359
+
+   candidates_for_fictional("User 30");
+   candidates_for_fictional("User 50");
+   candidates_for_fictional("User 35");
+   candidates_for_fictional("User 40");
    
    const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
    {
