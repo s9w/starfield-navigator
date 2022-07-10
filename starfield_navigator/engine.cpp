@@ -30,9 +30,19 @@ namespace
    auto get_projection_matrxi(const config& config) -> glm::mat4
    {
       const float aspect = static_cast<float>(config.res_x) / config.res_y;
-      const float x_fov = glm::radians(63.0f);
+      const float x_fov = glm::radians(60.0f);
       const float y_fov = x_fov / aspect;
       return glm::perspective(y_fov, aspect, 0.1f, 3000.0f);
+
+      // constexpr float frustum_width = 120.0f;
+      // return glm::ortho(
+      //    -0.5f * frustum_width,
+      //    0.5f * frustum_width,
+      //    -0.5f * frustum_width/ aspect,
+      //    0.5f * frustum_width/ aspect,
+      //    0.0f,
+      //    500.0f
+      // );
    }
 
 
