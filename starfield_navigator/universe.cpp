@@ -16,12 +16,16 @@ namespace
 {
    using namespace sfn;
 
+   [[nodiscard]] auto is_unnamed_triplet(const std::string& str) -> bool
+   {
+      return str.size() == 3;
+   }
 }
 
 
 auto sfn::system::get_useful_name() const -> std::optional<std::string>
 {
-   if (m_name.starts_with("User") && m_astronomic_name.empty())
+   if (is_unnamed_triplet(m_name) && m_astronomic_name.empty())
       return std::nullopt;
    return this->get_name();
 }
@@ -29,7 +33,7 @@ auto sfn::system::get_useful_name() const -> std::optional<std::string>
 auto sfn::system::get_name() const -> std::string
 {
    std::string result;
-   if (m_name.starts_with("User"))
+   if (is_unnamed_triplet(m_name))
       result += "---";
    else
       result += m_name;
@@ -41,7 +45,7 @@ auto sfn::system::get_name() const -> std::string
 
 auto sfn::system::get_starfield_name() const -> std::optional<std::string>
 {
-   if (m_name.starts_with("User"))
+   if (is_unnamed_triplet(m_name))
       return std::nullopt;
    return m_name;
 }

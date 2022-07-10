@@ -116,23 +116,6 @@ auto get_real_entries() -> real_universe
    return result;
 }
 
-auto get_name_and_size(std::string name, system_size& size_target) -> std::string
-{
-   if (name.starts_with("big_"))
-   {
-      size_target = system_size::big;
-      name = name.substr(4);
-   }
-   else if (name.starts_with("small_"))
-   {
-      size_target = system_size::small;
-      name = name.substr(6);
-   }
-   else
-      std::terminate();
-   return name;
-}
-
 
 [[nodiscard]] auto get_error(
    const universe& fiction,
@@ -189,6 +172,15 @@ auto get_name_and_size(std::string name, system_size& size_target) -> std::strin
    return trafo;
 }
 
+[[nodiscard]] auto get_system_size(const std::string& size_str) -> system_size
+{
+   if (size_str == "big")
+      return system_size::big;
+   if (size_str == "small")
+      return system_size::small;
+   std::terminate();
+}
+
 
 auto get_starfield_universe() -> universe
 {
@@ -199,19 +191,48 @@ auto get_starfield_universe() -> universe
    universe starfield_universe{};
    std::ifstream input("system_data.txt");
 
+   bool reading = true;
+   std::unordered_map<std::string, glm::vec3> read_data;
    for (std::string line; getline(input, line); )
    {
-      const std::vector<std::string> split = get_split_string(line, ";");
-      system_size size;
-      const std::string name = get_name_and_size(split[0], size);
-      const std::string astronomic_name = split[4];
-      
-      const float x = static_cast<float>(std::stod(get_trimmed_str(split[1])));
-      const float y = static_cast<float>(std::stod(get_trimmed_str(split[2])));
-      const float z = static_cast<float>(std::stod(get_trimmed_str(split[3])));
-      starfield_universe.m_systems.emplace_back(c4d_convert(glm::vec3{ x, y, z }), name, astronomic_name, size);
-   }
+      {
+         const size_t comment_begin = line.find('#');
+         if(comment_begin != std::string::npos)
+         {
+            line = line.substr(0, comment_begin);
+         }
+      }
 
+      if (reading == true && line.empty())
+      {
+         reading = false;
+         continue;
+      }
+      if (reading)
+      {
+         const std::vector<std::string> split = get_split_string(line, ";");
+         const std::string name = split[0];
+         const float x = static_cast<float>(std::stod(get_trimmed_str(split[1])));
+         const float y = static_cast<float>(std::stod(get_trimmed_str(split[2])));
+         const float z = static_cast<float>(std::stod(get_trimmed_str(split[3])));
+         read_data.emplace(name, c4d_convert(glm::vec3{ x, y, z }));
+      }
+      else
+      {
+         const std::vector<std::string> key_value = get_split_string(line, ":");
+         
+         const std::vector<std::string> values = get_split_string(key_value[1], ";");
+         const std::string astronomical_name = values[2];
+         const std::string starfield_name = values[1];
+
+         std::string name = key_value[0];
+         const glm::vec3 pos = read_data.at(name);
+         if (starfield_name.empty() == false)
+            name = starfield_name;
+         starfield_universe.m_systems.emplace_back(pos, name, astronomical_name, get_system_size(values[0]));
+      }
+   }
+   int stop = 0;
    // Sort from left to right before transformation is applied
    const auto pred = [](const sfn::system& a, const sfn::system& b) {
       return a.m_position.x < b.m_position.x;
@@ -335,10 +356,10 @@ auto get_starfield_universe() -> universe
       }
    };
 
-   candidates_for_fictional("User 30");
-   candidates_for_fictional("User 50");
-   candidates_for_fictional("User 35");
-   candidates_for_fictional("User 40");
+   // candidates_for_fictional("User 30");
+   // candidates_for_fictional("User 50");
+   // candidates_for_fictional("User 35");
+   // candidates_for_fictional("User 40");
    
    const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
    {
