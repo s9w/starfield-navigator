@@ -1009,8 +1009,6 @@ auto engine::draw_text(
    if (screen_pos[3] < 0)
       return;
    screen_pos /= screen_pos[3];
-   if (screen_pos[2] < 0)
-      return;
 
    glm::vec2 imgui_draw_pos = 0.5f * (glm::vec2(screen_pos) + 1.0f);
    imgui_draw_pos[1] = 1.0f - imgui_draw_pos[1];
@@ -1028,9 +1026,11 @@ auto engine::draw_text(
 
 auto engine::draw_circle(const glm::vec3& pos, const float radius, const glm::vec4& color) const -> void
 {
-   const glm::vec3 screen_pos = apply_trafo(m_current_mvp.m_projection * m_current_mvp.m_view, pos);
-   if (screen_pos[2] < 0)
+   glm::vec4 screen_pos = m_current_mvp.m_projection * m_current_mvp.m_view * glm::vec4{ pos, 1.0f };
+   if (screen_pos[3] < 0)
       return;
+   screen_pos /= screen_pos[3];
+
    glm::vec2 imgui_draw_pos = 0.5f * (glm::vec2(screen_pos) + 1.0f);
    imgui_draw_pos[1] = 1.0f - imgui_draw_pos[1];
    imgui_draw_pos *= glm::vec2{ m_config.res_x, m_config.res_y };
