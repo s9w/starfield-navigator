@@ -136,21 +136,14 @@ auto get_real_entries() -> real_universe
 ) -> float
 {
    std::vector<float> errors;
-   errors.reserve(20);
-   errors.push_back(get_error(univ, real, "PORRIMA", "61941"));
-   errors.push_back(get_error(univ, real, "Luyten's Star", "36208"));
-   errors.push_back(get_error(univ, real, "Sirius", "32349"));
-   errors.push_back(get_error(univ, real, "61 Virginis", "64924"));
-   errors.push_back(get_error(univ, real, "Kapteyn's Star", "24186"));
-   errors.push_back(get_error(univ, real, "Xi Bootis", "72659"));
-   errors.push_back(get_error(univ, real, "Barnard", "87937"));
-   errors.push_back(get_error(univ, real, "Gliese 674", "85523"));
-   errors.push_back(get_error(univ, real, "70 Ophiuchi", "88601"));
-   errors.push_back(get_error(univ, real, "Delta Pavonis", "99240"));
-   errors.push_back(get_error(univ, real, "18 Scorpii", "79672"));
-   errors.push_back(get_error(univ, real, "Altair", "97649"));
-   errors.push_back(get_error(univ, real, "e Eridani", "15510"));
-   errors.push_back(get_error(univ, real, "Wolf 28", "3829"));
+   errors.reserve(50);
+
+   for (const sfn::system& system : univ.m_systems)
+   {
+      if (system.m_astronomic_name.empty())
+         continue;
+      errors.push_back(get_error(univ, real, system.m_astronomic_name, system.m_catalog_lookup));
+   }
    return get_average(errors);
 };
 
@@ -202,6 +195,7 @@ auto get_starfield_universe() -> universe
             line = line.substr(0, comment_begin);
          }
       }
+      line = get_trimmed_str(line);
 
       if (reading == true && line.empty())
       {
@@ -222,14 +216,26 @@ auto get_starfield_universe() -> universe
          const std::vector<std::string> key_value = get_split_string(line, ":");
          
          const std::vector<std::string> values = get_split_string(key_value[1], ";");
-         const std::string astronomical_name = values[2];
+         std::string astronomical_name;
+         std::string catalog_entry;
+         if (values[2].empty() == false)
+         {
+            const auto astro_split = get_split_string(values[2], "_");
+            if (astro_split.size() == 1)
+               std::terminate();
+            astronomical_name = astro_split[0];
+            catalog_entry = astro_split[1];
+            catalog_entry = get_split_string(catalog_entry, " ")[1];
+         }
+
+
          const std::string starfield_name = values[1];
 
          std::string name = key_value[0];
          const glm::vec3 pos = read_data.at(name);
          if (starfield_name.empty() == false)
             name = starfield_name;
-         starfield_universe.m_systems.emplace_back(pos, name, astronomical_name, get_system_size(values[0]));
+         starfield_universe.m_systems.emplace_back(pos, name, astronomical_name, catalog_entry, get_system_size(values[0]));
       }
    }
    int stop = 0;
@@ -302,7 +308,7 @@ auto get_starfield_universe() -> universe
    opt.real_ref = &real_universe;
    opt.init(rnd);
    int i = 0;
-   for (; i < 20000; i++)
+   for (; i < 10000; i++)
    {
       opt.optimize(rnd);
       // constexpr double tol = 0.000001;
@@ -355,33 +361,52 @@ auto get_starfield_universe() -> universe
          );
       }
    };
+   const auto candidates_for_real = [&](const std::string& real_name)
+   {
+      const glm::vec3 target_pos = real_universe.get_pos_by_hip(real_name);
+      std::vector<int> real_closest;
+      for (int i = 0; i < std::ssize(starfield_universe.m_systems); ++i)
+         real_closest.push_back(i);
+      const auto pred = [&](const int i, const int j)
+      {
+         const float dist_i = glm::distance(target_pos, starfield_universe.m_systems[i].m_position);
+         const float dist_j = glm::distance(target_pos, starfield_universe.m_systems[j].m_position);
+         return dist_i < dist_j;
+      };
+      std::ranges::sort(real_closest, pred);
+      fmt::print("\n");
+      for (int i = 0; i < 3; ++i)
+      {
+         const float dist = glm::distance(target_pos, starfield_universe.m_systems[real_closest[i]].m_position);
+         fmt::print("{}: {:.1f} {}\n", i, dist, starfield_universe.m_systems[i].get_name());
+      }
+   };
+   // candidates_for_real("91262"); // vega
 
    // candidates_for_fictional("User 30");
    // candidates_for_fictional("User 50");
    // candidates_for_fictional("User 35");
    // candidates_for_fictional("User 40");
+   // candidates_for_fictional("ADN");
+   // candidates_for_fictional("ADQ");
+   // candidates_for_fictional("ADU");
+   // candidates_for_fictional("ADV");
    
    const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
    {
       const glm::vec3 fiction_pos = starfield_universe.get_position_by_name(fictional_name);
       const glm::vec3 real_pos = real_universe.get_pos_by_hip(hip);
       const float dist = glm::distance(fiction_pos, real_pos);
-      fmt::print("{:<15} dist: {:>3.1f} LY\n", fictional_name, dist);
+      fmt::print("{:<16} deviation: {:>3.1f} LY\n", fictional_name, dist);
    };
 
-   error_report("Luyten's Star", "36208");
-   error_report("Sirius", "32349");
-   error_report("61 Virginis", "64924");
-   error_report("Kapteyn's Star", "24186");
-   error_report("Xi Bootis", "72659");
-   error_report("Barnard", "87937");
-   error_report("Gliese 674", "85523");
-   error_report("70 Ophiuchi", "88601");
-   error_report("Delta Pavonis", "99240");
-   error_report("18 Scorpii", "79672");
-   error_report("Altair", "97649");
-   error_report("e Eridani", "15510");
-   error_report("Wolf 28", "3829");
+   for(const sfn::system& system : starfield_universe.m_systems)
+   {
+      if (system.m_astronomic_name.empty())
+         continue;
+      error_report(system.m_astronomic_name, system.m_catalog_lookup);
+   }
+   // error_report("HD 125455", "70016");
 
 
    starfield_universe.m_cam_info = get_and_delete_cam_info(starfield_universe.m_systems);

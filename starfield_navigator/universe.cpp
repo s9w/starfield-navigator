@@ -51,9 +51,10 @@ auto sfn::system::get_starfield_name() const -> std::optional<std::string>
 }
 
 
-sfn::system::system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name, const system_size size)
+sfn::system::system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name, const std::string& catalog, const system_size size)
    : m_name(name)
    , m_astronomic_name(astronomic_name)
+   , m_catalog_lookup(catalog)
    , m_position(pos)
    , m_size(size)
 {
