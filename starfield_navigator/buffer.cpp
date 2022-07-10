@@ -127,9 +127,10 @@ vbo_segment::vbo_segment(const std::vector<vbo_class>& classes)
 auto vbo_segment::get_byte_count() const -> int
 {
    int byte_count = 0;
-   for (const auto& class_el : m_classes)
+   for (const vbo_class& class_el : m_classes)
       byte_count += class_el.get_byte_count();
-   return byte_count;
+   
+   return get_aligned_ubo_sizeof(byte_count);
 }
 
 

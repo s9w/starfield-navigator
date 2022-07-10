@@ -150,4 +150,3 @@ ADN:small;;
 ADP:small;;
 ADQ:small;;
 AEF:small;;
-AEF:small;; # wtf
