@@ -173,6 +173,16 @@ auto imgui_context::scroll_callback(
 }
 
 
+graphics_context::graphics_context(const config& config)
+   : m_glfw()
+   , m_window_wrapper(config)
+   , m_glad_wrapper(config)
+   , m_imgui_context(config, m_window_wrapper.m_window)
+{
+   
+}
+
+
 sfn::normal_imgui_window::normal_imgui_window(
    const char* name,
    const ImGuiWindowFlags extra_flags
@@ -214,4 +224,24 @@ sfn::single_imgui_window::single_imgui_window(const ImGuiWindowFlags extra_flags
 sfn::single_imgui_window::~single_imgui_window()
 {
    ImGui::End();
+}
+
+#include "fonts/FontAwesomeSolid.hpp"
+#include "fonts/DroidSans.hpp"
+#include "fonts/IconsFontAwesome5.h"
+
+auto sfn::setup_imgui_fonts() -> void {
+   ImGuiIO& io = ImGui::GetIO();
+   ImFontConfig configBasic;
+   ImFontConfig configMerge;
+   configMerge.MergeMode = true;
+   static const ImWchar rangesIcons[] = {
+      ICON_MIN_FA, ICON_MAX_FA,
+      0
+   };
+   constexpr float normal_font_size = 15.0f;
+   constexpr float icon_font_size = 15.0f;
+   io.Fonts->Clear();
+   io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, round(normal_font_size), &configBasic);
+   io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesomeSolid_compressed_data, FontAwesomeSolid_compressed_size, round(icon_font_size), &configMerge, rangesIcons);
 }

@@ -70,10 +70,7 @@ namespace sfn
    public:
       config m_config;
       timing_provider m_frame_pacer{};
-      glfw_wrapper m_glfw;
-      window_wrapper m_window_wrapper;
-      glad_wrapper m_glad_wrapper;
-      imgui_context m_imgui_context;
+      std::unique_ptr<graphics_context> m_graphics_context;
 
       universe m_universe;
       int m_list_selection = m_universe.get_index_by_name("SOL");
@@ -111,7 +108,7 @@ namespace sfn
       std::optional<vao> m_vao_indicator;
       std::optional<vao> m_vao_drops;
 
-      explicit engine(const config& config, universe&& universe);
+      explicit engine(const config& config, std::unique_ptr<graphics_context>&& gc, universe&& universe);
       [[nodiscard]] auto get_window() const->GLFWwindow*;
 
       static auto static_resize_callback(

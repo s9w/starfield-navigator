@@ -154,6 +154,7 @@
     <ClCompile Include="tools.cpp" />
     <ClCompile Include="type_support.cpp" />
     <ClCompile Include="universe.cpp" />
+    <ClCompile Include="universe_creation.cpp" />
     <ClCompile Include="vertex_data.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -172,6 +173,7 @@
     <ClInclude Include="tools.h" />
     <ClInclude Include="type_support.h" />
     <ClInclude Include="universe.h" />
+    <ClInclude Include="universe_creation.h" />
     <ClInclude Include="vertex_data.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

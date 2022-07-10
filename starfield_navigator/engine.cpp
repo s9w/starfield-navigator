@@ -167,11 +167,9 @@ namespace
 } // namespace {}
 
 
-sfn::engine::engine(const config& config, universe&& universe)
+sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc, universe&& universe)
    : m_config(config)
-   , m_window_wrapper(config)
-   , m_glad_wrapper(config)
-   , m_imgui_context(config, m_window_wrapper.m_window)
+   , m_graphics_context(std::move(gc))
    , m_universe(std::move(universe))
    , m_buffers2(128)
    , m_shader_stars("star_shader")
@@ -180,33 +178,12 @@ sfn::engine::engine(const config& config, universe&& universe)
    , m_shader_droplines("droplines_shader")
    , m_framebuffers(m_textures)
 {
+   for(int i=0; i<m_universe.m_systems.size(); ++i)
    {
-      ImGuiIO& io = ImGui::GetIO();
-      ImFontConfig configBasic;
-      ImFontConfig configMerge;
-      configMerge.MergeMode = true;
-
-      static const ImWchar rangesIcons[] = {
-          ICON_MIN_FA, ICON_MAX_FA,
-          0
-      };
-      constexpr float normal_font_size = 15.0f;
-      constexpr float icon_font_size = 15.0f;
-
-      io.Fonts->Clear();
-      io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, round(normal_font_size), &configBasic);
-      io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesomeSolid_compressed_data, FontAwesomeSolid_compressed_size, round(icon_font_size), &configMerge, rangesIcons);
-
-      // ImGui_ImplOpenGL3_DestroyFontsTexture();
-      // ImGui_ImplOpenGL3_CreateFontsTexture();
-
-      for(int i=0; i<m_universe.m_systems.size(); ++i)
-      {
-         constexpr glm::vec3 red{1.0f, 0.5f, 0.5f};
-         constexpr glm::vec3 green{ 0.5f, 1.0f, 0.5f };
-         m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_size == system_size::small) ? red : green;
-         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
-      }
+      constexpr glm::vec3 red{1.0f, 0.5f, 0.5f};
+      constexpr glm::vec3 green{ 0.5f, 1.0f, 0.5f };
+      m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_size == system_size::small) ? red : green;
+      m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
    }
 
    if (engine_ptr != nullptr)
@@ -262,7 +239,7 @@ sfn::engine::engine(const config& config, universe&& universe)
 
 auto sfn::engine::get_window() const -> GLFWwindow*
 {
-   return m_window_wrapper.m_window;
+   return m_graphics_context->m_window_wrapper.m_window;
 }
 
 
@@ -319,7 +296,7 @@ auto sfn::engine::draw_frame() -> void
    constexpr glm::vec3 bg_color{};
    m_framebuffers.clear_color(m_main_fb, bg_color, 0);
 
-   m_imgui_context.frame_begin();
+   m_graphics_context->m_imgui_context.frame_begin();
 
    // calculate things
    update_mvp_member();
@@ -425,7 +402,7 @@ auto sfn::engine::draw_frame() -> void
    // GUI
    this->gui_draw();
 
-   m_imgui_context.frame_end();
+   m_graphics_context->m_imgui_context.frame_end();
    glfwSwapBuffers(this->get_window());
    glfwPollEvents();
    m_frame_pacer.mark_frame_end();
@@ -807,7 +784,7 @@ auto sfn::engine::gui_draw() -> void
       normal_imgui_window w(glm::ivec2{ 250, 0 }, glm::ivec2{ 500, 90 }, fmt::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
 
       const auto is_button_pressed = [&](const int key) -> bool {
-         return glfwGetKey(m_window_wrapper.m_window, key) == GLFW_PRESS;
+         return glfwGetKey(m_graphics_context->m_window_wrapper.m_window, key) == GLFW_PRESS;
       };
       if (std::holds_alternative<wasd_mode>(m_camera_mode))
       {

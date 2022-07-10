@@ -33,20 +33,20 @@ namespace sfn
 
       glfw_wrapper(const glfw_wrapper&) = delete;
       glfw_wrapper& operator=(const glfw_wrapper&) = delete;
-      glfw_wrapper(glfw_wrapper&&) = delete;
-      glfw_wrapper& operator=(glfw_wrapper&&) = delete;
+      glfw_wrapper(glfw_wrapper&&) = default;
+      glfw_wrapper& operator=(glfw_wrapper&&) = default;
    };
 
    struct window_wrapper
    {
-      GLFWwindow* m_window = nullptr;
+      static inline GLFWwindow* m_window = nullptr;
       explicit window_wrapper(const config& config);
       ~window_wrapper();
 
       window_wrapper(const window_wrapper&) = delete;
       window_wrapper& operator=(const window_wrapper&) = delete;
-      window_wrapper(window_wrapper&&) = delete;
-      window_wrapper& operator=(window_wrapper&&) = delete;
+      window_wrapper(window_wrapper&&) = default;
+      window_wrapper& operator=(window_wrapper&&) = default;
    };
 
 
@@ -57,8 +57,8 @@ namespace sfn
 
       glad_wrapper(const glad_wrapper&) = delete;
       glad_wrapper& operator=(const glad_wrapper&) = delete;
-      glad_wrapper(glad_wrapper&&) = delete;
-      glad_wrapper& operator=(glad_wrapper&&) = delete;
+      glad_wrapper(glad_wrapper&&) = default;
+      glad_wrapper& operator=(glad_wrapper&&) = default;
    };
 
 
@@ -72,12 +72,24 @@ namespace sfn
 
       imgui_context(const imgui_context&) = delete;
       imgui_context& operator=(const imgui_context&) = delete;
-      imgui_context(imgui_context&&) = delete;
-      imgui_context& operator=(imgui_context&&) = delete;
+      imgui_context(imgui_context&&) = default;
+      imgui_context& operator=(imgui_context&&) = default;
    };
 
 
-   
+   struct graphics_context{
+      glfw_wrapper m_glfw;
+      window_wrapper m_window_wrapper;
+      glad_wrapper m_glad_wrapper;
+      imgui_context m_imgui_context;
+
+      explicit graphics_context(const config& config);
+      graphics_context(graphics_context&&) = default;
+      graphics_context& operator=(graphics_context&&) = default;
+      graphics_context(const graphics_context&) = delete;
+      graphics_context& operator=(const graphics_context&) = delete;
+      ~graphics_context() = default;
+   };
 
 
    typedef int ImGuiWindowFlags;
@@ -104,5 +116,5 @@ namespace sfn
       single_imgui_window& operator=(single_imgui_window&&) = delete;
    };
 
-
+   auto setup_imgui_fonts() -> void;
 }
