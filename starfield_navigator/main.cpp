@@ -136,7 +136,7 @@ auto get_real_entries() -> real_universe
 ) -> float
 {
    std::vector<float> errors;
-   errors.reserve(50);
+   errors.reserve(100);
 
    for (const sfn::system& system : univ.m_systems)
    {
@@ -238,7 +238,6 @@ auto get_starfield_universe() -> universe
          starfield_universe.m_systems.emplace_back(pos, name, astronomical_name, catalog_entry, get_system_size(values[0]));
       }
    }
-   int stop = 0;
    // Sort from left to right before transformation is applied
    const auto pred = [](const sfn::system& a, const sfn::system& b) {
       return a.m_position.x < b.m_position.x;

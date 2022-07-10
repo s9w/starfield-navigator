@@ -316,7 +316,7 @@ auto sfn::engine::draw_frame() -> void
 
    m_framebuffers.bind_fb(m_main_fb, fb_target::full);
    m_framebuffers.clear_depth(m_main_fb);
-   constexpr glm::vec3 bg_color{}; //{ 0.01f, 0.156f, 0.139f };
+   constexpr glm::vec3 bg_color{};
    m_framebuffers.clear_color(m_main_fb, bg_color, 0);
 
    m_imgui_context.frame_begin();
