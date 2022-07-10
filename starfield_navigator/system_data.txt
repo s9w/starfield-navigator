@@ -93,7 +93,7 @@ ABD:big;SOL;
 ADW:big;;
 ACX:small;;Arcturus_HIP 69673
 ABV:big;;Barnard_HIP 87937
-ABL:big;;Gliese 674_HIP 85523AB
+ABL:big;;Gliese 674_HIP 85523
 ACY:small;;Eta Bootis_HIP 67927
 ABH:big;;36 Ophiuchi_HIP 84405
 ABI:big;;Gliese 667_GJ 667C # there is HIP, but this matches better
