@@ -93,15 +93,15 @@ ABD:big;SOL;
 ADW:big;;
 ACX:small;;Arcturus_HIP 69673
 ABV:big;;Barnard_HIP 87937
-ABL:big;;Gliese 674_HIP 85523
+ABL:big;;Gliese 674_HIP 85523AB
 ACY:small;;Eta Bootis_HIP 67927
 ABH:big;;36 Ophiuchi_HIP 84405
-ABI:big;;Gliese 667_HIP 84709
+ABI:big;;Gliese 667_GJ 667C # there is HIP, but this matches better
 ACV:small;;Gliese 569_HIP 72944
 ABM:big;;61 Cygni_HIP 104217# or HIP 104214 (Cyg B vs Cyg A)
 ABE:big;NARION;70 Ophiuchi_HIP 88601
 ACS:small;;Lambda Serpentis_HIP 77257
-ABP:big;;# where did that come from: Mu Herculis, no hip or gj entry
+ABP:big;;Mu Herculis_HIP 86974
 ACF:small;;Psi Serpentis_HIP 77052
 ACD:small;;HD 135204_HIP 74537
 ABK:big;;Delta Pavonis_HIP 99240
@@ -138,7 +138,7 @@ ADO:small;;Ross 948_GJ 3728B # GJ might be without B somewhere else
 ADR:small;;Beta Virginis_HIP 57757
 ADZ:small;;HD 102365_HIP 57443
 ABX:small;;
-AEB:small;;Zeta Herculis_HIP 81693
+AEB:small;;Zeta Herculis_GJ 635B # there is HIP, but this matches better
 ACZ:small;;Tau Bootis_HIP 67275
 ADM:small;;
 ADU:small;;

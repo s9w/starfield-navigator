@@ -90,7 +90,7 @@ auto get_real_entries() -> real_universe
 {
    // std::ifstream input("cc_hip1997.txt");
    // std::ifstream input("cc_hip2007.txt");
-   std::ifstream input("../catalogs/cc_hyg.txt");
+   std::ifstream input("cc_hyg.txt");
    real_universe result;
    for (std::string line; getline(input, line); )
    {
@@ -356,7 +356,7 @@ auto get_starfield_universe() -> universe
          if (hip.has_value() && real_universe.get_index_by_name(*hip) == real_closest[i])
             guess_str = "CHOICE";
          fmt::print(
-            "{}: {}, dist: {:.1f}, {}\n",
+            "{}: {}, dist: {:.2f}, {}\n",
             i, real_universe.get_name_by_index(real_closest[i]), dist,  guess_str
          );
       }
@@ -378,10 +378,10 @@ auto get_starfield_universe() -> universe
       for (int i = 0; i < 3; ++i)
       {
          const float dist = glm::distance(target_pos, starfield_universe.m_systems[real_closest[i]].m_position);
-         fmt::print("{}: {:.1f} {}\n", i, dist, starfield_universe.m_systems[i].get_name());
+         fmt::print("{}: {:.2f} {}\n", i, dist, starfield_universe.m_systems[i].get_name());
       }
    };
-   // candidates_for_real("91262"); // vega
+   candidates_for_real("91262"); // vega
 
    // candidates_for_fictional("User 30");
    // candidates_for_fictional("User 50");
@@ -391,13 +391,15 @@ auto get_starfield_universe() -> universe
    // candidates_for_fictional("ADQ");
    // candidates_for_fictional("ADU");
    // candidates_for_fictional("ADV");
+   // candidates_for_fictional("AEB");
+   // candidates_for_fictional("ABX");
    
    const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
    {
       const glm::vec3 fiction_pos = starfield_universe.get_position_by_name(fictional_name);
       const glm::vec3 real_pos = real_universe.get_pos_by_hip(hip);
       const float dist = glm::distance(fiction_pos, real_pos);
-      fmt::print("{:<16} deviation: {:>3.1f} LY\n", fictional_name, dist);
+      fmt::print("{:<16} deviation: {:>5.2f} LY\n", fictional_name, dist);
    };
 
    for(const sfn::system& system : starfield_universe.m_systems)
