@@ -1,5 +1,8 @@
 # 0.9
-- Massive number of new identifications
+- Switched to proper star catalog
+- Switched to automatic, fully affine alignment instead of 3-point alignment
+- Increased search radius from 70 LY to 140 LY
+- Reached 100% discovery of visible systems
 
 # 0.8
 - In frontal view, the selected system is now indicated with a ring around the star in the main view
