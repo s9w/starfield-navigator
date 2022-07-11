@@ -80,6 +80,7 @@ namespace sfn
       gui_mode m_gui_mode = gui_mode::connections;
       star_color_mode m_star_color_mode = star_color_mode::big_small;
       float m_dropline_range = 20.0f;
+      bool m_show_star_labels = true;
 
       camera_mode m_camera_mode = wasd_mode{ m_universe.m_cam_info.m_cam_pos0 };
       buffers m_buffers2;

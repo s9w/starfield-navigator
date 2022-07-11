@@ -391,7 +391,8 @@ auto sfn::engine::draw_frame() -> void
    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_universe.m_systems.size()));
    glEnable(GL_DEPTH_TEST);
 
-   draw_system_labels();
+   if(m_show_star_labels)
+      draw_system_labels();
 
    // GUI
    this->gui_draw();
@@ -877,24 +878,27 @@ auto sfn::engine::gui_draw() -> void
       }
       tooltip("Coloring stars green/red according depending on whether they were shown as big or small dots in the gameplay reveal");
       ImGui::SameLine();
-      ImGui::SameLine();
       if (ImGui::RadioButton("absolute magnitude", &radio_selected, 1))
       {
          m_star_color_mode = star_color_mode::abs_mag;
       }
       if(m_star_color_mode == star_color_mode::abs_mag)
       {
-         if(ImGui::SliderFloat("", &abs_mag_threshold, 0.0f, 10.0f))
+         ImGui::PushItemWidth(-FLT_MIN);
+         if(ImGui::SliderFloat("", &abs_mag_threshold, 0.0f, 20.0f))
          {
             this->update_ssbo(abs_mag_threshold);
          }
-         tooltip("Stars with magnitude higher than this are dimmed");
+         ImGui::PopItemWidth();
+         tooltip("Stars with magnitude higher than this (=darker) are dimmed");
       }
 
       if(radio_selected != old_selected)
       {
          this->update_ssbo(abs_mag_threshold);
       }
+
+      ImGui::Checkbox("Show star labels", &m_show_star_labels);
    }
    if(selection_changed || view_mode_changed)
    {

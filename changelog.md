@@ -1,3 +1,8 @@
+# 0.10
+- Added star coloring basesd on absolute magnitude (brightness)
+- Connections between stars can be disabled by setting the jump range to 0
+- Star name labels can be disabled in the options
+
 # 0.9
 - Switched to proper star catalog
 - Switched to automatic, fully affine alignment instead of 3-point alignment
