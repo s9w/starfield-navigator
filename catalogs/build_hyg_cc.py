@@ -12,7 +12,7 @@ with open("hygdata_v3.csv", "r") as catalog_file, open("../starfield_navigator//
             continue
 
         dist_ly = float(dist_str) * 3.262
-        if dist_ly > 70.0:
+        if dist_ly > 150.0:
             continue
 
         gliese_id = split[4]
