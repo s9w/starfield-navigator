@@ -123,7 +123,7 @@ namespace {
 
       for (const sfn::system& system : univ.m_systems)
       {
-         if (system.m_astronomic_name.empty())
+         if (system.m_astronomic_name.empty() || system.m_astronomic_name == "Sol")
             continue;
          errors.push_back(get_error(univ, real, system.m_astronomic_name, system.m_catalog_lookup));
       }
@@ -315,6 +315,8 @@ universe_creator::universe_creator()
             astronomical_name = astro_split[0];
             catalog_entry = astro_split[1];
          }
+         if (values[1] == "SOL")
+            astronomical_name = "Sol";
 
          const std::string starfield_name = values[1];
 
@@ -433,7 +435,7 @@ auto sfn::universe_creator::get() -> creator_result
 
       for (const sfn::system& system : m_starfield_universe.m_systems)
       {
-         if (system.m_astronomic_name.empty())
+         if (system.m_astronomic_name.empty() || system.m_astronomic_name == "Sol")
             continue;
          error_report(system.m_astronomic_name, system.m_catalog_lookup);
       }

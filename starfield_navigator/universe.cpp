@@ -23,6 +23,16 @@ namespace
          return false;
       return str.size() == 3;
    }
+
+   [[nodiscard]] auto str_tolower(std::string s) -> std::string
+   {
+      std::ranges::transform(
+         s,
+         s.begin(),
+         [](const char c) { return static_cast<char>(std::tolower(c)); }
+      );
+      return s;
+   }
 }
 
 
@@ -35,14 +45,21 @@ auto sfn::system::get_useful_name() const -> std::optional<std::string>
 
 auto sfn::system::get_name() const -> std::string
 {
-   std::string result;
-   if (is_id_triplet(m_name))
-      result += "---";
-   else
-      result += m_name;
-   if (m_astronomic_name.empty() == false)
-      result += fmt::format(" ({})", m_astronomic_name);
+   std::string result = m_astronomic_name;
+   if (is_id_triplet(m_name) == false && str_tolower(m_astronomic_name) != str_tolower(m_name))
+   {
+      result += fmt::format(" (\"{}\")", m_name);
+   }
    return result;
+
+   // std::string result;
+   // if (is_id_triplet(m_name))
+   //    result += "---";
+   // else
+   //    result += m_name;
+   // if (m_astronomic_name.empty() == false)
+   //    result += fmt::format(" ({})", m_astronomic_name);
+   // return result;
 }
 
 
