@@ -375,7 +375,7 @@ auto sfn::universe_creator::get() -> creator_result
       fmt::print("metric with optimized trafo: {:.2f} LY\n", get_metric(m_starfield_universe, m_real_universe));
 
 
-      const auto candidates_for_fictional = [&](const std::string& fictional_name, const std::optional<std::string>& hip = std::nullopt)
+      const auto candidates_for_fictional = [&](const std::string& fictional_name)
       {
          const glm::vec3 pos0 = m_starfield_universe.get_position_by_name(fictional_name);
          std::vector<catalog_id> real_closest;
@@ -393,14 +393,11 @@ auto sfn::universe_creator::get() -> creator_result
          fmt::print("\n");
          for (int i = 0; i < 3; ++i)
          {
-            // const float dist = glm::distance(pos0, m_real_universe.m_stars[real_closest[i]].m_coordinates);
-            // std::string guess_str;
-            // if (hip.has_value() && m_real_universe.get_index_by_name(*hip) == real_closest[i])
-            //    guess_str = "CHOICE";
-            // fmt::print(
-            //    "{}: {}, dist: {:.2f}, {}\n",
-            //    i, m_real_universe.m_stars[real_closest[i]].m_hip.get_user_str(), dist, guess_str
-            // );
+            const float dist = glm::distance(pos0, m_real_universe.m_stars.at(real_closest[i]));
+            fmt::print(
+               "{}: {}, dist: {:.2f}\n",
+               i, real_closest[i].get_user_str(), dist
+            );
          }
       };
       const auto candidates_for_real = [&](const std::string& cat_id)
@@ -423,8 +420,8 @@ auto sfn::universe_creator::get() -> creator_result
             fmt::print("{}: {:.2f} {}\n", i, dist, m_starfield_universe.m_systems[i].get_name());
          }
       };
-      candidates_for_real("HIP 91262"); // vega
-      // candidates_for_fictional("ABX");
+      // candidates_for_real("HIP 91262"); // vega
+      candidates_for_fictional("ADP");
 
       const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
       {
