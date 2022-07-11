@@ -118,10 +118,12 @@ ACT:small;;HD 152391_HIP 82588
 ADG:small;;Xi Ophiuchi_HIP 84893
 ACW:small;;49 Serpentis_HIP 79492
 ABZ:small;;Alpha Ophiuchi_HIP 86032
+ACN:small;;HD 158614_GLIESE 678B # also good match for HIP 85667 (binary system)
 ACI:small;;Epsilon Librae_HIP 75379
+ACH:small;;Alpha Librae_HIP 72603
 ADY:big;;Wolf 28_HIP 3829
 ADF:small;;58 Ophiuchi_HIP 86736
-ADK:small;;Xi Scorpii_HIP 78738
+ADK:small;;Xi Scorpii A_HIP 78738 # NOTE double star
 ACQ:small;;V2213 Ophiuchi_HIP 83601
 ACU:small;;HD 172051_HIP 91438
 ABQ:small;PORRIMA;Porrima_HIP 61941
@@ -129,10 +131,13 @@ ACL:small;;GJ 4056_GLIESE 4056
 ADC:small;;HD 122742_HIP 68682
 ACR:small;;GJ 3969_GLIESE 3969
 ABY:small;;110 Herculis_HIP 92043
+ADL:small;;HIP 71743_HIP 71743
 ADI:small;;HD 153631_HIP 83276
+ADJ:small;;Xi Scorpii B_GLIESE 9540B #NOTE double star 
 ACM:small;;Beta Ophiuchi_HIP 86742
 ADB:small;;HD 134066_HIP 74016
 ACK:small;;Eta Serpentis_HIP 89962
+ACP:small;;Zeta Serpentis_HIP 88175
 ADO:small;;Ross 948_GLIESE 3728B # GJ might be without B somewhere else
 ADR:small;;Beta Virginis_HIP 57757
 ADZ:small;;HD 102365_HIP 57443
