@@ -10,7 +10,6 @@
 #include <rng.h>
 
 #include "tools.h"
-#include "reality.h"
 
 #pragma warning(push, 0)
 #include <glm/trigonometric.hpp>

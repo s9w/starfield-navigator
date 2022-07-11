@@ -152,13 +152,13 @@ namespace
    }
 
 
-   auto tooltip(const std::string& text) -> void
+   auto tooltip(const char* text) -> void
    {
       if (ImGui::IsItemHovered())
       {
          ImGui::BeginTooltip();
          ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-         ImGui::Text(text.c_str());
+         ImGui::Text(text);
          ImGui::PopTextWrapPos();
          ImGui::EndTooltip();
       }
@@ -178,13 +178,7 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    , m_shader_droplines("droplines_shader")
    , m_framebuffers(m_textures)
 {
-   for(int i=0; i<m_universe.m_systems.size(); ++i)
-   {
-      constexpr glm::vec3 red{1.0f, 0.5f, 0.5f};
-      constexpr glm::vec3 green{ 0.5f, 1.0f, 0.5f };
-      m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_size == system_size::small) ? red : green;
-      m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
-   }
+   update_ssbo(0.0f);
 
    if (engine_ptr != nullptr)
       std::terminate();
@@ -461,7 +455,7 @@ auto sfn::engine::draw_list() -> bool
             ImGui::PopStyleColor();
 
             
-            tooltip(tooltip_str);
+            tooltip(tooltip_str.c_str());
          }
          {
             ImGui::TableSetColumnIndex(2);
@@ -470,7 +464,7 @@ auto sfn::engine::draw_list() -> bool
             {
                m_list_selection = i;
             }
-            tooltip(tooltip_str);
+            tooltip(tooltip_str.c_str());
          }
       }
       ImGui::EndTable();
@@ -870,6 +864,38 @@ auto sfn::engine::gui_draw() -> void
       normal_imgui_window w(glm::ivec2{ 0, 0 }, glm::ivec2{ 250, 500 }, "System selector");
       selection_changed = draw_list();
    }
+   {
+      normal_imgui_window w(glm::ivec2{ 0, 500 }, glm::ivec2{ 250, m_config.res_y-500 }, "options");
+      static int radio_selected = 0;
+      static float abs_mag_threshold = 0.0f;
+      const int old_selected = radio_selected;
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Star coloring:");
+      if (ImGui::RadioButton("big/small", &radio_selected, 0))
+      {
+         m_star_color_mode = star_color_mode::big_small;
+      }
+      tooltip("Coloring stars green/red according depending on whether they were shown as big or small dots in the gameplay reveal");
+      ImGui::SameLine();
+      ImGui::SameLine();
+      if (ImGui::RadioButton("absolute magnitude", &radio_selected, 1))
+      {
+         m_star_color_mode = star_color_mode::abs_mag;
+      }
+      if(m_star_color_mode == star_color_mode::abs_mag)
+      {
+         if(ImGui::SliderFloat("", &abs_mag_threshold, 0.0f, 10.0f))
+         {
+            this->update_ssbo(abs_mag_threshold);
+         }
+         tooltip("Stars with magnitude higher than this are dimmed");
+      }
+
+      if(radio_selected != old_selected)
+      {
+         this->update_ssbo(abs_mag_threshold);
+      }
+   }
    if(selection_changed || view_mode_changed)
    {
       closest_line_mesh = build_neighbor_connection_mesh(m_universe, m_list_selection);
@@ -1025,6 +1051,31 @@ auto engine::get_cs() const -> cs
    else
    {
       return m_universe.m_cam_info.m_cs;
+   }
+}
+
+
+auto engine::update_ssbo(const float abs_threshold) -> void
+{
+   if (m_star_color_mode == star_color_mode::big_small)
+   {
+      for (int i = 0; i < m_universe.m_systems.size(); ++i)
+      {
+         constexpr glm::vec3 red{ 1.0f, 0.5f, 0.5f };
+         constexpr glm::vec3 green{ 0.5f, 1.0f, 0.5f };
+         m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_size == system_size::small) ? red : green;
+         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
+      }
+   }
+   else if (m_star_color_mode == star_color_mode::abs_mag)
+   {
+      for (int i = 0; i < std::ssize(m_universe.m_systems); ++i)
+      {
+         constexpr glm::vec3 bright{ 1.0f };
+         constexpr glm::vec3 faint{ 0.5f };
+         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
+         m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_abs_mag < abs_threshold) ? bright : faint;
+      }
    }
 }
 

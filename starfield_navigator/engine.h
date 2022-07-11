@@ -62,6 +62,7 @@ namespace sfn
    concept centery = std::same_as<T, circle_mode> || std::same_as<T, galactic_circle_mode>;
 
    enum class gui_mode{closest, jumps, connections, game};
+   enum class star_color_mode{big_small, abs_mag};
 
    struct engine
    {
@@ -77,6 +78,7 @@ namespace sfn
       int m_source_index = m_universe.get_index_by_name("SOL");
       int m_destination_index = m_universe.get_index_by_name("PORRIMA");
       gui_mode m_gui_mode = gui_mode::connections;
+      star_color_mode m_star_color_mode = star_color_mode::big_small;
       float m_dropline_range = 20.0f;
 
       camera_mode m_camera_mode = wasd_mode{ m_universe.m_cam_info.m_cam_pos0 };
@@ -161,6 +163,7 @@ namespace sfn
       auto draw_text(const std::string& text, const glm::vec3& pos, const glm::vec2& center_offset, const glm::vec4& color) const -> void;
       auto draw_circle(const glm::vec3& pos, const float radius, const glm::vec4& color) const -> void;
       [[nodiscard]] auto get_cs() const -> cs;
+      auto update_ssbo(const float abs_threshold) -> void;
    };
 }
 

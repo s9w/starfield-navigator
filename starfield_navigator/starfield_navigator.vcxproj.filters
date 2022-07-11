@@ -96,9 +96,6 @@
     <ClCompile Include="..\libs\src\fmt\format.cc">
       <Filter>external_libs</Filter>
     </ClCompile>
-    <ClCompile Include="reality.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="universe_creation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -147,9 +144,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="universe.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="reality.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="universe_creation.h">

@@ -18,6 +18,8 @@ with open("hygdata_v3.csv", "r") as catalog_file, open("../starfield_navigator//
         gliese_id = split[4]
         hip_id = split[1]
         proper = split[6]
+        mag = split[13]
+        abs_mag = split[14]
 
         # Filter out the sun, literally
         if proper == "Sol":
@@ -35,7 +37,7 @@ with open("hygdata_v3.csv", "r") as catalog_file, open("../starfield_navigator//
             id_str = "GLIESE_{}".format(gliese_id.split()[1])
 
         c = SkyCoord(rarad*u.radian, decrad*u.radian, frame='icrs',  distance=dist_ly*u.lyr)
-        cc.write("{};{};{};{:.2f}\n".format(id_str, c.galactic.l.degree, c.galactic.b.degree, c.galactic.distance.to(u.lyr).value))
+        cc.write("{};{};{};{:.2f};{};{}\n".format(id_str, c.galactic.l.degree, c.galactic.b.degree, c.galactic.distance.to(u.lyr).value, mag, abs_mag))
         count += 1
 
 print(count)

@@ -71,12 +71,21 @@ auto sfn::system::get_starfield_name() const -> std::optional<std::string>
 }
 
 
-sfn::system::system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name, const std::string& catalog, const system_size size)
+sfn::system::system(
+   const glm::vec3& pos,
+   const std::string& name,
+   const std::string& astronomic_name,
+   const std::string& catalog,
+   const system_size size,
+   const float mag,
+   const float abs_mag
+)
    : m_name(name)
    , m_astronomic_name(astronomic_name)
    , m_catalog_lookup(catalog)
    , m_position(pos)
    , m_size(size)
+   , m_abs_mag(abs_mag)
 {
    static int unnamed_count = 0;
    if (name.empty())
@@ -95,6 +104,20 @@ cs::cs(const glm::vec3& front, const glm::vec3& up)
    }
 }
 
+
+auto universe::init() -> void
+{
+   m_min_abs_mag = std::numeric_limits<float>::max();
+   m_max_abs_mag = std::numeric_limits<float>::lowest();
+
+   for(const system& sys : m_systems)
+   {
+      if (sys.m_name == "SOL")
+         continue;
+      m_min_abs_mag = std::min(m_min_abs_mag, sys.m_abs_mag);
+      m_max_abs_mag = std::max(m_max_abs_mag, sys.m_abs_mag);
+   }
+}
 
 auto sfn::universe::get_position_by_name(const std::string& name) const -> glm::vec3
 {

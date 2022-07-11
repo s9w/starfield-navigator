@@ -35,10 +35,15 @@ namespace sfn
    };
 
 namespace sfn{
+   struct real_star
+   {
+      glm::vec3 m_position;
+      float m_abs_mag;
+   };
    struct real_universe {
-      std::unordered_map<catalog_id, glm::vec3> m_stars;
+      std::unordered_map<catalog_id, real_star> m_stars;
 
-      [[nodiscard]] auto get_pos_by_hip(const std::string& cat_id) const -> glm::vec3;
+      [[nodiscard]] auto get_star_by_cat_id(const std::string& cat_id) const -> const real_star&;
    };
 
    struct CTestOpt : public CBiteOpt
