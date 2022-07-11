@@ -239,7 +239,7 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
 
 auto sfn::engine::get_window() const -> GLFWwindow*
 {
-   return m_graphics_context->m_window_wrapper.m_window;
+   return window_wrapper::m_window;
 }
 
 

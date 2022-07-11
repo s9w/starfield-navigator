@@ -47,36 +47,38 @@ auto CALLBACK WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
    std::unique_ptr<graphics_context> gc = std::make_unique<graphics_context>(cfg);
    setup_imgui_fonts();
 
-   bool exit = false;
-   while (exit == false && glfwWindowShouldClose(gc->m_window_wrapper.m_window) == false)
+   universe_creator creator;
+   creator_result result = 0.0f;
+   while (std::holds_alternative<float>(result) && glfwWindowShouldClose(gc->m_window_wrapper.m_window) == false)
    {
       glClear(GL_COLOR_BUFFER_BIT);
       gc->m_imgui_context.frame_begin();
 
-      // ImGui::ShowDemoWindow();
+      result = creator.get();
+      if (std::holds_alternative<float>(result))
       {
-         normal_imgui_window w("a");
-         // ImGui::ProgressBar()
-         ImGui::Checkbox("exit", &exit);
+         const glm::ivec2 window_size{ cfg.res_x, cfg.res_y };
+         const glm::ivec2 dialog_size = window_size / 2;
+         const glm::ivec2 offset = (window_size - dialog_size) / 2;
+         normal_imgui_window w(offset, dialog_size, "Loading");
+         ImGui::Text("Aligning reconstructed positions to star catalog...");
+         ImGui::ProgressBar(std::get<float>(result));
       }
 
       gc->m_imgui_context.frame_end();
-      glfwSwapBuffers(gc->m_window_wrapper.m_window);
+      glfwSwapBuffers(window_wrapper::m_window);
       glfwPollEvents();
    }
 
-   if (glfwWindowShouldClose(gc->m_window_wrapper.m_window))
+   if (glfwWindowShouldClose(window_wrapper::m_window))
+   {
       return 0;
+   }
 
    engine engine(
-      config{
-         .res_x = 1280, .res_y = 720,
-         .opengl_major_version = 4, .opengl_minor_version = 5,
-         .vsync = true,
-         .window_title = fmt::format("Starfield navigator {}", sfn_version_string)
-      },
+      cfg,
       std::move(gc),
-      get_starfield_universe()
+      std::move(std::get<universe>(result))
    );
    engine.draw_loop();
 
