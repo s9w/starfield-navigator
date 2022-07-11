@@ -14,17 +14,26 @@
 
 namespace sfn
 {
+   struct hip_id{ int m_id; };
+   struct gliese_id{ std::string m_id; };
+   struct catalog_id
+   {
+      std::variant<hip_id, gliese_id> m_variant;
+      std::string m_string_cache;
+
+      explicit catalog_id(const std::variant<hip_id, gliese_id>&);
+      [[nodiscard]] auto get_user_str() const -> std::string;
+   };
    struct real {
-      std::string m_hip;
+      catalog_id m_hip;
       glm::vec3 m_coordinates;
    };
 
    struct real_universe {
       std::vector<real> m_stars;
 
-      [[nodiscard]] auto get_pos_by_hip(const std::string& hip) const -> glm::vec3;
-      [[nodiscard]] auto get_name_by_index(const int i) const -> std::string;
-      [[nodiscard]] auto get_index_by_name(const std::string& hip) const -> int;
+      [[nodiscard]] auto get_pos_by_hip(const std::string& cat_id) const -> glm::vec3;
+      [[nodiscard]] auto get_index_by_name(const std::string& cat_id_str) const -> int;
    };
 
    struct CTestOpt : public CBiteOpt

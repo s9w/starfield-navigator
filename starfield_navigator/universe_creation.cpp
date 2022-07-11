@@ -48,6 +48,28 @@ namespace {
    }
 
 
+   [[nodiscard]] auto get_catalog_id(const std::string& id_str) -> catalog_id
+   {
+      if(id_str.starts_with("HIP_"))
+      {
+         return catalog_id{
+            hip_id{
+               .m_id = std::stoi(id_str.substr(4))
+            }
+         };
+      }
+      else if (id_str.starts_with("GLIESE_"))
+      {
+         return catalog_id{
+            gliese_id{
+               .m_id = id_str.substr(7)
+            }
+         };
+      }
+      std::terminate();
+   }
+
+
    auto get_real_entries() -> real_universe
    {
       // std::ifstream input("cc_hip1997.txt");
@@ -59,7 +81,7 @@ namespace {
          if (line.starts_with("#"))
             continue;
          const auto split = get_split_string(line, ";");
-         const std::string hip = get_trimmed_str(split[0]);
+         const std::string catalog_str = get_trimmed_str(split[0]);
          const galactic_coord galactic{
             .m_l = glm::radians(std::stof(split[1])),
             .m_b = glm::radians(std::stof(split[2])),
@@ -69,7 +91,7 @@ namespace {
 
          result.m_stars.push_back(
             real{
-               .m_hip = hip,
+               .m_hip = get_catalog_id(catalog_str),
                .m_coordinates = galactic.get_cartesian()
             }
          );
@@ -181,25 +203,39 @@ namespace {
 } // namespace {}
 
 
-auto real_universe::get_pos_by_hip(const std::string& hip) const -> glm::vec3
+catalog_id::catalog_id(const std::variant<hip_id, gliese_id>& var)
+   : m_variant(var)
 {
-   return m_stars[get_index_by_name(hip)].m_coordinates;
+   if (std::holds_alternative<hip_id>(m_variant))
+   {
+      m_string_cache = fmt::format("HIP {}", std::get<hip_id>(m_variant).m_id);
+   }
+   if (std::holds_alternative<gliese_id>(m_variant))
+   {
+      m_string_cache = fmt::format("GLIESE {}", std::get<gliese_id>(m_variant).m_id);
+   }
+}
+
+auto sfn::catalog_id::get_user_str() const -> std::string
+{
+   return m_string_cache;
+   
+}
+
+auto real_universe::get_pos_by_hip(const std::string& cat_id) const -> glm::vec3
+{
+   return m_stars[get_index_by_name(cat_id)].m_coordinates;
 }
 
 
-auto real_universe::get_name_by_index(const int i) const -> std::string
-{
-   std::string result = m_stars[i].m_hip;
-   return result;
-}
-
-
-auto real_universe::get_index_by_name(const std::string& hip) const -> int
+auto real_universe::get_index_by_name(const std::string& cat_id_str) const -> int
 {
    const auto pred = [&](const real& r) {
-      return r.m_hip == hip;
+      return r.m_hip.get_user_str() == cat_id_str;
    };
    const auto it = std::ranges::find_if(m_stars, pred);
+   if (it == std::cend(m_stars))
+      std::terminate();
    return static_cast<int>(std::distance(std::cbegin(m_stars), it));
 }
 
@@ -285,7 +321,6 @@ universe_creator::universe_creator()
                std::terminate();
             astronomical_name = astro_split[0];
             catalog_entry = astro_split[1];
-            catalog_entry = get_split_string(catalog_entry, " ")[1];
          }
 
          const std::string starfield_name = values[1];
@@ -369,13 +404,13 @@ auto sfn::universe_creator::get() -> creator_result
                guess_str = "CHOICE";
             fmt::print(
                "{}: {}, dist: {:.2f}, {}\n",
-               i, m_real_universe.get_name_by_index(real_closest[i]), dist, guess_str
+               i, m_real_universe.m_stars[real_closest[i]].m_hip.get_user_str(), dist, guess_str
             );
          }
       };
-      const auto candidates_for_real = [&](const std::string& real_name)
+      const auto candidates_for_real = [&](const std::string& cat_id)
       {
-         const glm::vec3 target_pos = m_real_universe.get_pos_by_hip(real_name);
+         const glm::vec3 target_pos = m_real_universe.get_pos_by_hip(cat_id);
          std::vector<int> real_closest;
          for (int i = 0; i < std::ssize(m_starfield_universe.m_systems); ++i)
             real_closest.push_back(i);
@@ -393,7 +428,7 @@ auto sfn::universe_creator::get() -> creator_result
             fmt::print("{}: {:.2f} {}\n", i, dist, m_starfield_universe.m_systems[i].get_name());
          }
       };
-      candidates_for_real("91262"); // vega
+      candidates_for_real("HIP 91262"); // vega
       // candidates_for_fictional("ABX");
 
       const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
