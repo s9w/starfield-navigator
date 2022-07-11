@@ -15,7 +15,9 @@ https://user-images.githubusercontent.com/6044318/177479550-c8bf36b0-9571-4ade-a
 <br/><br/>
 
 ## Current effort
-The real positions of stars in the galaxy was determined by several observations which sometimes differ significantly. To match the stars visible in the video with real ones, it's important to know which real data was used by the developers. Currently the primary goal is to try to match the most likely star catalogues against the confidently identified stars with proper optimization algorithms to find a closest match. This will help calibrating the reconstruction, identifying the missing stars and even prediction of the missing parts of the map.
+100% of the visible stars were identified. For some, identification is tricky because it's unknown how exactly they deal with multiple-star systems and the time difference (for example Xi Scorpii).
+
+Next up will be tools to help reconstruct the non-visible stars.
 
 ## Insights
 A couple of insights were gained from the data:
