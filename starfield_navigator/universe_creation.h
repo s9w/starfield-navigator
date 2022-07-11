@@ -1,6 +1,7 @@
 #include <variant>
 #include <vector>
 #include <string>
+#include <unordered_map>
 // #include <numbers>
 
 #include "universe.h"
@@ -14,26 +15,30 @@
 
 namespace sfn
 {
-   struct hip_id{ int m_id; };
-   struct gliese_id{ std::string m_id; };
+   struct hip_id { int m_id; };
+   struct gliese_id { std::string m_id; };
    struct catalog_id
    {
-      std::variant<hip_id, gliese_id> m_variant;
       std::string m_string_cache;
 
       explicit catalog_id(const std::variant<hip_id, gliese_id>&);
-      [[nodiscard]] auto get_user_str() const -> std::string;
+      explicit catalog_id(const std::string&);
+      [[nodiscard]] auto get_user_str() const -> const std::string&;
+      friend auto operator<=>(const catalog_id&, const catalog_id&) = default;
    };
-   struct real {
-      catalog_id m_hip;
-      glm::vec3 m_coordinates;
+}
+
+   template<>
+   struct std::hash<sfn::catalog_id>
+   {
+      [[nodiscard]] auto operator()(sfn::catalog_id const& cat_id) const noexcept -> std::size_t;
    };
 
+namespace sfn{
    struct real_universe {
-      std::vector<real> m_stars;
+      std::unordered_map<catalog_id, glm::vec3> m_stars;
 
       [[nodiscard]] auto get_pos_by_hip(const std::string& cat_id) const -> glm::vec3;
-      [[nodiscard]] auto get_index_by_name(const std::string& cat_id_str) const -> int;
    };
 
    struct CTestOpt : public CBiteOpt
