@@ -903,7 +903,7 @@ auto sfn::engine::gui_draw() -> void
             static float connections_jump_range = 15.0f;
             static graph connection_graph = get_graph_from_universe(m_universe, connections_jump_range);
             bool changed = m_gui_mode != old_gui_mode;
-            changed |= ImGui::SliderFloat("jump range", &connections_jump_range, 10, 30) || connection_line_mesh.empty();
+            changed |= ImGui::SliderFloat("jump range", &connections_jump_range, 0, 30) || connection_line_mesh.empty();
             if(changed)
             {
                connection_graph = get_graph_from_universe(m_universe, connections_jump_range);
