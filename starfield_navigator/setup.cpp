@@ -245,3 +245,18 @@ auto sfn::setup_imgui_fonts() -> void {
    io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, round(normal_font_size), &configBasic);
    io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesomeSolid_compressed_data, FontAwesomeSolid_compressed_size, round(icon_font_size), &configMerge, rangesIcons);
 }
+
+
+auto sfn::imgui_help(const char* desc) -> void {
+   ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor::HSV(0.0f, 0.5f, 1.0f));
+   ImGui::Text((const char*)ICON_FA_QUESTION_CIRCLE);
+   ImGui::PopStyleColor();
+   if (ImGui::IsItemHovered())
+   {
+      ImGui::BeginTooltip();
+      ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+      ImGui::TextUnformatted(desc);
+      ImGui::PopTextWrapPos();
+      ImGui::EndTooltip();
+   }
+}

@@ -477,6 +477,8 @@ auto sfn::engine::draw_list() -> bool
 auto sfn::engine::gui_closest_stars([[maybe_unused]] const bool switched_into_tab) -> void
 {
    ImGui::Text(fmt::format("Closest stars around {}:", m_universe.m_systems[m_list_selection].m_name).c_str());
+   ImGui::SameLine();
+   imgui_help("Check distances from other systems by selecting them in the selector on the left");
    const std::vector<int> closest = m_universe.get_closest(m_list_selection);
 
    if (ImGui::BeginTable("##table_closest", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
@@ -532,7 +534,7 @@ auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
 
 
    ImGui::Text(fmt::format(
-      "Total distance: {:.1f} LY",
+      "Direct distance: {:.1f} LY",
       m_universe.get_distance(m_source_index, m_destination_index)
    ).c_str());
 

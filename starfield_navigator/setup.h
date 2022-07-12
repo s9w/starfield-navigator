@@ -14,7 +14,7 @@ struct ImGuiTextFilter;
 namespace sfn
 {
 
-   const std::string sfn_version_string = "0.10";
+   const std::string sfn_version_string = "0.11";
 
    struct config {
       int res_x = 1280;
@@ -117,4 +117,6 @@ namespace sfn
    };
 
    auto setup_imgui_fonts() -> void;
+   auto imgui_help(const char* desc) -> void
+   ;
 }
