@@ -117,8 +117,7 @@ sfn::glad_wrapper::glad_wrapper(const config& config)
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
    glEnable(GL_CULL_FACE);
    glCullFace(GL_BACK);
-   // glEnable(GL_LINE_SMOOTH);
-   // glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+   glFrontFace(GL_CCW);
 
    glViewport(0, 0, config.res_x, config.res_y);
    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);

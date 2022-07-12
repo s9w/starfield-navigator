@@ -24,6 +24,11 @@ namespace sfn
    };
    [[nodiscard]] auto get_galactic(const glm::vec3& cartesian) -> galactic_coord;
 
+   [[nodiscard]] constexpr auto c4d_convert(const glm::vec3& in) -> glm::vec3
+   {
+      return glm::vec3{ in[0], in[2], in[1] };
+   }
+
    template<typename T>
    auto as_bytes(const std::vector<T>& vec) -> auto
    {

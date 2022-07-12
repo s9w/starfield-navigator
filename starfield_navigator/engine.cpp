@@ -1,5 +1,5 @@
 #include "engine.h"
-
+#include "obj_parsing.h"
 
 
 #include <GLFW/glfw3.h> // after glad
@@ -43,18 +43,6 @@ namespace
       //    0.0f,
       //    500.0f
       // );
-   }
-
-
-   auto get_star_vertex_data(const universe& universe) -> std::vector<position_vertex_data>
-   {
-      std::vector<position_vertex_data> result;
-      result.reserve(universe.m_systems.size());
-      for (const sfn::system& sys : universe.m_systems)
-      {
-         result.push_back(position_vertex_data{ .m_position = sys.m_position });
-      }
-      return result;
    }
 
 
@@ -119,10 +107,11 @@ namespace
       return result;
    }
 
-   std::vector<position_vertex_data> star_mesh;
+   const std::vector<position_vertex_data> sphere_mesh = get_position_vertex_data(get_complete_obj_info("assets/Sphere.obj", -1.0f));
+
+   // std::vector<position_vertex_data> star_mesh;
    std::vector<line_vertex_data> jump_line_mesh;
    std::vector<line_vertex_data> connection_line_mesh;
-   std::vector<line_vertex_data> closest_line_mesh;
    std::vector<position_vertex_data> screen_rect_mesh = {
       position_vertex_data{.m_position = { -1, -1, 0}},
       position_vertex_data{.m_position = {  1, -1, 0}},
@@ -189,11 +178,9 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    std::vector<segment_type> buffer_layout;
    buffer_layout.emplace_back(ubo_segment(sizeof(mvp_type), "ubo_mvp"));
 
-   star_mesh = get_star_vertex_data(m_universe);
    drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].m_position[2]);
-   buffer_layout.emplace_back(get_soa_vbo_segment(star_mesh));
+   buffer_layout.emplace_back(get_soa_vbo_segment(sphere_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment(screen_rect_mesh));
-   buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<position_vertex_data>(128));
@@ -205,10 +192,9 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    m_screen_rect_vbo_id = segment_ids[2];
    m_jump_lines_vbo_id = segment_ids[3];
    m_connection_lines_vbo_id = segment_ids[4]; //
-   m_closest_lines_vbo_id = segment_ids[5];
-   m_indicator_vbo_id = segment_ids[6];
-   m_star_ssbo_id = segment_ids[7];
-   m_drops_vbo_id = segment_ids[8];
+   m_indicator_vbo_id = segment_ids[5];
+   m_star_ssbo_id = segment_ids[6];
+   m_drops_vbo_id = segment_ids[7];
 
    m_binding_point_man.add(m_mvp_ubo_id);
    m_binding_point_man.add(m_star_ssbo_id);
@@ -224,7 +210,6 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    m_vao_stars.emplace(m_buffers2, m_star_vbo_id, m_shader_stars);
    m_vao_jump_lines.emplace(m_buffers2, m_jump_lines_vbo_id, m_shader_lines);
    m_vao_connection_lines.emplace(m_buffers2, m_connection_lines_vbo_id, m_shader_lines);
-   m_vao_closest_lines.emplace(m_buffers2, m_closest_lines_vbo_id, m_shader_lines);
    m_vao_screen_rect.emplace(m_buffers2, m_screen_rect_vbo_id, m_shader_stars);
    m_vao_indicator.emplace(m_buffers2, m_indicator_vbo_id, m_shader_indicator);
    m_vao_drops.emplace(m_buffers2, m_drops_vbo_id, m_shader_droplines);
@@ -329,15 +314,6 @@ auto sfn::engine::draw_frame() -> void
       glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(connection_line_mesh.size()));
       // glDepthMask(true);
    }
-   else if(m_gui_mode == gui_mode::closest)
-   {
-      m_vao_closest_lines->bind();
-      m_shader_lines.use();
-      m_shader_lines.set_uniform("time", -1.0f);
-      glDepthMask(false);
-      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(closest_line_mesh.size()));
-      glDepthMask(true);
-   }
 
    
    if (std::holds_alternative<circle_mode>(m_camera_mode))
@@ -386,10 +362,9 @@ auto sfn::engine::draw_frame() -> void
 
    m_vao_stars->bind();
    m_shader_stars.use();
-   // m_shader_stars.set_uniform("color", glm::vec3{1.0f, 0.5f, 0.5f});
-   glDisable(GL_DEPTH_TEST);
-   glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_universe.m_systems.size()));
    glEnable(GL_DEPTH_TEST);
+   glDepthMask(true);
+   glDrawArraysInstanced(GL_TRIANGLES, 0, static_cast<GLsizei>(sphere_mesh.size()), static_cast<GLsizei>(m_universe.m_systems.size()));
 
    if(m_show_star_labels)
       draw_system_labels();
@@ -471,40 +446,6 @@ auto sfn::engine::draw_list() -> bool
       ImGui::EndTable();
    }
    return m_list_selection == old_selection;
-}
-
-
-auto sfn::engine::gui_closest_stars([[maybe_unused]] const bool switched_into_tab) -> void
-{
-   ImGui::Text(fmt::format("Closest stars around {}:", m_universe.m_systems[m_list_selection].m_name).c_str());
-   ImGui::SameLine();
-   imgui_help("Check distances from other systems by selecting them in the selector on the left");
-   const std::vector<int> closest = m_universe.get_closest(m_list_selection);
-
-   if (ImGui::BeginTable("##table_closest", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
-   {
-      ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
-      ImGui::TableSetupColumn("Dist [LY]", ImGuiTableColumnFlags_WidthFixed, 60.0f);
-      ImGui::TableSetupColumn("System", ImGuiTableColumnFlags_None);
-
-      ImGui::TableHeadersRow();
-      for (int i = 1; i < std::ssize(closest); ++i)
-      {
-         ImGui::TableNextRow();
-
-         ImGui::TableSetColumnIndex(0);
-         const float dist = glm::distance(
-            m_universe.m_systems[m_list_selection].m_position,
-            m_universe.m_systems[closest[i]].m_position
-         );
-         right_align_text(fmt::format("{:.1f}", dist));
-
-         ImGui::TableSetColumnIndex(1);
-         ImGui::Text(m_universe.m_systems[closest[i]].get_name().c_str());
-      }
-
-      ImGui::EndTable();
-   }
 }
 
 
@@ -674,10 +615,9 @@ auto engine::bind_ssbo(
 auto engine::gpu_upload() const -> void
 {
    m_buffers2.upload_ubo(m_mvp_ubo_id, as_bytes(m_current_mvp));
-   m_buffers2.upload_vbo(m_star_vbo_id, as_bytes(star_mesh));
+   m_buffers2.upload_vbo(m_star_vbo_id, as_bytes(sphere_mesh));
    m_buffers2.upload_vbo(m_jump_lines_vbo_id, as_bytes(jump_line_mesh));
    m_buffers2.upload_vbo(m_connection_lines_vbo_id, as_bytes(connection_line_mesh));
-   m_buffers2.upload_vbo(m_closest_lines_vbo_id, as_bytes(closest_line_mesh));
    m_buffers2.upload_vbo(m_screen_rect_vbo_id, as_bytes(screen_rect_mesh));
    m_buffers2.upload_vbo(m_indicator_vbo_id, as_bytes(indicator_mesh));
    m_buffers2.upload_vbo(m_drops_vbo_id, as_bytes(drops_mesh));
@@ -741,36 +681,6 @@ auto sfn::engine::build_connection_mesh_from_graph(
       );
    }
    return connection_mesh;
-}
-
-
-auto engine::build_neighbor_connection_mesh(
-   const universe& universe,
-   const int center_system
-) const -> std::vector<line_vertex_data>
-{
-   std::vector<line_vertex_data> result;
-   result.reserve(2*(universe.m_systems.size() - 1));
-
-   for(int i=0; i<std::ssize(universe.m_systems); ++i)
-   {
-      if(i == center_system)
-         continue;
-      result.push_back(
-         line_vertex_data{
-            .m_position = universe.m_systems[center_system].m_position,
-            .m_progress = 0.0f
-         }
-      );
-      result.push_back(
-         line_vertex_data{
-            .m_position = universe.m_systems[i].m_position,
-            .m_progress = 0.0f
-         }
-      );
-   }
-
-   return result;
 }
 
 
@@ -904,7 +814,6 @@ auto sfn::engine::gui_draw() -> void
    }
    if(selection_changed || view_mode_changed)
    {
-      closest_line_mesh = build_neighbor_connection_mesh(m_universe, m_list_selection);
       drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].m_position[2]);
 
       const auto center_updater = [&]<typename T>(T& alternative){
@@ -941,12 +850,6 @@ auto sfn::engine::gui_draw() -> void
                connection_graph = get_graph_from_universe(m_universe, connections_jump_range);
                connection_line_mesh = build_connection_mesh_from_graph(connection_graph);
             }
-            ImGui::EndTabItem();
-         }
-         if (ImGui::BeginTabItem("Closest stars"))
-         {
-            m_gui_mode = gui_mode::closest;
-            gui_closest_stars(m_gui_mode != old_gui_mode);
             ImGui::EndTabItem();
          }
 

@@ -121,7 +121,7 @@ ABZ:small;;Alpha Ophiuchi_HIP 86032
 ACN:small;;HD 158614_GLIESE 678B # also good match for HIP 85667 (binary system)
 ACI:small;;Epsilon Librae_HIP 75379
 ACH:small;;Alpha Librae_HIP 72603
-ADY:big;;Wolf 28_HIP 3829
+ADY:big;;van Maanen's Star_HIP 3829
 ADF:small;;58 Ophiuchi_HIP 86736
 ADK:small;;Xi Scorpii A_HIP 78738 # NOTE double star
 ACQ:small;;V2213 Ophiuchi_HIP 83601

@@ -61,7 +61,7 @@ namespace sfn
    template<typename T>
    concept centery = std::same_as<T, circle_mode> || std::same_as<T, galactic_circle_mode>;
 
-   enum class gui_mode{closest, jumps, connections, game};
+   enum class gui_mode{jumps, connections, game};
    enum class star_color_mode{big_small, abs_mag};
 
    struct engine
@@ -90,7 +90,6 @@ namespace sfn
       id m_screen_rect_vbo_id{ no_init{} };
       id m_jump_lines_vbo_id{ no_init{} };
       id m_connection_lines_vbo_id{ no_init{} };
-      id m_closest_lines_vbo_id{ no_init{} };
       id m_indicator_vbo_id{ no_init{} };
       id m_drops_vbo_id{ no_init{} };
       id m_star_ssbo_id{ no_init{} };
@@ -106,7 +105,6 @@ namespace sfn
       std::optional<vao> m_vao_stars;
       std::optional<vao> m_vao_jump_lines;
       std::optional<vao> m_vao_connection_lines;
-      std::optional<vao> m_vao_closest_lines;
       std::optional<vao> m_vao_screen_rect;
       std::optional<vao> m_vao_indicator;
       std::optional<vao> m_vao_drops;
@@ -149,7 +147,6 @@ namespace sfn
       auto draw_frame() -> void;
       auto gui_draw() -> void;
       auto draw_list() -> bool;
-      auto gui_closest_stars(const bool switched_into_tab) -> void;
       auto draw_jump_calculations(const bool switched_into_tab) -> void;
       auto bind_ubo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;
       auto bind_ssbo(const std::string& name, const buffer& buffer_ref, const id segment_id, const shader_program& shader) const -> void;

@@ -5,13 +5,11 @@
 
 namespace sfn
 {
-   // struct complete_obj_vertex_info {
-   //    glm::vec3 m_position;
-   //    glm::vec3 m_normal;
-   //    glm::vec2 m_uv;
-   //    glm::vec4 m_color;
-   //    friend constexpr auto operator<=>(const complete_obj_vertex_info&, const complete_obj_vertex_info&) = default;
-   // };
+   struct complete_obj_vertex_info {
+      glm::vec3 m_position;
+      glm::vec3 m_normal;
+      friend constexpr auto operator<=>(const complete_obj_vertex_info&, const complete_obj_vertex_info&) = default;
+   };
 
 
    // Advantage of a visitor is that the vertex types itself don't need to have templated functions

@@ -15,11 +15,6 @@
 namespace {
    using namespace sfn;
 
-   [[nodiscard]] constexpr auto c4d_convert(const glm::vec3& in) -> glm::vec3
-   {
-      return glm::vec3{ in[0], in[2], in[1] };
-   }
-
 
    [[nodiscard]] auto get_and_delete_cam_info(std::vector<sfn::system>& systems) -> cam_info
    {
