@@ -408,14 +408,20 @@ auto sfn::engine::draw_list() -> bool
          right_align_text(fmt::format("{}", i));
 
          const galactic_coord gc = get_galactic(m_universe.m_systems[i].m_position);
-         const std::string tooltip_str = fmt::format(
+
+         std::string tooltip_str = fmt::format(
             "Original name: {}\nGalactic coord:\nl: {:.1f} deg\nb: {:.1f} deg\ndist: {:.1f} LY",
             m_universe.m_systems[i].m_name, glm::degrees(gc.m_l), glm::degrees(gc.m_b), gc.m_dist
          );
+         if (m_universe.m_systems[i].m_specular == true)
+            tooltip_str = "SPECULATIVE!\n" + tooltip_str;
+
          {
             ImGui::TableSetColumnIndex(1);
             const std::optional<std::string> name = m_universe.m_systems[i].get_starfield_name();
             ImVec4 text_color = name.has_value() ? (ImVec4)ImColor::HSV(1.0f, 0.0f, 1.0f) : (ImVec4)ImColor::HSV(0.0f, 0.0f, 0.5f);
+            if (m_universe.m_systems[i].m_specular == true)
+               text_color = (ImVec4)ImColor(1.0f, 1.0f, 0.0f);
             ImGui::PushStyleColor(ImGuiCol_Text, text_color);
             const std::string imgui_label = fmt::format("{} ##LC{}", name.value_or("unknown"), i);
             if (ImGui::Selectable(imgui_label.c_str(), is_selected))
@@ -423,17 +429,20 @@ auto sfn::engine::draw_list() -> bool
                m_list_selection = i;
             }
             ImGui::PopStyleColor();
-
             
             tooltip(tooltip_str.c_str());
          }
          {
             ImGui::TableSetColumnIndex(2);
             const std::string imgui_label = fmt::format("{} ##RC{}", m_universe.m_systems[i].m_astronomic_name, i);
+            if (m_universe.m_systems[i].m_specular == true)
+               ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor(1.0f, 1.0f, 0.0f));
             if (ImGui::Selectable(imgui_label.c_str(), is_selected))
             {
                m_list_selection = i;
             }
+            if (m_universe.m_systems[i].m_specular == true)
+               ImGui::PopStyleColor();
             tooltip(tooltip_str.c_str());
          }
       }

@@ -152,3 +152,9 @@ ADY:big;;van Maanen's Star_HIP 3829;Pisces
 ADZ:small;;HD 102365_HIP 57443;Centaurus
 AEB:small;;Zeta Herculis_GLIESE 635B;Hercules # there is HIP, but this matches better
 AEF:small;;HD 116443_HIP 65355;none
+
+# Below here comes speculative stars. Enter a name and a catalog entry
+# For possible catalog entries, see cc_hyg.txt. Just with space instead of underscores.
+# Note that this preferences HIP over GJ entries - just look for which one exists
+# Note that this will file be overwritten when downloading new versions. Backup if necessary
+Epsilon Eridani;HIP 16537

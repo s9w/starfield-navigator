@@ -122,7 +122,7 @@ namespace {
 
       for (const sfn::system& system : univ.m_systems)
       {
-         if (system.m_astronomic_name.empty() || system.m_astronomic_name == "Sol")
+         if (system.m_astronomic_name.empty() || system.m_astronomic_name == "Sol" || system.m_specular == true)
             continue;
          errors.push_back(get_error(univ, real, system.m_astronomic_name, system.m_catalog_lookup));
       }
@@ -155,48 +155,6 @@ namespace {
          return system_size::small;
       std::terminate();
    }
-
-   struct CTestOpt : public CBiteOpt
-   {
-      const universe* fiction_ref;
-      const ::real_universe* real_ref;
-      // 0, 1, 2: rotation angles
-      // 3, 4, 5: scale factors
-      // 6, 7, 8: translation
-      CTestOpt()
-      {
-         updateDims(9);
-      }
-
-      void getMinValues(double* const p) const override
-      {
-         p[0] = 0.0; p[1] = 0.0; p[2] = 0.0;
-         p[3] = 0.01; p[4] = 0.01; p[5] = 0.01;
-         p[6] = -100.0; p[7] = -100.0; p[8] = -100.0;
-      }
-
-      void getMaxValues(double* const p) const override
-      {
-         p[0] = 2.0 * std::numbers::pi_v<double>; p[1] = 2.0 * std::numbers::pi_v<double>; p[2] = 2.0 * std::numbers::pi_v<double>;
-         p[3] = 10.0; p[4] = 10.0; p[5] = 10.0;
-         p[6] = 100.0; p[7] = 100.0; p[8] = 100.0;
-      }
-      [[nodiscard]] static auto get_trafo_from_vector(const double* const p) -> glm::mat4
-      {
-         return get_generic_trafo(p[0], p[1], p[2], glm::vec3{ p[3], p[4], p[5] }, glm::vec3{ p[6], p[7], p[8] });
-      }
-
-      double optcost(const double* const p) override
-      {
-         universe transformed_universe = *fiction_ref;
-         const glm::mat4 trafo = get_trafo_from_vector(p);
-         for (sfn::system& elem : transformed_universe.m_systems)
-         {
-            elem.m_position = apply_trafo(trafo, elem.m_position);
-         }
-         return static_cast<double>(get_metric(transformed_universe, *real_ref));
-      }
-   };
 
 } // namespace {}
 
@@ -272,7 +230,8 @@ universe_creator::universe_creator()
 {
    std::ifstream input("system_data.txt");
 
-   bool reading = true;
+   enum class read_mode{tracking, naming, speculative};
+   read_mode mode = read_mode::tracking;
    std::unordered_map<std::string, glm::vec3> read_data;
    for (std::string line; getline(input, line); )
    {
@@ -281,16 +240,25 @@ universe_creator::universe_creator()
          if (comment_begin != std::string::npos)
          {
             line = line.substr(0, comment_begin);
+
+            // Comment-only lines shouldn't trigger anything
+            if (get_trimmed_str(line).empty())
+               continue;
          }
       }
       line = get_trimmed_str(line);
 
-      if (reading == true && line.empty())
+      if (mode == read_mode::tracking && line.empty())
       {
-         reading = false;
+         mode = read_mode::naming;
          continue;
       }
-      if (reading)
+      if (mode == read_mode::naming && line.empty())
+      {
+         mode = read_mode::speculative;
+         continue;
+      }
+      if (mode == read_mode::tracking)
       {
          const std::vector<std::string> split = get_split_string(line, ";");
          const std::string name = split[0];
@@ -299,7 +267,7 @@ universe_creator::universe_creator()
          const float z = static_cast<float>(std::stod(get_trimmed_str(split[3])));
          read_data.emplace(name, c4d_convert(glm::vec3{ x, y, z }));
       }
-      else
+      else if (mode == read_mode::naming)
       {
          const std::vector<std::string> key_value = get_split_string(line, ":");
 
@@ -329,7 +297,18 @@ universe_creator::universe_creator()
          {
             abs_mag = m_real_universe.get_star_by_cat_id(catalog_entry).m_abs_mag;
          }
-         m_starfield_universe.m_systems.emplace_back(pos, name, astronomical_name, catalog_entry, get_system_size(values[0]), mag, abs_mag);
+         constexpr bool specular = false;
+         m_starfield_universe.m_systems.emplace_back(pos, name, astronomical_name, catalog_entry, get_system_size(values[0]), abs_mag, specular);
+      }
+      else if(mode == read_mode::speculative)
+      {
+         const std::vector<std::string> split = get_split_string(line, ";");
+         const std::string name = split[0];
+         const std::string catalog_entry = split[1];
+         const glm::vec3 pos = m_real_universe.get_star_by_cat_id(catalog_entry).m_position;
+         const float abs_mag = m_real_universe.get_star_by_cat_id(catalog_entry).m_abs_mag;
+         constexpr bool specular = true;
+         m_starfield_universe.m_systems.emplace_back(pos, name, name, catalog_entry, system_size::small, abs_mag, specular);
       }
    }
    // Sort from left to right before transformation is applied
@@ -343,7 +322,6 @@ universe_creator::universe_creator()
    opt.fiction_ref = &m_starfield_universe;
    opt.real_ref = &m_real_universe;
    opt.init(rnd);
-   
 }
 
 
@@ -377,6 +355,8 @@ auto sfn::universe_creator::get() -> creator_result
       const glm::mat4 best_trafo = CTestOpt::get_trafo_from_vector(opt.getBestParams());
       for (sfn::system& sys : m_starfield_universe.m_systems)
       {
+         if (sys.m_specular == true)
+            continue;
          sys.m_position = apply_trafo(best_trafo, sys.m_position);
       }
       fmt::print("metric with optimized trafo: {:.2f} LY\n", get_metric(m_starfield_universe, m_real_universe));

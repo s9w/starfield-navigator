@@ -1,5 +1,11 @@
+# 0.11
+- Added orthographic projection mode
+- Speculative stars can be manually entered into the `system_data.txt` file. There's an example for Epsilon Eridani at the bottom there
+- Stars are rendered differently now, should look better
+- Removed closest stars tab
+
 # 0.10
-- Added star coloring basesd on absolute magnitude (brightness)
+- Added star coloring based on absolute magnitude (brightness)
 - Connections between stars can be disabled by setting the jump range to 0
 - Star name labels can be disabled in the options
 
