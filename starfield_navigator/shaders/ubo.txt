@@ -12,5 +12,4 @@ struct star_prop_element{
 };
 layout (std140) buffer star_ssbo{
     star_prop_element ssbo_data[];
-    vec3 connection_data[];
 };
