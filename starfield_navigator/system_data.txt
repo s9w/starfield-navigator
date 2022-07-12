@@ -158,3 +158,13 @@ AEF:small;;HD 116443_HIP 65355;none
 # Note that this preferences HIP over GJ entries - just look for which one exists
 # Note that this will file be overwritten when downloading new versions. Backup if necessary
 Epsilon Eridani;HIP 16537
+Vega;HIP 91262
+Beta Hydri;HIP 2021 # maybe too low?
+Sigma Draconis;HIP 96100 # maybe too far up?
+# Mizar;HIP 65378 # too far out probably
+# Regulus;HIP 49669 # too far out probably
+# Capella;HIP 24608 # too far up probably
+# Epsilon Indi;HIP 108870 # not in!
+# Lalande 21185;HIP 54035 # not in!
+# Aldebaran;HIP 21421 # probably too far "in front"
+# Algol;HIP 14576 # too far out probably
