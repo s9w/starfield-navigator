@@ -64,6 +64,13 @@ namespace sfn
    enum class gui_mode{jumps, connections, game};
    enum class star_color_mode{big_small, abs_mag};
 
+   struct ortho_params
+   {
+      float width = 50.0f;
+   };
+   struct perspective_params{};
+   using projection_params = std::variant<perspective_params, ortho_params>;
+
    struct engine
    {
    private:
@@ -81,6 +88,7 @@ namespace sfn
       star_color_mode m_star_color_mode = star_color_mode::big_small;
       float m_dropline_range = 20.0f;
       bool m_show_star_labels = true;
+      projection_params m_projection_params;
 
       camera_mode m_camera_mode = wasd_mode{ m_universe.m_cam_info.m_cam_pos0 };
       buffers m_buffers2;

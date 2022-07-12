@@ -19,12 +19,6 @@ namespace sfn
       }
    };
 
-   struct thruster_point
-   {
-      glm::vec3 m_position;
-      float m_radius;
-   };
-
    struct complete_obj
    {
       std::vector<complete_obj_vertex_info> m_vertices;

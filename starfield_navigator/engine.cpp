@@ -26,23 +26,28 @@ namespace
    }
 
 
-
-   auto get_projection_matrxi(const config& config) -> glm::mat4
+   [[nodiscard]] auto get_projection_matrix(const config& config, const projection_params& params) -> glm::mat4
    {
       const float aspect = static_cast<float>(config.res_x) / config.res_y;
-      const float x_fov = glm::radians(60.0f);
-      const float y_fov = x_fov / aspect;
-      return glm::perspective(y_fov, aspect, 0.1f, 3000.0f);
-
-      // constexpr float frustum_width = 120.0f;
-      // return glm::ortho(
-      //    -0.5f * frustum_width,
-      //    0.5f * frustum_width,
-      //    -0.5f * frustum_width/ aspect,
-      //    0.5f * frustum_width/ aspect,
-      //    0.0f,
-      //    500.0f
-      // );
+      if (std::holds_alternative<perspective_params>(params))
+      {
+         constexpr float x_fov = glm::radians(60.0f);
+         const float y_fov = x_fov / aspect;
+         return glm::perspective(y_fov, aspect, 0.1f, 3000.0f);
+      }
+      else if (std::holds_alternative<ortho_params>(params))
+      {
+         const float frustum_width = std::get<ortho_params>(params).width;
+         return glm::ortho(
+            -0.5f * frustum_width,
+            0.5f * frustum_width,
+            -0.5f * frustum_width/ aspect,
+            0.5f * frustum_width/ aspect,
+            0.0f,
+            500.0f
+         );
+      }
+      std::terminate();
    }
 
 
@@ -618,7 +623,7 @@ auto engine::update_mvp_member() -> void
 {
    m_current_mvp.m_cam_pos = get_camera_pos();
    m_current_mvp.m_selected_system_pos = m_universe.m_systems[m_list_selection].m_position;
-   m_current_mvp.m_projection = get_projection_matrxi(m_config);
+   m_current_mvp.m_projection = get_projection_matrix(m_config, m_projection_params);
    m_current_mvp.m_view = std::visit(
       [&](const auto& x) {return get_view_matrix(x); },
       m_camera_mode
@@ -767,38 +772,62 @@ auto sfn::engine::gui_draw() -> void
    }
    {
       normal_imgui_window w(glm::ivec2{ 0, 500 }, glm::ivec2{ 250, m_config.res_y-500 }, "options");
-      static int radio_selected = 0;
-      static float abs_mag_threshold = 0.0f;
-      const int old_selected = radio_selected;
-      ImGui::AlignTextToFramePadding();
-      ImGui::Text("Star coloring:");
-      if (ImGui::RadioButton("big/small", &radio_selected, 0))
       {
-         m_star_color_mode = star_color_mode::big_small;
-      }
-      tooltip("Coloring stars green/red according depending on whether they were shown as big or small dots in the gameplay reveal");
-      ImGui::SameLine();
-      if (ImGui::RadioButton("absolute magnitude", &radio_selected, 1))
-      {
-         m_star_color_mode = star_color_mode::abs_mag;
-      }
-      if(m_star_color_mode == star_color_mode::abs_mag)
-      {
-         ImGui::PushItemWidth(-FLT_MIN);
-         if(ImGui::SliderFloat("", &abs_mag_threshold, 0.0f, 20.0f))
+         static int radio_selected = 0;
+         static float abs_mag_threshold = 0.0f;
+         const int old_selected = radio_selected;
+         ImGui::AlignTextToFramePadding();
+         ImGui::Text("Star coloring:");
+         if (ImGui::RadioButton("big/small", &radio_selected, 0))
+         {
+            m_star_color_mode = star_color_mode::big_small;
+         }
+         tooltip("Coloring stars green/red according depending on whether they were shown as big or small dots in the gameplay reveal");
+         ImGui::SameLine();
+         if (ImGui::RadioButton("absolute magnitude", &radio_selected, 1))
+         {
+            m_star_color_mode = star_color_mode::abs_mag;
+         }
+         if (m_star_color_mode == star_color_mode::abs_mag)
+         {
+            ImGui::PushItemWidth(-FLT_MIN);
+            if (ImGui::SliderFloat("", &abs_mag_threshold, 0.0f, 20.0f))
+            {
+               this->update_ssbo(abs_mag_threshold);
+            }
+            ImGui::PopItemWidth();
+            tooltip("Stars with magnitude higher than this (=darker) are dimmed");
+         }
+
+         if (radio_selected != old_selected)
          {
             this->update_ssbo(abs_mag_threshold);
          }
-         ImGui::PopItemWidth();
-         tooltip("Stars with magnitude higher than this (=darker) are dimmed");
       }
-
-      if(radio_selected != old_selected)
-      {
-         this->update_ssbo(abs_mag_threshold);
-      }
-
       ImGui::Checkbox("Show star labels", &m_show_star_labels);
+
+      {
+         static int radio_selected = 0;
+         if (ImGui::RadioButton("Perspective", &radio_selected, 0))
+         {
+            if(std::holds_alternative<ortho_params>(m_projection_params))
+            {
+               m_projection_params = perspective_params{};
+            }
+         }
+         ImGui::SameLine();
+         if (ImGui::RadioButton("Orthographic", &radio_selected, 1))
+         {
+            if (std::holds_alternative<perspective_params>(m_projection_params))
+            {
+               m_projection_params = ortho_params{.width = 50.0f};
+            }
+         }
+         if (std::holds_alternative<ortho_params>(m_projection_params))
+         {
+            ImGui::SliderFloat("width", &std::get<ortho_params>(m_projection_params).width, 20.0f, 200.0f);
+         }
+      }
    }
    if(selection_changed || view_mode_changed)
    {
