@@ -771,13 +771,14 @@ auto sfn::engine::gui_draw() -> void
       selection_changed = draw_list();
    }
    {
-      normal_imgui_window w(glm::ivec2{ 0, 500 }, glm::ivec2{ 250, m_config.res_y-500 }, "options");
+      normal_imgui_window w(glm::ivec2{ 0, 500 }, glm::ivec2{ 350, m_config.res_y-500 }, "Options");
       {
          static int radio_selected = 0;
          static float abs_mag_threshold = 0.0f;
          const int old_selected = radio_selected;
          ImGui::AlignTextToFramePadding();
          ImGui::Text("Star coloring:");
+         ImGui::SameLine();
          if (ImGui::RadioButton("big/small", &radio_selected, 0))
          {
             m_star_color_mode = star_color_mode::big_small;
@@ -804,28 +805,26 @@ auto sfn::engine::gui_draw() -> void
             this->update_ssbo(abs_mag_threshold);
          }
       }
-      ImGui::Checkbox("Show star labels", &m_show_star_labels);
+      ImGui::Checkbox("Show star names", &m_show_star_labels);
 
       {
-         static int radio_selected = 0;
-         if (ImGui::RadioButton("Perspective", &radio_selected, 0))
+         ImGui::AlignTextToFramePadding();
+         ImGui::Text("Camera mode:");
+         ImGui::SameLine();
+         if (ImGui::RadioButton("Perspective", std::holds_alternative<perspective_params>(m_projection_params)))
          {
-            if(std::holds_alternative<ortho_params>(m_projection_params))
-            {
-               m_projection_params = perspective_params{};
-            }
+            m_projection_params = perspective_params{};
          }
          ImGui::SameLine();
-         if (ImGui::RadioButton("Orthographic", &radio_selected, 1))
+         if (ImGui::RadioButton("Orthographic", std::holds_alternative<ortho_params>(m_projection_params)))
          {
-            if (std::holds_alternative<perspective_params>(m_projection_params))
-            {
-               m_projection_params = ortho_params{.width = 50.0f};
-            }
+            m_projection_params = ortho_params{.width = 50.0f};
          }
          if (std::holds_alternative<ortho_params>(m_projection_params))
          {
             ImGui::SliderFloat("width", &std::get<ortho_params>(m_projection_params).width, 20.0f, 200.0f);
+            ImGui::SameLine();
+            imgui_help("Adjust this for \"zoom\". It's the width of the view frustrum in ly");
          }
       }
    }
