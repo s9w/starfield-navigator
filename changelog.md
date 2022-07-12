@@ -1,6 +1,7 @@
 # 0.11
 - Added orthographic projection mode
-- Speculative stars can be manually entered into the `system_data.txt` file. There's an example for Epsilon Eridani at the bottom there
+- Speculative stars can be manually entered into the `system_data.txt` file. There are examples there
+- Added a few plausible (?) speculative stars
 - Stars are rendered differently now, should look better
 - Removed closest stars tab
 

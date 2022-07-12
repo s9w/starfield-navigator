@@ -991,6 +991,7 @@ auto engine::get_cs() const -> cs
 
 auto engine::update_ssbo(const float abs_threshold) -> void
 {
+   constexpr glm::vec3 speculative_color{ 1, 1, 0 };
    if (m_star_color_mode == star_color_mode::big_small)
    {
       for (int i = 0; i < m_universe.m_systems.size(); ++i)
@@ -998,6 +999,8 @@ auto engine::update_ssbo(const float abs_threshold) -> void
          constexpr glm::vec3 red{ 1.0f, 0.5f, 0.5f };
          constexpr glm::vec3 green{ 0.5f, 1.0f, 0.5f };
          m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_size == system_size::small) ? red : green;
+         if (m_universe.m_systems[i].m_specular)
+            m_star_props_ssbo.m_stars[i].color = speculative_color;
          m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
       }
    }
@@ -1009,6 +1012,8 @@ auto engine::update_ssbo(const float abs_threshold) -> void
          constexpr glm::vec3 faint{ 0.5f };
          m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
          m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_abs_mag < abs_threshold) ? bright : faint;
+         if (m_universe.m_systems[i].m_specular)
+            m_star_props_ssbo.m_stars[i].color = speculative_color;
       }
    }
 }
@@ -1029,7 +1034,9 @@ auto engine::draw_system_labels() const -> void
       constexpr float label_opacity = 0.8f;
       constexpr glm::vec4 normal_color{ 1, 1, 1, label_opacity };
       constexpr glm::vec4 speculation_color{ 1, 0.6, 0.95, label_opacity };
-      const glm::vec4 color = system.get_starfield_name().has_value() ? normal_color : speculation_color;
+      glm::vec4 color = system.get_starfield_name().has_value() ? normal_color : speculation_color;
+      if (system.m_specular)
+         color = glm::vec4{1, 1, 0, 1};
       this->draw_text(system.get_useful_name().value(), system.m_position, offset, color);
    }
 }
