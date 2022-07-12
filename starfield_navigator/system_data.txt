@@ -5,7 +5,7 @@ cam_up;0.0;1.0;0.0
 ABO; 30.668529036327733; 56.32334845015801; 195.72991848906855
 ABR; 32.445183503229174; 55.52115792180423; 206.84813597330557
 ABU; 58.55501936067989; 54.737435246603795; 287.17412839752967
-ABT; 1.5069531279913306; 21.143097364617706; 228.78423647110873
+ABT; 1.5069531279913306; 21.143097364617706; 228.78423647110873 #
 ABF; 229.7131425715786; -40.42712449775506; 394.63372597623203
 ABJ; -32.75420816068049; -42.97355487566364; 221.44741134991443
 ABC; 1.5170342760806754; 8.353993740447978; 320.9548621301931
@@ -80,76 +80,75 @@ cam0:big;;      #camera "big" entry doesn't matter, but has to stay
 cam1:big;;      #camera "big" entry doesn't matter, but has to stay
 cam_front:big;; #camera "big" entry doesn't matter, but has to stay
 cam_up:big;;    #camera "big" entry doesn't matter, but has to stay
-ABO:big;;Luyten's Star_HIP 36208
-ABR:big;;Procyon_HIP 37279
-ABU:big;;Wolf 359_GLIESE 406
-ABT:big;;Sirius_HIP 32349
-ABF:big;VOLII;61 Virginis_HIP 64924
-ABJ:big;;Kapteyn's Star_HIP 24186
 ABC:big;ALPHA CENTAURI;Alpha Centauri_HIP 71683 
-ABG:big;CHEYENNE;Xi Bootis_HIP 72659
 ABD:big;SOL;
-ADW:big;;HD 131977_HIP 73184 #this is visibly double but tracked as single. Has another closeby star: HD 131976
-ACX:small;;Arcturus_HIP 69673
-ABV:big;;Barnard_HIP 87937
-ABL:big;;Gliese 674_HIP 85523
-ACY:small;;Eta Bootis_HIP 67927
+ABE:big;NARION;70 Ophiuchi_HIP 88601
+ABF:big;VOLII;61 Virginis_HIP 64924
+ABG:big;CHEYENNE;Xi Bootis_HIP 72659
 ABH:big;;36 Ophiuchi_HIP 84405
 ABI:big;;Gliese 667_GLIESE 667C # there is HIP, but this matches better
-ACV:small;;Gliese 569_HIP 72944
-ABM:big;;61 Cygni_HIP 104217# or HIP 104214 (Cyg B vs Cyg A)
-ABE:big;NARION;70 Ophiuchi_HIP 88601
-ACS:small;;Lambda Serpentis_HIP 77257
-ABP:big;;Mu Herculis_HIP 86974
-ACF:small;;Psi Serpentis_HIP 77052
-ACD:small;;HD 135204_HIP 74537
+ABJ:big;;Kapteyn's Star_HIP 24186
 ABK:big;;Delta Pavonis_HIP 99240
-ABW:small;JAFFA;18 Scorpii_HIP 79672
-ACJ:small;;Gliese 586_HIP 75718 #triple, or  HIP 75722 or GJ 586 C
-ACO:small;;Gliese 660_HIP 84123
-ACE:small;;Mu Virginis_HIP 71957
+ABL:big;;Gliese 674_HIP 85523
+ABM:big;;61 Cygni_HIP 104217# or HIP 104214 (Cyg B vs Cyg A)
 ABN:big;;Altair_HIP 97649
-ACB:small;;5 Serpentis_HIP 74975
-ADS:small;;HD 126053_HIP 70319
-ABS:big;;e Eridani_HIP 15510
-ACG:small;;Alpha Serpentis_HIP 77070
-ADH:small;;HD 141272_HIP 77408
-ACT:small;;HD 152391_HIP 82588
-ADG:small;;Xi Ophiuchi_HIP 84893
-ACW:small;;49 Serpentis_HIP 79492
-ABZ:small;;Alpha Ophiuchi_HIP 86032
-ACN:small;;HD 158614_GLIESE 678B # also good match for HIP 85667 (binary system)
-ACI:small;;Epsilon Librae_HIP 75379
-ACH:small;;Alpha Librae_HIP 72603
-ADY:big;;van Maanen's Star_HIP 3829
-ADF:small;;58 Ophiuchi_HIP 86736
-ADK:small;;Xi Scorpii A_HIP 78738 # NOTE double star
-ACQ:small;;V2213 Ophiuchi_HIP 83601
-ACU:small;;HD 172051_HIP 91438
+ABO:big;;Luyten's Star_HIP 36208
+ABP:big;;Mu Herculis_HIP 86974
 ABQ:small;PORRIMA;Porrima_HIP 61941
-ACL:small;;GJ 4056_GLIESE 4056
-ADC:small;;HD 122742_HIP 68682
-ACR:small;;GJ 3969_GLIESE 3969
+ABR:big;;Procyon_HIP 37279
+ABS:big;;e Eridani_HIP 15510
+ABT:big;;Sirius_HIP 32349
+ABU:big;;Wolf 359_GLIESE 406
+ABV:big;;Barnard_HIP 87937
+ABW:small;JAFFA;18 Scorpii_HIP 79672
+ABX:small;;HD 171067_HIP 90864
 ABY:small;;110 Herculis_HIP 92043
-ADL:small;;HIP 71743_HIP 71743
+ABZ:small;;Alpha Ophiuchi_HIP 86032
+ACB:small;;5 Serpentis_HIP 74975
+ACD:small;;HD 135204_HIP 74537
+ACE:small;;Mu Virginis_HIP 71957
+ACF:small;;Psi Serpentis_HIP 77052
+ACG:small;;Alpha Serpentis_HIP 77070
+ACH:small;;Alpha Librae_HIP 72603
+ACI:small;;Epsilon Librae_HIP 75379
+ACJ:small;;Gliese 586_HIP 75718 #triple, or  HIP 75722 or GJ 586 C
+ACK:small;;Eta Serpentis_HIP 89962
+ACL:small;;GJ 4056_GLIESE 4056
+ACM:small;;Beta Ophiuchi_HIP 86742
+ACN:small;;HD 158614_GLIESE 678B # also good match for HIP 85667 (binary system)
+ACO:small;;Gliese 660_HIP 84123
+ACP:small;;Zeta Serpentis_HIP 88175
+ACQ:small;;V2213 Ophiuchi_HIP 83601
+ACR:small;;GJ 3969_GLIESE 3969
+ACS:small;;Lambda Serpentis_HIP 77257
+ACT:small;;HD 152391_HIP 82588
+ACU:small;;HD 172051_HIP 91438
+ACV:small;;Gliese 569_HIP 72944
+ACW:small;;49 Serpentis_HIP 79492
+ACX:small;;Arcturus_HIP 69673
+ACY:small;;Eta Bootis_HIP 67927
+ACZ:small;;Tau Bootis_HIP 67275
+ADB:small;;HD 134066_HIP 74016
+ADC:small;;HD 122742_HIP 68682
+ADE:small;;HD 131023_HIP 72634
+ADF:small;;58 Ophiuchi_HIP 86736
+ADG:small;;Xi Ophiuchi_HIP 84893
+ADH:small;;HD 141272_HIP 77408
 ADI:small;;HD 153631_HIP 83276
 ADJ:small;;Xi Scorpii B_GLIESE 9540B #NOTE double star 
-ACM:small;;Beta Ophiuchi_HIP 86742
-ADB:small;;HD 134066_HIP 74016
-ACK:small;;Eta Serpentis_HIP 89962
-ACP:small;;Zeta Serpentis_HIP 88175
-ADO:small;;Ross 948_GLIESE 3728B # GJ might be without B somewhere else
-ADR:small;;Beta Virginis_HIP 57757
-ADZ:small;;HD 102365_HIP 57443
-ABX:small;;HD 171067_HIP 90864
-AEB:small;;Zeta Herculis_GLIESE 635B # there is HIP, but this matches better
-ACZ:small;;Tau Bootis_HIP 67275
+ADK:small;;Xi Scorpii A_HIP 78738 # NOTE double star
+ADL:small;;HIP 71743_HIP 71743
 ADM:small;;HD 133352_HIP 73717
-ADU:small;;GJ 544A_HIP 70016 # see GJ 544B # original ADV removed
-ABT:big;;GJ 244B_GLIESE 244B
-ADE:small;;HD 131023_HIP 72634
-ADT:small;;HD 116442_HIP 65352
 ADN:small;;HD 132375_HIP 73309
+ADO:small;;Ross 948_GLIESE 3728B # GJ might be without B somewhere else
 ADP:small;;Iota Virginis_HIP 69701 # high error, TODO
 ADQ:small;;HD 132307_HIP 73245
+ADR:small;;Beta Virginis_HIP 57757
+ADS:small;;HD 126053_HIP 70319
+ADT:small;;HD 116442_HIP 65352
+ADU:small;;GJ 544A_HIP 70016 # see GJ 544B # original ADV removed
+ADW:big;;HD 131977_HIP 73184 #this is visibly double but tracked as single. Has another closeby star: HD 131976
+ADY:big;;van Maanen's Star_HIP 3829
+ADZ:small;;HD 102365_HIP 57443
+AEB:small;;Zeta Herculis_GLIESE 635B # there is HIP, but this matches better
 AEF:small;;HD 116443_HIP 65355
