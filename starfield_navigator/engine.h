@@ -87,7 +87,6 @@ namespace sfn
       id m_mvp_ubo_id{ no_init{} };
       id m_main_fb{ no_init{} };
       id m_star_vbo_id{ no_init{} };
-      id m_screen_rect_vbo_id{ no_init{} };
       id m_jump_lines_vbo_id{ no_init{} };
       id m_connection_lines_vbo_id{ no_init{} };
       id m_indicator_vbo_id{ no_init{} };
@@ -105,7 +104,6 @@ namespace sfn
       std::optional<vao> m_vao_stars;
       std::optional<vao> m_vao_jump_lines;
       std::optional<vao> m_vao_connection_lines;
-      std::optional<vao> m_vao_screen_rect;
       std::optional<vao> m_vao_indicator;
       std::optional<vao> m_vao_drops;
 

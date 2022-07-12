@@ -112,14 +112,6 @@ namespace
    // std::vector<position_vertex_data> star_mesh;
    std::vector<line_vertex_data> jump_line_mesh;
    std::vector<line_vertex_data> connection_line_mesh;
-   std::vector<position_vertex_data> screen_rect_mesh = {
-      position_vertex_data{.m_position = { -1, -1, 0}},
-      position_vertex_data{.m_position = {  1, -1, 0}},
-      position_vertex_data{.m_position = { -1,  1, 0}},
-      position_vertex_data{.m_position = { -1, -1, 0}},
-      position_vertex_data{.m_position = {  1,  1, 0}},
-      position_vertex_data{.m_position = { -1,  1, 0}}
-   };
    std::vector<position_vertex_data> indicator_mesh;
    std::vector<position_vertex_data> drops_mesh;
 
@@ -180,7 +172,6 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
 
    drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].m_position[2]);
    buffer_layout.emplace_back(get_soa_vbo_segment(sphere_mesh));
-   buffer_layout.emplace_back(get_soa_vbo_segment(screen_rect_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<position_vertex_data>(128));
@@ -189,12 +180,11 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    const std::vector<id> segment_ids = m_buffers2.create_buffer(std::move(buffer_layout), usage_pattern::dynamic_draw);
    m_mvp_ubo_id = segment_ids[0];
    m_star_vbo_id = segment_ids[1];
-   m_screen_rect_vbo_id = segment_ids[2];
-   m_jump_lines_vbo_id = segment_ids[3];
-   m_connection_lines_vbo_id = segment_ids[4]; //
-   m_indicator_vbo_id = segment_ids[5];
-   m_star_ssbo_id = segment_ids[6];
-   m_drops_vbo_id = segment_ids[7];
+   m_jump_lines_vbo_id = segment_ids[2];
+   m_connection_lines_vbo_id = segment_ids[3];
+   m_indicator_vbo_id = segment_ids[4];
+   m_star_ssbo_id = segment_ids[5];
+   m_drops_vbo_id = segment_ids[6];
 
    m_binding_point_man.add(m_mvp_ubo_id);
    m_binding_point_man.add(m_star_ssbo_id);
@@ -210,7 +200,6 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    m_vao_stars.emplace(m_buffers2, m_star_vbo_id, m_shader_stars);
    m_vao_jump_lines.emplace(m_buffers2, m_jump_lines_vbo_id, m_shader_lines);
    m_vao_connection_lines.emplace(m_buffers2, m_connection_lines_vbo_id, m_shader_lines);
-   m_vao_screen_rect.emplace(m_buffers2, m_screen_rect_vbo_id, m_shader_stars);
    m_vao_indicator.emplace(m_buffers2, m_indicator_vbo_id, m_shader_indicator);
    m_vao_drops.emplace(m_buffers2, m_drops_vbo_id, m_shader_droplines);
 }
@@ -618,7 +607,6 @@ auto engine::gpu_upload() const -> void
    m_buffers2.upload_vbo(m_star_vbo_id, as_bytes(sphere_mesh));
    m_buffers2.upload_vbo(m_jump_lines_vbo_id, as_bytes(jump_line_mesh));
    m_buffers2.upload_vbo(m_connection_lines_vbo_id, as_bytes(connection_line_mesh));
-   m_buffers2.upload_vbo(m_screen_rect_vbo_id, as_bytes(screen_rect_mesh));
    m_buffers2.upload_vbo(m_indicator_vbo_id, as_bytes(indicator_mesh));
    m_buffers2.upload_vbo(m_drops_vbo_id, as_bytes(drops_mesh));
 
