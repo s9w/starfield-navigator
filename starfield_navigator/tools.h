@@ -24,6 +24,22 @@ namespace sfn
    };
    [[nodiscard]] auto get_galactic(const glm::vec3& cartesian) -> galactic_coord;
 
+   struct bb_3D
+   {
+      glm::vec3 m_min{};
+      glm::vec3 m_max{};
+
+      [[nodiscard]] constexpr auto get_size() const -> glm::vec3
+      {
+         return m_max - m_min;
+      }
+   };
+
+   template<typename T>
+   [[nodiscard]] auto get_bb(const std::vector<T>& vertices, const auto& pred) -> bb_3D;
+   template<typename T>
+   [[nodiscard]] auto get_bb(const std::vector<T>& vertices) -> bb_3D;
+
    [[nodiscard]] constexpr auto c4d_convert(const glm::vec3& in) -> glm::vec3
    {
       return glm::vec3{ in[0], in[2], in[1] };
@@ -163,4 +179,46 @@ constexpr auto sfn::sfn_assert(const bool condition) -> void
    }
 
    std::terminate();
+}
+
+
+template<typename T>
+auto sfn::get_bb(
+   const std::vector<T>& vertices,
+   const auto& pred
+) -> bb_3D
+{
+   bool init = false;
+   glm::vec3 min{};
+   glm::vec3 max{};
+   for (const T& vertex : vertices)
+   {
+      if (pred(vertex) == false)
+         continue;
+      if(init == false)
+      {
+         min = vertex.m_position;
+         max = vertex.m_position;
+         init = true;
+      }
+      else
+      {
+         min = glm::min(min, vertex.m_position);
+         max = glm::max(max, vertex.m_position);
+      }
+   }
+   return bb_3D{ .m_min = min, .m_max = max };
+}
+
+
+template<typename T>
+auto sfn::get_bb(
+   const std::vector<T>& vertices
+) -> bb_3D
+{
+   const auto always_true = []([[maybe_unused]] const T& in)
+   {
+      return true;
+   };
+   return get_bb(vertices, always_true);
 }

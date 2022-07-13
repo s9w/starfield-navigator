@@ -4,6 +4,8 @@
 #include <vector>
 #include <optional>
 
+#include "tools.h"
+
 #include <glm/vec3.hpp>
 
 
@@ -50,6 +52,8 @@ namespace sfn
       cam_info m_cam_info;
       float m_min_abs_mag;
       float m_max_abs_mag;
+      glm::mat4 m_trafo;
+      bb_3D m_map_bb;
 
       auto init() -> void;
       [[nodiscard]] auto get_position_by_name(const std::string& name) const->glm::vec3;

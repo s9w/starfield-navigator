@@ -89,6 +89,7 @@ namespace sfn
       float m_dropline_range = 20.0f;
       bool m_show_star_labels = true;
       projection_params m_projection_params;
+      bool m_show_bb = true;
 
       camera_mode m_camera_mode = wasd_mode{ m_universe.m_cam_info.m_cam_pos0 };
       buffers m_buffers2;
@@ -99,6 +100,7 @@ namespace sfn
       id m_connection_lines_vbo_id{ no_init{} };
       id m_indicator_vbo_id{ no_init{} };
       id m_drops_vbo_id{ no_init{} };
+      id m_bb_vbo_id{ no_init{} };
       id m_star_ssbo_id{ no_init{} };
       binding_point_man m_binding_point_man;
       mvp_type m_current_mvp{};
@@ -107,6 +109,7 @@ namespace sfn
       shader_program m_shader_lines;
       shader_program m_shader_indicator;
       shader_program m_shader_droplines;
+      shader_program m_shader_bb;
       texture_manager m_textures{};
       framebuffer_manager m_framebuffers; // needs to be after texture manager
       std::optional<vao> m_vao_stars;
@@ -114,6 +117,7 @@ namespace sfn
       std::optional<vao> m_vao_connection_lines;
       std::optional<vao> m_vao_indicator;
       std::optional<vao> m_vao_drops;
+      std::optional<vao> m_vao_bb;
 
       explicit engine(const config& config, std::unique_ptr<graphics_context>&& gc, universe&& universe);
       [[nodiscard]] auto get_window() const->GLFWwindow*;

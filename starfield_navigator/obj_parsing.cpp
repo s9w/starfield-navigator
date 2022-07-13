@@ -29,24 +29,6 @@ namespace
       return bb_3D{ .m_min = min, .m_max = max };
    }
 
-   auto get_floor_center(
-      const std::vector<complete_obj_vertex_info>& vertices
-   ) -> glm::vec3
-   {
-      glm::vec3 min = vertices.front().m_position;
-      glm::vec3 max = vertices.front().m_position;
-      for(const complete_obj_vertex_info& vertex : vertices)
-      {
-         min = glm::min(min, vertex.m_position);
-         max = glm::max(max, vertex.m_position);
-      }
-      return glm::vec3{
-         (max[0] + min[0]) / 2.0f,
-         min[1],
-         (max[2] + min[2]) / 2.0f
-      };
-   }
-
    
 
 

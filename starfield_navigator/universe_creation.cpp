@@ -346,103 +346,117 @@ auto sfn::universe_creator::get() -> creator_result
 
    else
    {
-      printf("IterCount: %i\n", i);
-      printf("BestCost: %f\n", opt.getBestCost());
-      for (int p = 0; p < 9; ++p)
-         fmt::print("best params {}: {:.2f}\n", p, opt.getBestParams()[p]);
-
-      // test best trafo
-      const glm::mat4 best_trafo = CTestOpt::get_trafo_from_vector(opt.getBestParams());
-      for (sfn::system& sys : m_starfield_universe.m_systems)
-      {
-         if (sys.m_specular == true)
-            continue;
-         sys.m_position = apply_trafo(best_trafo, sys.m_position);
-      }
-      fmt::print("metric with optimized trafo: {:.2f} LY\n", get_metric(m_starfield_universe, m_real_universe));
-
-
-      const auto candidates_for_fictional = [&](const std::string& fictional_name)
-      {
-         const glm::vec3 pos0 = m_starfield_universe.get_position_by_name(fictional_name);
-         std::vector<catalog_id> real_closest;
-         for(const auto& [key, value] : m_real_universe.m_stars)
-         {
-            real_closest.push_back(key);
-         }
-         const auto pred = [&](const catalog_id& i, const catalog_id& j)
-         {
-            const float dist_i = glm::distance(pos0, m_real_universe.m_stars.at(i).m_position);
-            const float dist_j = glm::distance(pos0, m_real_universe.m_stars.at(j).m_position);
-            return dist_i < dist_j;
-         };
-         std::ranges::sort(real_closest, pred);
-         fmt::print("\n");
-         for (int i = 0; i < 3; ++i)
-         {
-            const float dist = glm::distance(pos0, m_real_universe.m_stars.at(real_closest[i]).m_position);
-            fmt::print(
-               "{}: {}, dist: {:.2f}\n",
-               i, real_closest[i].get_user_str(), dist
-            );
-         }
-      };
-      const auto candidates_for_real = [&](const std::string& cat_id)
-      {
-         const glm::vec3 target_pos = m_real_universe.get_star_by_cat_id(cat_id).m_position;
-         std::vector<int> real_closest;
-         for (int i = 0; i < std::ssize(m_starfield_universe.m_systems); ++i)
-            real_closest.push_back(i);
-         const auto pred = [&](const int i, const int j)
-         {
-            const float dist_i = glm::distance(target_pos, m_starfield_universe.m_systems[i].m_position);
-            const float dist_j = glm::distance(target_pos, m_starfield_universe.m_systems[j].m_position);
-            return dist_i < dist_j;
-         };
-         std::ranges::sort(real_closest, pred);
-         fmt::print("\n");
-         for (int i = 0; i < 3; ++i)
-         {
-            const float dist = glm::distance(target_pos, m_starfield_universe.m_systems[real_closest[i]].m_position);
-            fmt::print("{}: {:.2f} {}\n", i, dist, m_starfield_universe.m_systems[i].get_name());
-         }
-      };
-      // candidates_for_real("HIP 91262"); // vega
-      candidates_for_fictional("ADP");
-
-      const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
-      {
-         const glm::vec3 fiction_pos = m_starfield_universe.get_position_by_name(fictional_name);
-         const glm::vec3 real_pos = m_real_universe.get_star_by_cat_id(hip).m_position;
-         const float dist = glm::distance(fiction_pos, real_pos);
-         fmt::print("{:<16} deviation: {:>5.2f} LY\n", fictional_name, dist);
-      };
-
-      for (const sfn::system& system : m_starfield_universe.m_systems)
-      {
-         if (system.m_astronomic_name.empty() || system.m_astronomic_name == "Sol")
-            continue;
-         error_report(system.m_astronomic_name, system.m_catalog_lookup);
-      }
-
-
-      m_starfield_universe.m_cam_info = get_and_delete_cam_info(m_starfield_universe.m_systems);
-      m_starfield_universe.init();
-
-      // {
-      //    const float sufficient_jump_range = get_absolute_min_jump_range(starfield_universe);
-      //    fmt::print("sufficient_jump_range: {:.1f}\n", sufficient_jump_range);
-      // }
-
-      // {
-      //    const auto closest = get_closest_distances_for_all(starfield_universe);
-      //    fmt::print("avg of closest: {:.2f}\n", get_average(closest));
-      //    fmt::print("max of closest: {:.2f}\n", *std::ranges::max_element(closest));
-      // }
-
-      m_starfield_universe.print_info();
-      return m_starfield_universe;
+      return this->get_finished_result();
    }
+}
+
+
+auto universe_creator::get_finished_result() -> universe
+{
+   printf("IterCount: %i\n", i);
+   printf("BestCost: %f\n", opt.getBestCost());
+   for (int p = 0; p < 9; ++p)
+      fmt::print("best params {}: {:.2f}\n", p, opt.getBestParams()[p]);
+
+   const auto no_speculative_or_cam = [](const auto& vertex)
+   {
+      return vertex.m_specular == false && vertex.m_name.starts_with("cam") == false;
+   };
+   const bb_3D old_coord_bb = get_bb(m_starfield_universe.m_systems, no_speculative_or_cam);
+
+   // Apply trafo
+   const glm::mat4 final_transformation = CTestOpt::get_trafo_from_vector(opt.getBestParams());
+   for (sfn::system& sys : m_starfield_universe.m_systems)
+   {
+      if (sys.m_specular == true)
+         continue;
+      sys.m_position = apply_trafo(final_transformation, sys.m_position);
+   }
+   fmt::print("metric with optimized trafo: {:.2f} LY\n", get_metric(m_starfield_universe, m_real_universe));
+
+
+   const auto candidates_for_fictional = [&](const std::string& fictional_name)
+   {
+      const glm::vec3 pos0 = m_starfield_universe.get_position_by_name(fictional_name);
+      std::vector<catalog_id> real_closest;
+      for (const auto& [key, value] : m_real_universe.m_stars)
+      {
+         real_closest.push_back(key);
+      }
+      const auto pred = [&](const catalog_id& i, const catalog_id& j)
+      {
+         const float dist_i = glm::distance(pos0, m_real_universe.m_stars.at(i).m_position);
+         const float dist_j = glm::distance(pos0, m_real_universe.m_stars.at(j).m_position);
+         return dist_i < dist_j;
+      };
+      std::ranges::sort(real_closest, pred);
+      fmt::print("\n");
+      for (int i = 0; i < 3; ++i)
+      {
+         const float dist = glm::distance(pos0, m_real_universe.m_stars.at(real_closest[i]).m_position);
+         fmt::print(
+            "{}: {}, dist: {:.2f}\n",
+            i, real_closest[i].get_user_str(), dist
+         );
+      }
+   };
+   const auto candidates_for_real = [&](const std::string& cat_id)
+   {
+      const glm::vec3 target_pos = m_real_universe.get_star_by_cat_id(cat_id).m_position;
+      std::vector<int> real_closest;
+      for (int i = 0; i < std::ssize(m_starfield_universe.m_systems); ++i)
+         real_closest.push_back(i);
+      const auto pred = [&](const int i, const int j)
+      {
+         const float dist_i = glm::distance(target_pos, m_starfield_universe.m_systems[i].m_position);
+         const float dist_j = glm::distance(target_pos, m_starfield_universe.m_systems[j].m_position);
+         return dist_i < dist_j;
+      };
+      std::ranges::sort(real_closest, pred);
+      fmt::print("\n");
+      for (int i = 0; i < 3; ++i)
+      {
+         const float dist = glm::distance(target_pos, m_starfield_universe.m_systems[real_closest[i]].m_position);
+         fmt::print("{}: {:.2f} {}\n", i, dist, m_starfield_universe.m_systems[i].get_name());
+      }
+   };
+   // candidates_for_real("HIP 91262"); // vega
+   candidates_for_fictional("ADP");
+
+   const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
+   {
+      const glm::vec3 fiction_pos = m_starfield_universe.get_position_by_name(fictional_name);
+      const glm::vec3 real_pos = m_real_universe.get_star_by_cat_id(hip).m_position;
+      const float dist = glm::distance(fiction_pos, real_pos);
+      fmt::print("{:<16} deviation: {:>5.2f} LY\n", fictional_name, dist);
+   };
+
+   for (const sfn::system& system : m_starfield_universe.m_systems)
+   {
+      if (system.m_astronomic_name.empty() || system.m_astronomic_name == "Sol")
+         continue;
+      error_report(system.m_astronomic_name, system.m_catalog_lookup);
+   }
+
+
+   m_starfield_universe.m_cam_info = get_and_delete_cam_info(m_starfield_universe.m_systems);
+   m_starfield_universe.m_trafo = final_transformation;
+   m_starfield_universe.m_map_bb = old_coord_bb;
+   m_starfield_universe.init();
+
+   // {
+   //    const float sufficient_jump_range = get_absolute_min_jump_range(starfield_universe);
+   //    fmt::print("sufficient_jump_range: {:.1f}\n", sufficient_jump_range);
+   // }
+
+   // {
+   //    const auto closest = get_closest_distances_for_all(starfield_universe);
+   //    fmt::print("avg of closest: {:.2f}\n", get_average(closest));
+   //    fmt::print("max of closest: {:.2f}\n", *std::ranges::max_element(closest));
+   // }
+
+   m_starfield_universe.print_info();
+   return m_starfield_universe;
 }
 
 

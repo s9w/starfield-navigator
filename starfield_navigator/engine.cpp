@@ -114,11 +114,67 @@ namespace
 
    const std::vector<position_vertex_data> sphere_mesh = get_position_vertex_data(get_complete_obj_info("assets/Sphere.obj", -1.0f));
 
+   [[nodiscard]] auto get_bb_mesh(
+      const bb_3D& old_coord_bb,
+      const glm::mat4& trafo
+   ) -> std::vector<position_vertex_data>
+   {
+      const auto forward = [&](const glm::vec3& in) {
+         return apply_trafo(trafo, in);
+      };
+
+      const glm::vec3 bottom_p0 = old_coord_bb.m_min + glm::vec3{ 0, 0, 0 } *old_coord_bb.get_size();
+      const glm::vec3 bottom_p1 = old_coord_bb.m_min + glm::vec3{ 1, 0, 0 } *old_coord_bb.get_size();
+      const glm::vec3 bottom_p2 = old_coord_bb.m_min + glm::vec3{ 1, 1, 0 } *old_coord_bb.get_size();
+      const glm::vec3 bottom_p3 = old_coord_bb.m_min + glm::vec3{ 0, 1, 0 } *old_coord_bb.get_size();
+      const glm::vec3 top_p0 = old_coord_bb.m_min + glm::vec3{ 0, 0, 1 } *old_coord_bb.get_size();
+      const glm::vec3 top_p1 = old_coord_bb.m_min + glm::vec3{ 1, 0, 1 } *old_coord_bb.get_size();
+      const glm::vec3 top_p2 = old_coord_bb.m_min + glm::vec3{ 1, 1, 1 } *old_coord_bb.get_size();
+      const glm::vec3 top_p3 = old_coord_bb.m_min + glm::vec3{ 0, 1, 1 } *old_coord_bb.get_size();
+
+
+      std::vector<position_vertex_data> result;
+      result.reserve(12);
+
+      // bottom
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p0) });
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p1) });
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p1) });
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p2) });
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p2) });
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p3) });
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p3) });
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p0) });
+
+      // top
+      result.push_back(position_vertex_data{ .m_position = forward(top_p0) });
+      result.push_back(position_vertex_data{ .m_position = forward(top_p1) });
+      result.push_back(position_vertex_data{ .m_position = forward(top_p1) });
+      result.push_back(position_vertex_data{ .m_position = forward(top_p2) });
+      result.push_back(position_vertex_data{ .m_position = forward(top_p2) });
+      result.push_back(position_vertex_data{ .m_position = forward(top_p3) });
+      result.push_back(position_vertex_data{ .m_position = forward(top_p3) });
+      result.push_back(position_vertex_data{ .m_position = forward(top_p0) });
+
+      // connections
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p0) });
+      result.push_back(position_vertex_data{ .m_position = forward(top_p0) });
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p1) });
+      result.push_back(position_vertex_data{ .m_position = forward(top_p1) });
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p2) });
+      result.push_back(position_vertex_data{ .m_position = forward(top_p2) });
+      result.push_back(position_vertex_data{ .m_position = forward(bottom_p3) });
+      result.push_back(position_vertex_data{ .m_position = forward(top_p3) });
+
+      return result;
+   }
+
    // std::vector<position_vertex_data> star_mesh;
    std::vector<line_vertex_data> jump_line_mesh;
    std::vector<line_vertex_data> connection_line_mesh;
    std::vector<position_vertex_data> indicator_mesh;
    std::vector<position_vertex_data> drops_mesh;
+   std::vector<position_vertex_data> bb_mesh;
 
 
    // written so it yields (0, -1, 0) for 0, 0, 1 parameters, which is how the geometry is set up
@@ -162,6 +218,7 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    , m_shader_lines("line_shader")
    , m_shader_indicator("indicator_shader")
    , m_shader_droplines("droplines_shader")
+   , m_shader_bb("bb_shader")
    , m_framebuffers(m_textures)
 {
    update_ssbo(0.0f);
@@ -176,12 +233,14 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    buffer_layout.emplace_back(ubo_segment(sizeof(mvp_type), "ubo_mvp"));
 
    drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].m_position[2]);
+   bb_mesh = get_bb_mesh(m_universe.m_map_bb, m_universe.m_trafo);
    buffer_layout.emplace_back(get_soa_vbo_segment(sphere_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<position_vertex_data>(128));
    buffer_layout.emplace_back(ssbo_segment(m_star_props_ssbo.get_byte_count(), "star_ssbo"));
    buffer_layout.emplace_back(get_soa_vbo_segment(drops_mesh));
+   buffer_layout.emplace_back(get_soa_vbo_segment(bb_mesh));
    const std::vector<id> segment_ids = m_buffers2.create_buffer(std::move(buffer_layout), usage_pattern::dynamic_draw);
    m_mvp_ubo_id = segment_ids[0];
    m_star_vbo_id = segment_ids[1];
@@ -190,6 +249,7 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    m_indicator_vbo_id = segment_ids[4];
    m_star_ssbo_id = segment_ids[5];
    m_drops_vbo_id = segment_ids[6];
+   m_bb_vbo_id = segment_ids[7];
 
    m_binding_point_man.add(m_mvp_ubo_id);
    m_binding_point_man.add(m_star_ssbo_id);
@@ -207,6 +267,7 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    m_vao_connection_lines.emplace(m_buffers2, m_connection_lines_vbo_id, m_shader_lines);
    m_vao_indicator.emplace(m_buffers2, m_indicator_vbo_id, m_shader_indicator);
    m_vao_drops.emplace(m_buffers2, m_drops_vbo_id, m_shader_droplines);
+   m_vao_bb.emplace(m_buffers2, m_bb_vbo_id, m_shader_bb);
 }
 
 
@@ -345,6 +406,17 @@ auto sfn::engine::draw_frame() -> void
          this->draw_text("270", system_pos + dist_from_center * glm::vec3{  0, -1, 0 }, glm::vec2{}, color);
       }
    }
+
+   // draw bb
+   if (this->m_show_bb)
+   {
+      m_vao_bb->bind();
+      m_shader_bb.use();
+      glDisable(GL_DEPTH_TEST);
+      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(bb_mesh.size()));
+      glEnable(GL_DEPTH_TEST);
+   }
+
    if(std::holds_alternative<wasd_mode>(m_camera_mode))
    {
       const glm::vec3 system_pos = m_universe.m_systems[m_list_selection].m_position;
@@ -623,6 +695,7 @@ auto engine::gpu_upload() const -> void
    m_buffers2.upload_vbo(m_connection_lines_vbo_id, as_bytes(connection_line_mesh));
    m_buffers2.upload_vbo(m_indicator_vbo_id, as_bytes(indicator_mesh));
    m_buffers2.upload_vbo(m_drops_vbo_id, as_bytes(drops_mesh));
+   m_buffers2.upload_vbo(m_bb_vbo_id, as_bytes(bb_mesh));
 
    m_buffers2.upload_ssbo(m_star_ssbo_id, as_bytes(m_star_props_ssbo), 0);
 }
@@ -836,6 +909,8 @@ auto sfn::engine::gui_draw() -> void
             imgui_help("Adjust this for \"zoom\". It's the width of the view frustrum in ly");
          }
       }
+
+      ImGui::Checkbox("Show bounding box", &m_show_bb);
    }
    if(selection_changed || view_mode_changed)
    {

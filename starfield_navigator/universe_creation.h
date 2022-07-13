@@ -71,6 +71,8 @@ namespace sfn{
 
       explicit universe_creator();
       [[nodiscard]] auto get() -> creator_result;
+   private:
+      [[nodiscard]] auto get_finished_result()->universe;
    };
 
 }
