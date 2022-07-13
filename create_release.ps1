@@ -12,6 +12,7 @@ Copy-Item ("x64/Release/{0}.exe" -f $name) -Destination $release_dir
 Copy-Item ("{0}/system_data.txt" -f $name) -Destination $release_dir
 Copy-Item ("{0}/cc_hyg.txt" -f $name) -Destination $release_dir
 Copy-Item ("{0}/shaders" -f $name) -Destination $release_dir -Recurse
+Copy-Item ("{0}/assets" -f $name) -Destination $release_dir -Recurse
 
 $zip_path = "builds/starfield_navigator.zip"
 if (Test-Path $zip_path) {
