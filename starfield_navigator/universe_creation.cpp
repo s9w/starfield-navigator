@@ -121,7 +121,7 @@ namespace {
 
       for (const sfn::system& system : univ.m_systems)
       {
-         if (system.m_astronomic_name.empty() || system.m_astronomic_name == "Sol" || system.m_specular == true)
+         if (system.m_astronomic_name.empty() || system.m_astronomic_name == "Sol" || system.m_speculative == true)
             continue;
          errors.push_back(get_error(univ, real, system.m_astronomic_name, system.m_catalog_lookup));
       }
@@ -296,8 +296,8 @@ universe_creator::universe_creator()
          {
             abs_mag = m_real_universe.get_star_by_cat_id(catalog_entry).m_abs_mag;
          }
-         constexpr bool specular = false;
-         m_starfield_universe.m_systems.emplace_back(pos, name, astronomical_name, catalog_entry, get_system_size(values[0]), abs_mag, specular);
+         constexpr bool speculative = false;
+         m_starfield_universe.m_systems.emplace_back(pos, name, astronomical_name, catalog_entry, get_system_size(values[0]), abs_mag, speculative);
       }
       else if(mode == read_mode::speculative)
       {
@@ -306,8 +306,8 @@ universe_creator::universe_creator()
          const std::string catalog_entry = split[1];
          const glm::vec3 pos = m_real_universe.get_star_by_cat_id(catalog_entry).m_position;
          const float abs_mag = m_real_universe.get_star_by_cat_id(catalog_entry).m_abs_mag;
-         constexpr bool specular = true;
-         m_starfield_universe.m_systems.emplace_back(pos, name, name, catalog_entry, system_size::small, abs_mag, specular);
+         constexpr bool speculative = true;
+         m_starfield_universe.m_systems.emplace_back(pos, name, name, catalog_entry, system_size::small, abs_mag, speculative);
       }
    }
    // Sort from left to right before transformation is applied
@@ -359,7 +359,7 @@ auto universe_creator::get_finished_result() -> universe
 
    const auto no_speculative_or_cam = [](const auto& vertex)
    {
-      return vertex.m_specular == false && vertex.m_name.starts_with("cam") == false;
+      return vertex.m_speculative == false && vertex.m_name.starts_with("cam") == false;
    };
    const bb_3D old_coord_bb = get_bb(m_starfield_universe.m_systems, no_speculative_or_cam);
 
@@ -367,7 +367,7 @@ auto universe_creator::get_finished_result() -> universe
    const glm::mat4 final_transformation = CTestOpt::get_trafo_from_vector(opt.getBestParams());
    for (sfn::system& sys : m_starfield_universe.m_systems)
    {
-      if (sys.m_specular == true)
+      if (sys.m_speculative == true)
          continue;
       sys.m_position = apply_trafo(final_transformation, sys.m_position);
    }

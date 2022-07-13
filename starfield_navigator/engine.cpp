@@ -2,6 +2,7 @@
 #include "obj_parsing.h"
 
 
+#pragma warning(push, 0)
 #include <GLFW/glfw3.h> // after glad
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -9,7 +10,7 @@
 #include "fonts/FontAwesomeSolid.hpp"
 #include "fonts/DroidSans.hpp"
 #include "fonts/IconsFontAwesome5.h"
-
+#pragma warning(pop)
 
 
 namespace
@@ -118,7 +119,7 @@ namespace
    [[nodiscard]] auto get_bb_mesh(
       const bb_3D& old_coord_bb,
       const glm::mat4& trafo
-   ) -> std::vector<position_vertex_data>
+   ) -> std::vector<glm::vec3>
    {
       const auto forward = [&](const glm::vec3& in) {
          return apply_trafo(trafo, in);
@@ -134,38 +135,38 @@ namespace
       const glm::vec3 top_p3 = old_coord_bb.m_min + glm::vec3{ 0, 1, 1 } *old_coord_bb.get_size();
 
 
-      std::vector<position_vertex_data> result;
-      result.reserve(12);
+      std::vector<glm::vec3> result;
+      result.reserve(24);
 
       // bottom
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p0) });
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p1) });
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p1) });
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p2) });
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p2) });
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p3) });
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p3) });
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p0) });
+      result.push_back(forward(bottom_p0));
+      result.push_back(forward(bottom_p1));
+      result.push_back(forward(bottom_p1));
+      result.push_back(forward(bottom_p2));
+      result.push_back(forward(bottom_p2));
+      result.push_back(forward(bottom_p3));
+      result.push_back(forward(bottom_p3));
+      result.push_back(forward(bottom_p0));
 
       // top
-      result.push_back(position_vertex_data{ .m_position = forward(top_p0) });
-      result.push_back(position_vertex_data{ .m_position = forward(top_p1) });
-      result.push_back(position_vertex_data{ .m_position = forward(top_p1) });
-      result.push_back(position_vertex_data{ .m_position = forward(top_p2) });
-      result.push_back(position_vertex_data{ .m_position = forward(top_p2) });
-      result.push_back(position_vertex_data{ .m_position = forward(top_p3) });
-      result.push_back(position_vertex_data{ .m_position = forward(top_p3) });
-      result.push_back(position_vertex_data{ .m_position = forward(top_p0) });
+      result.push_back(forward(top_p0));
+      result.push_back(forward(top_p1));
+      result.push_back(forward(top_p1));
+      result.push_back(forward(top_p2));
+      result.push_back(forward(top_p2));
+      result.push_back(forward(top_p3));
+      result.push_back(forward(top_p3));
+      result.push_back(forward(top_p0));
 
       // connections
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p0) });
-      result.push_back(position_vertex_data{ .m_position = forward(top_p0) });
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p1) });
-      result.push_back(position_vertex_data{ .m_position = forward(top_p1) });
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p2) });
-      result.push_back(position_vertex_data{ .m_position = forward(top_p2) });
-      result.push_back(position_vertex_data{ .m_position = forward(bottom_p3) });
-      result.push_back(position_vertex_data{ .m_position = forward(top_p3) });
+      result.push_back(forward(bottom_p0));
+      result.push_back(forward(top_p0));
+      result.push_back(forward(bottom_p1));
+      result.push_back(forward(top_p1));
+      result.push_back(forward(bottom_p2));
+      result.push_back(forward(top_p2));
+      result.push_back(forward(bottom_p3));
+      result.push_back(forward(top_p3));
 
       return result;
    }
@@ -220,7 +221,8 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    , m_shader_bb("bb_shader")
    , m_framebuffers(m_textures)
 {
-   update_ssbo(0.0f);
+   update_ssbo_bb();
+   update_ssbo_colors(0.0f);
 
    if (engine_ptr != nullptr)
       std::terminate();
@@ -483,14 +485,14 @@ auto sfn::engine::draw_list() -> bool
             "Original name: {}\nGalactic coord:\nl: {:.1f} deg\nb: {:.1f} deg\ndist: {:.1f} LY",
             m_universe.m_systems[i].m_name, glm::degrees(gc.m_l), glm::degrees(gc.m_b), gc.m_dist
          );
-         if (m_universe.m_systems[i].m_specular == true)
+         if (m_universe.m_systems[i].m_speculative == true)
             tooltip_str = "SPECULATIVE!\n" + tooltip_str;
 
          {
             ImGui::TableSetColumnIndex(1);
             const std::optional<std::string> name = m_universe.m_systems[i].get_starfield_name();
             ImVec4 text_color = name.has_value() ? (ImVec4)ImColor::HSV(1.0f, 0.0f, 1.0f) : (ImVec4)ImColor::HSV(0.0f, 0.0f, 0.5f);
-            if (m_universe.m_systems[i].m_specular == true)
+            if (m_universe.m_systems[i].m_speculative == true)
                text_color = (ImVec4)ImColor(1.0f, 1.0f, 0.0f);
             ImGui::PushStyleColor(ImGuiCol_Text, text_color);
             const std::string imgui_label = fmt::format("{} ##LC{}", name.value_or("unknown"), i);
@@ -505,13 +507,13 @@ auto sfn::engine::draw_list() -> bool
          {
             ImGui::TableSetColumnIndex(2);
             const std::string imgui_label = fmt::format("{} ##RC{}", m_universe.m_systems[i].m_astronomic_name, i);
-            if (m_universe.m_systems[i].m_specular == true)
+            if (m_universe.m_systems[i].m_speculative == true)
                ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor(1.0f, 1.0f, 0.0f));
             if (ImGui::Selectable(imgui_label.c_str(), is_selected))
             {
                m_list_selection = i;
             }
-            if (m_universe.m_systems[i].m_specular == true)
+            if (m_universe.m_systems[i].m_speculative == true)
                ImGui::PopStyleColor();
             tooltip(tooltip_str.c_str());
          }
@@ -877,7 +879,7 @@ auto sfn::engine::gui_draw() -> void
             ImGui::PushItemWidth(-FLT_MIN);
             if (ImGui::SliderFloat("", &abs_mag_threshold, 0.0f, 20.0f))
             {
-               this->update_ssbo(abs_mag_threshold);
+               this->update_ssbo_colors(abs_mag_threshold);
             }
             ImGui::PopItemWidth();
             tooltip("Stars with magnitude higher than this (=darker) are dimmed");
@@ -885,7 +887,7 @@ auto sfn::engine::gui_draw() -> void
 
          if (radio_selected != old_selected)
          {
-            this->update_ssbo(abs_mag_threshold);
+            this->update_ssbo_colors(abs_mag_threshold);
          }
       }
       ImGui::Checkbox("Show star names", &m_show_star_labels);
@@ -1065,15 +1067,46 @@ auto engine::get_cs() const -> cs
 }
 
 
-auto engine::update_ssbo(const float abs_threshold) -> void
+auto engine::update_ssbo_colors(const float abs_threshold) -> void
 {
    constexpr glm::vec3 speculative_color{ 1, 1, 0 };
 
-   const std::vector<position_vertex_data> x = get_bb_mesh(m_universe.m_map_bb, m_universe.m_trafo);
-   for(int i=0; i<12; ++i)
+   
+
+   if (m_star_color_mode == star_color_mode::big_small)
    {
-      const glm::vec3 p0 = x[2*i].m_position;
-      const glm::vec3 p1 = x[2*i+1].m_position;
+      for (int i = 0; i < m_universe.m_systems.size(); ++i)
+      {
+         constexpr glm::vec3 red{ 1.0f, 0.5f, 0.5f };
+         constexpr glm::vec3 green{ 0.5f, 1.0f, 0.5f };
+         m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_size == system_size::small) ? red : green;
+         if (m_universe.m_systems[i].m_speculative)
+            m_star_props_ssbo.m_stars[i].color = speculative_color;
+         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
+      }
+   }
+   else if (m_star_color_mode == star_color_mode::abs_mag)
+   {
+      for (int i = 0; i < std::ssize(m_universe.m_systems); ++i)
+      {
+         constexpr glm::vec3 bright{ 1.0f };
+         constexpr glm::vec3 faint{ 0.5f };
+         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
+         m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_abs_mag < abs_threshold) ? bright : faint;
+         if (m_universe.m_systems[i].m_speculative)
+            m_star_props_ssbo.m_stars[i].color = speculative_color;
+      }
+   }
+}
+
+
+auto engine::update_ssbo_bb() -> void
+{
+   const std::vector<glm::vec3> x = get_bb_mesh(m_universe.m_map_bb, m_universe.m_trafo);
+   for (int i = 0; i < x.size()/2; ++i)
+   {
+      const glm::vec3 p0 = x[2 * i];
+      const glm::vec3 p1 = x[2 * i + 1];
 
       glm::mat4 trafo(1.0f);
 
@@ -1092,31 +1125,6 @@ auto engine::update_ssbo(const float abs_threshold) -> void
 
 
       m_star_props_ssbo.bb_elements[i].trafo = trafo;
-   }
-
-   if (m_star_color_mode == star_color_mode::big_small)
-   {
-      for (int i = 0; i < m_universe.m_systems.size(); ++i)
-      {
-         constexpr glm::vec3 red{ 1.0f, 0.5f, 0.5f };
-         constexpr glm::vec3 green{ 0.5f, 1.0f, 0.5f };
-         m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_size == system_size::small) ? red : green;
-         if (m_universe.m_systems[i].m_specular)
-            m_star_props_ssbo.m_stars[i].color = speculative_color;
-         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
-      }
-   }
-   else if (m_star_color_mode == star_color_mode::abs_mag)
-   {
-      for (int i = 0; i < std::ssize(m_universe.m_systems); ++i)
-      {
-         constexpr glm::vec3 bright{ 1.0f };
-         constexpr glm::vec3 faint{ 0.5f };
-         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
-         m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_abs_mag < abs_threshold) ? bright : faint;
-         if (m_universe.m_systems[i].m_specular)
-            m_star_props_ssbo.m_stars[i].color = speculative_color;
-      }
    }
 }
 
@@ -1137,7 +1145,7 @@ auto engine::draw_system_labels() const -> void
       constexpr glm::vec4 normal_color{ 1, 1, 1, label_opacity };
       constexpr glm::vec4 speculation_color{ 1, 0.6, 0.95, label_opacity };
       glm::vec4 color = system.get_starfield_name().has_value() ? normal_color : speculation_color;
-      if (system.m_specular)
+      if (system.m_speculative)
          color = glm::vec4{1, 1, 0, 1};
       this->draw_text(system.get_useful_name().value(), system.m_position, offset, color);
    }

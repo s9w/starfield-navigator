@@ -78,7 +78,7 @@ sfn::system::system(
    const std::string& catalog,
    const system_size size,
    const float abs_mag,
-   const bool specular
+   const bool speculative
 )
    : m_name(name)
    , m_astronomic_name(astronomic_name)
@@ -86,7 +86,7 @@ sfn::system::system(
    , m_position(pos)
    , m_size(size)
    , m_abs_mag(abs_mag)
-   , m_specular(specular)
+   , m_speculative(speculative)
 {
    static int unnamed_count = 0;
    if (name.empty())

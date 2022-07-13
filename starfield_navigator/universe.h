@@ -22,13 +22,13 @@ namespace sfn
       glm::vec3 m_position;
       system_size m_size = system_size::big;
       float m_abs_mag;
-      bool m_specular = false;
+      bool m_speculative = false;
 
       [[nodiscard]] auto get_useful_name() const -> std::optional<std::string>;
       [[nodiscard]] auto get_name() const -> std::string;
       [[nodiscard]] auto get_starfield_name() const -> std::optional<std::string>;
 
-      explicit system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name, const std::string& catalog, const system_size size, const float abs_mag, const bool specular);
+      explicit system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name, const std::string& catalog, const system_size size, const float abs_mag, const bool speculative);
    };
 
    struct cs
