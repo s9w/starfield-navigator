@@ -24,10 +24,15 @@ namespace sfn
       alignas(sizeof(glm::vec4)) glm::vec3 position;
       alignas(sizeof(glm::vec4)) glm::vec3 color;
    };
+   struct alignas(4 * sizeof(float)) bb_element {
+      alignas(sizeof(glm::vec4)) glm::mat4 trafo;
+   };
 
    struct star_props_ssbo : ubo_type
    {
+      bb_element bb_elements[12];
       star_prop_element m_stars[256];
+      
       [[nodiscard]] auto get_byte_count() const -> int
       {
          return sizeof(star_props_ssbo);

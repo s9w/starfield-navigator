@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h> // after glad
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/vector_angle.hpp>
 #include "fonts/FontAwesomeSolid.hpp"
 #include "fonts/DroidSans.hpp"
 #include "fonts/IconsFontAwesome5.h"
@@ -112,6 +113,7 @@ namespace
    }
 
    const std::vector<position_vertex_data> sphere_mesh = get_position_vertex_data(get_complete_obj_info("assets/Sphere.obj", -1.0f));
+   const std::vector<position_vertex_data> cylinder_mesh = get_position_vertex_data(get_complete_obj_info("assets/Cylinder.obj", -1.0f));
 
    [[nodiscard]] auto get_bb_mesh(
       const bb_3D& old_coord_bb,
@@ -168,12 +170,10 @@ namespace
       return result;
    }
 
-   // std::vector<position_vertex_data> star_mesh;
    std::vector<line_vertex_data> jump_line_mesh;
    std::vector<line_vertex_data> connection_line_mesh;
    std::vector<position_vertex_data> indicator_mesh;
    std::vector<position_vertex_data> drops_mesh;
-   std::vector<position_vertex_data> bb_mesh;
 
 
    // written so it yields (0, -1, 0) for 0, 0, 1 parameters, which is how the geometry is set up
@@ -232,14 +232,13 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    buffer_layout.emplace_back(ubo_segment(sizeof(mvp_type), "ubo_mvp"));
 
    drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].m_position[2]);
-   bb_mesh = get_bb_mesh(m_universe.m_map_bb, m_universe.m_trafo);
    buffer_layout.emplace_back(get_soa_vbo_segment(sphere_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<position_vertex_data>(128));
    buffer_layout.emplace_back(ssbo_segment(m_star_props_ssbo.get_byte_count(), "star_ssbo"));
    buffer_layout.emplace_back(get_soa_vbo_segment(drops_mesh));
-   buffer_layout.emplace_back(get_soa_vbo_segment(bb_mesh));
+   buffer_layout.emplace_back(get_soa_vbo_segment(cylinder_mesh));
    const std::vector<id> segment_ids = m_buffers2.create_buffer(std::move(buffer_layout), usage_pattern::dynamic_draw);
    m_mvp_ubo_id = segment_ids[0];
    m_star_vbo_id = segment_ids[1];
@@ -412,7 +411,7 @@ auto sfn::engine::draw_frame() -> void
       m_vao_bb->bind();
       m_shader_bb.use();
       glDisable(GL_DEPTH_TEST);
-      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(bb_mesh.size()));
+      glDrawArraysInstanced(GL_TRIANGLES, 0, static_cast<GLsizei>(cylinder_mesh.size()), 12);
       glEnable(GL_DEPTH_TEST);
    }
 
@@ -694,7 +693,7 @@ auto engine::gpu_upload() const -> void
    m_buffers2.upload_vbo(m_connection_lines_vbo_id, as_bytes(connection_line_mesh));
    m_buffers2.upload_vbo(m_indicator_vbo_id, as_bytes(indicator_mesh));
    m_buffers2.upload_vbo(m_drops_vbo_id, as_bytes(drops_mesh));
-   m_buffers2.upload_vbo(m_bb_vbo_id, as_bytes(bb_mesh));
+   m_buffers2.upload_vbo(m_bb_vbo_id, as_bytes(cylinder_mesh));
 
    m_buffers2.upload_ssbo(m_star_ssbo_id, as_bytes(m_star_props_ssbo), 0);
 }
@@ -1069,6 +1068,32 @@ auto engine::get_cs() const -> cs
 auto engine::update_ssbo(const float abs_threshold) -> void
 {
    constexpr glm::vec3 speculative_color{ 1, 1, 0 };
+
+   const std::vector<position_vertex_data> x = get_bb_mesh(m_universe.m_map_bb, m_universe.m_trafo);
+   for(int i=0; i<12; ++i)
+   {
+      const glm::vec3 p0 = x[2*i].m_position;
+      const glm::vec3 p1 = x[2*i+1].m_position;
+
+      glm::mat4 trafo(1.0f);
+
+      constexpr glm::vec3 galactic_cylinder{ 1, 0, 0 };
+      const glm::vec3 target_direction = glm::normalize(p1 - p0);
+      const float length = glm::distance(p1, p0);
+
+      trafo = glm::translate(trafo, p0);
+
+      const auto axis = glm::cross(galactic_cylinder, target_direction);
+      const float angle = glm::orientedAngle(galactic_cylinder, target_direction, axis);
+      trafo = glm::rotate(trafo, angle, axis);
+      constexpr float diameter = 0.3f;
+      constexpr float radius = 0.5f * diameter;
+      trafo = glm::scale(trafo, glm::vec3{ length, radius, radius });
+
+
+      m_star_props_ssbo.bb_elements[i].trafo = trafo;
+   }
+
    if (m_star_color_mode == star_color_mode::big_small)
    {
       for (int i = 0; i < m_universe.m_systems.size(); ++i)

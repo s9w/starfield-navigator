@@ -82,7 +82,6 @@ namespace {
             .m_b = glm::radians(std::stof(split[2])),
             .m_dist = std::stof(split[3])
          };
-         const float mag = std::stof(split[4]);
          const float abs_mag = std::stof(split[5]);
 
          result.m_stars.emplace(
