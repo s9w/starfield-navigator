@@ -172,7 +172,6 @@ namespace
    }
 
    std::vector<line_vertex_data> jump_line_mesh;
-   std::vector<line_vertex_data> connection_line_mesh;
    std::vector<position_vertex_data> indicator_mesh;
    std::vector<position_vertex_data> drops_mesh;
 
@@ -206,6 +205,29 @@ namespace
       }
    }
 
+
+   [[nodiscard]] auto get_obj_trafo_between_points(
+      const glm::vec3& p0,
+      const glm::vec3& p1,
+      const float diameter
+   ) -> glm::mat4
+   {
+      glm::mat4 trafo(1.0f);
+
+      constexpr glm::vec3 galactic_cylinder{ 1, 0, 0 };
+      const glm::vec3 target_direction = glm::normalize(p1 - p0);
+      const float length = glm::distance(p1, p0);
+
+      trafo = glm::translate(trafo, p0);
+
+      const auto axis = glm::cross(galactic_cylinder, target_direction);
+      const float angle = glm::orientedAngle(galactic_cylinder, target_direction, axis);
+      trafo = glm::rotate(trafo, angle, axis);
+      const float radius = 0.5f * diameter;
+      trafo = glm::scale(trafo, glm::vec3{ length, radius, radius });
+      return trafo;
+   }
+
 } // namespace {}
 
 
@@ -219,6 +241,7 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    , m_shader_indicator("indicator_shader")
    , m_shader_droplines("droplines_shader")
    , m_shader_bb("bb_shader")
+   , m_shader_connection("connection_shader")
    , m_framebuffers(m_textures)
 {
    update_ssbo_bb();
@@ -236,7 +259,6 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].m_position[2]);
    buffer_layout.emplace_back(get_soa_vbo_segment(sphere_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
-   buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<position_vertex_data>(128));
    buffer_layout.emplace_back(ssbo_segment(m_star_props_ssbo.get_byte_count(), "star_ssbo"));
    buffer_layout.emplace_back(get_soa_vbo_segment(drops_mesh));
@@ -245,11 +267,10 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    m_mvp_ubo_id = segment_ids[0];
    m_star_vbo_id = segment_ids[1];
    m_jump_lines_vbo_id = segment_ids[2];
-   m_connection_lines_vbo_id = segment_ids[3];
-   m_indicator_vbo_id = segment_ids[4];
-   m_star_ssbo_id = segment_ids[5];
-   m_drops_vbo_id = segment_ids[6];
-   m_bb_vbo_id = segment_ids[7];
+   m_indicator_vbo_id = segment_ids[3];
+   m_star_ssbo_id = segment_ids[4];
+   m_drops_vbo_id = segment_ids[5];
+   m_cylinder_vbo_id = segment_ids[6];
 
    m_binding_point_man.add(m_mvp_ubo_id);
    m_binding_point_man.add(m_star_ssbo_id);
@@ -259,15 +280,18 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_stars);
    bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_lines);
    bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_droplines);
+   bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_connection);
    bind_ssbo("star_ssbo", buffer_ref, m_star_ssbo_id, m_shader_stars);
    bind_ssbo("star_ssbo", buffer_ref, m_star_ssbo_id, m_shader_droplines);
+   bind_ssbo("star_ssbo", buffer_ref, m_star_ssbo_id, m_shader_connection);
+   bind_ssbo("star_ssbo", buffer_ref, m_star_ssbo_id, m_shader_bb);
 
    m_vao_stars.emplace(m_buffers2, m_star_vbo_id, m_shader_stars);
    m_vao_jump_lines.emplace(m_buffers2, m_jump_lines_vbo_id, m_shader_lines);
-   m_vao_connection_lines.emplace(m_buffers2, m_connection_lines_vbo_id, m_shader_lines);
+   m_vao_connection_lines.emplace(m_buffers2, m_cylinder_vbo_id, m_shader_connection);
    m_vao_indicator.emplace(m_buffers2, m_indicator_vbo_id, m_shader_indicator);
    m_vao_drops.emplace(m_buffers2, m_drops_vbo_id, m_shader_droplines);
-   m_vao_bb.emplace(m_buffers2, m_bb_vbo_id, m_shader_bb);
+   m_vao_bb.emplace(m_buffers2, m_cylinder_vbo_id, m_shader_bb);
 }
 
 
@@ -342,15 +366,26 @@ auto sfn::engine::draw_frame() -> void
 
    // upload things
    gpu_upload();
-   glEnable(GL_DEPTH_CLAMP);
+
    // render things
+   glEnable(GL_DEPTH_CLAMP);
+   // draw bb
+   if (this->m_show_bb)
+   {
+      m_vao_bb->bind();
+      m_shader_bb.use();
+      m_shader_bb.set_uniform("time", timing_info.m_steady_time);
+      glDisable(GL_DEPTH_TEST);
+      glDrawArraysInstanced(GL_TRIANGLES, 0, static_cast<GLsizei>(cylinder_mesh.size()), 12);
+      glEnable(GL_DEPTH_TEST);
+   }
+
    if (m_gui_mode == gui_mode::jumps)
    {
       m_vao_connection_lines->bind();
-      m_shader_lines.use();
-      m_shader_lines.set_uniform("time", -1.0f);
+      m_shader_connection.use();
       glDepthMask(false);
-      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(connection_line_mesh.size()));
+      glDrawArraysInstanced(GL_TRIANGLES, 0, static_cast<GLsizei>(cylinder_mesh.size()), m_connection_trafo_count);
       glDepthMask(true);
 
       m_vao_jump_lines->bind();
@@ -361,9 +396,8 @@ auto sfn::engine::draw_frame() -> void
    else if (m_gui_mode == gui_mode::connections)
    {
       m_vao_connection_lines->bind();
-      m_shader_lines.use();
-      m_shader_lines.set_uniform("time", -1.0f);
-      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(connection_line_mesh.size()));
+      m_shader_connection.use();
+      glDrawArraysInstanced(GL_TRIANGLES, 0, static_cast<GLsizei>(cylinder_mesh.size()), m_connection_trafo_count);
    }
 
    
@@ -403,16 +437,7 @@ auto sfn::engine::draw_frame() -> void
       }
    }
 
-   // draw bb
-   if (this->m_show_bb)
-   {
-      m_vao_bb->bind();
-      m_shader_bb.use();
-      m_shader_bb.set_uniform("time", timing_info.m_steady_time);
-      glDisable(GL_DEPTH_TEST);
-      glDrawArraysInstanced(GL_TRIANGLES, 0, static_cast<GLsizei>(cylinder_mesh.size()), 12);
-      glEnable(GL_DEPTH_TEST);
-   }
+
 
    if(std::holds_alternative<wasd_mode>(m_camera_mode))
    {
@@ -568,7 +593,7 @@ auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
    if (course_changed || switched_into_tab)
    {
       starfield_graph = get_graph_from_universe(m_universe, jump_range);
-      connection_line_mesh = build_connection_mesh_from_graph(starfield_graph);
+      build_connection_mesh_from_graph(starfield_graph);
 
       const auto distance_getter = [&](const int i, const int j) {return m_universe.get_distance(i, j); };
       path = starfield_graph.get_jump_path(m_source_index, m_destination_index, distance_getter);
@@ -689,10 +714,9 @@ auto engine::gpu_upload() const -> void
    m_buffers2.upload_ubo(m_mvp_ubo_id, as_bytes(m_current_mvp));
    m_buffers2.upload_vbo(m_star_vbo_id, as_bytes(sphere_mesh));
    m_buffers2.upload_vbo(m_jump_lines_vbo_id, as_bytes(jump_line_mesh));
-   m_buffers2.upload_vbo(m_connection_lines_vbo_id, as_bytes(connection_line_mesh));
    m_buffers2.upload_vbo(m_indicator_vbo_id, as_bytes(indicator_mesh));
    m_buffers2.upload_vbo(m_drops_vbo_id, as_bytes(drops_mesh));
-   m_buffers2.upload_vbo(m_bb_vbo_id, as_bytes(cylinder_mesh));
+   m_buffers2.upload_vbo(m_cylinder_vbo_id, as_bytes(cylinder_mesh));
 
    m_buffers2.upload_ssbo(m_star_ssbo_id, as_bytes(m_star_props_ssbo), 0);
 }
@@ -734,28 +758,30 @@ auto engine::get_camera_pos() const -> glm::vec3
 }
 
 
+
+
+
 auto sfn::engine::build_connection_mesh_from_graph(
    const graph& connection_graph
-) const -> std::vector<line_vertex_data>
+) -> void
 {
-   std::vector<line_vertex_data> connection_mesh;
-   connection_mesh.reserve(2 * connection_graph.m_connections.size());
+   m_connection_trafo_count = std::clamp(
+      static_cast<int>(std::ssize(connection_graph.m_connections)),
+      0,
+      static_cast<int>(std::ssize(m_star_props_ssbo.connection_trafos))-1
+   );
+
+   int i = 0;
    for (const auto& [key, con] : connection_graph.m_connections)
    {
-      connection_mesh.push_back(
-         line_vertex_data{
-            .m_position = m_universe.m_systems[con.m_node_index0].m_position,
-            .m_progress = 0.0f
-         }
-      );
-      connection_mesh.push_back(
-         line_vertex_data{
-            .m_position = m_universe.m_systems[con.m_node_index1].m_position,
-            .m_progress = 0.0f
-         }
-      );
+      if (i >= std::ssize(m_star_props_ssbo.connection_trafos))
+         return;
+
+      const glm::vec3& p0 = m_universe.m_systems[con.m_node_index0].m_position;
+      const glm::vec3& p1 = m_universe.m_systems[con.m_node_index1].m_position;
+      m_star_props_ssbo.connection_trafos[i] = get_obj_trafo_between_points(p0, p1, 0.05f);
+      ++i;
    }
-   return connection_mesh;
 }
 
 
@@ -944,11 +970,11 @@ auto sfn::engine::gui_draw() -> void
             static float connections_jump_range = 15.0f;
             static graph connection_graph = get_graph_from_universe(m_universe, connections_jump_range);
             bool changed = m_gui_mode != old_gui_mode;
-            changed |= ImGui::SliderFloat("jump range", &connections_jump_range, 0, 30) || connection_line_mesh.empty();
-            if(changed)
+            changed |= ImGui::SliderFloat("jump range", &connections_jump_range, 0, 30);
+            if(changed || m_connection_trafo_count == 0)
             {
                connection_graph = get_graph_from_universe(m_universe, connections_jump_range);
-               connection_line_mesh = build_connection_mesh_from_graph(connection_graph);
+               build_connection_mesh_from_graph(connection_graph);
             }
             ImGui::EndTabItem();
          }
@@ -1104,24 +1130,7 @@ auto engine::update_ssbo_bb() -> void
    {
       const glm::vec3 p0 = x[2 * i];
       const glm::vec3 p1 = x[2 * i + 1];
-
-      glm::mat4 trafo(1.0f);
-
-      constexpr glm::vec3 galactic_cylinder{ 1, 0, 0 };
-      const glm::vec3 target_direction = glm::normalize(p1 - p0);
-      const float length = glm::distance(p1, p0);
-
-      trafo = glm::translate(trafo, p0);
-
-      const auto axis = glm::cross(galactic_cylinder, target_direction);
-      const float angle = glm::orientedAngle(galactic_cylinder, target_direction, axis);
-      trafo = glm::rotate(trafo, angle, axis);
-      constexpr float diameter = 0.3f;
-      constexpr float radius = 0.5f * diameter;
-      trafo = glm::scale(trafo, glm::vec3{ length, radius, radius });
-
-
-      m_star_props_ssbo.bb_elements[i].trafo = trafo;
+      m_star_props_ssbo.bb_elements[i].trafo = get_obj_trafo_between_points(p0, p1, 0.1f);
    }
 }
 

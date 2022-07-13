@@ -1,3 +1,8 @@
+# 0.12
+- Added 20 or so speculative systems
+- Bounding box of the confirmed stars can be displayed. This is mostly to help gauge where the missing stars might be
+- Rendering of connecting lines is much improved
+
 # 0.11
 - Added orthographic projection mode
 - Speculative stars can be manually entered into the `system_data.txt` file. There are examples there

@@ -31,6 +31,7 @@ namespace sfn
    struct star_props_ssbo : ubo_type
    {
       bb_element bb_elements[12];
+      alignas(sizeof(glm::vec4)) glm::mat4 connection_trafos[2048];
       star_prop_element m_stars[256];
       
       [[nodiscard]] auto get_byte_count() const -> int
@@ -95,6 +96,7 @@ namespace sfn
       bool m_show_star_labels = true;
       projection_params m_projection_params;
       bool m_show_bb = true;
+      int m_connection_trafo_count = 0;
 
       camera_mode m_camera_mode = wasd_mode{ m_universe.m_cam_info.m_cam_pos0 };
       buffers m_buffers2;
@@ -102,10 +104,9 @@ namespace sfn
       id m_main_fb{ no_init{} };
       id m_star_vbo_id{ no_init{} };
       id m_jump_lines_vbo_id{ no_init{} };
-      id m_connection_lines_vbo_id{ no_init{} };
       id m_indicator_vbo_id{ no_init{} };
       id m_drops_vbo_id{ no_init{} };
-      id m_bb_vbo_id{ no_init{} };
+      id m_cylinder_vbo_id{ no_init{} };
       id m_star_ssbo_id{ no_init{} };
       binding_point_man m_binding_point_man;
       mvp_type m_current_mvp{};
@@ -115,6 +116,7 @@ namespace sfn
       shader_program m_shader_indicator;
       shader_program m_shader_droplines;
       shader_program m_shader_bb;
+      shader_program m_shader_connection;
       texture_manager m_textures{};
       framebuffer_manager m_framebuffers; // needs to be after texture manager
       std::optional<vao> m_vao_stars;
@@ -171,7 +173,7 @@ namespace sfn
       [[nodiscard]] auto get_view_matrix(const camera_mode& mode) const -> glm::mat4;
       [[nodiscard]] auto get_camera_target(const camera_mode& mode) const -> glm::vec3;
       auto draw_system_labels() const -> void;
-      auto build_connection_mesh_from_graph(const graph& connection_graph) const -> std::vector<line_vertex_data>;
+      auto build_connection_mesh_from_graph(const graph& connection_graph) -> void;
       auto build_neighbor_connection_mesh(const universe& universe, const int center_system) const -> std::vector<line_vertex_data>;
       auto draw_text(const std::string& text, const glm::vec3& pos, const glm::vec2& center_offset, const glm::vec4& color) const -> void;
       auto draw_circle(const glm::vec3& pos, const float radius, const glm::vec4& color) const -> void;

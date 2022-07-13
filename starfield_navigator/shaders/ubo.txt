@@ -10,7 +10,9 @@ struct star_prop_element{
   vec3 position;
   vec3 color;
 };
+
 layout (std140) buffer star_ssbo{
     mat4 bb_trafos[12];
+    mat4 connection_trafos[2048];
     star_prop_element ssbo_data[];
 };
