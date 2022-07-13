@@ -356,18 +356,14 @@ auto sfn::engine::draw_frame() -> void
       m_vao_jump_lines->bind();
       m_shader_lines.use();
       m_shader_lines.set_uniform("time", timing_info.m_steady_time);
-      // glDepthMask(false);
       glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(jump_line_mesh.size()));
-      // glDepthMask(true);
    }
    else if (m_gui_mode == gui_mode::connections)
    {
       m_vao_connection_lines->bind();
       m_shader_lines.use();
       m_shader_lines.set_uniform("time", -1.0f);
-      // glDepthMask(false);
       glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(connection_line_mesh.size()));
-      // glDepthMask(true);
    }
 
    
@@ -412,6 +408,7 @@ auto sfn::engine::draw_frame() -> void
    {
       m_vao_bb->bind();
       m_shader_bb.use();
+      m_shader_bb.set_uniform("time", timing_info.m_steady_time);
       glDisable(GL_DEPTH_TEST);
       glDrawArraysInstanced(GL_TRIANGLES, 0, static_cast<GLsizei>(cylinder_mesh.size()), 12);
       glEnable(GL_DEPTH_TEST);
