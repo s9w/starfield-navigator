@@ -25,19 +25,19 @@ namespace
       ImGui::Text(text.c_str());
    }
 
-
-   [[nodiscard]] auto get_projection_matrix(const config& config, const projection_params& params) -> glm::mat4
+   template<is_alternative<projection_params> T>
+   [[nodiscard]] auto get_projection_matrix(const config& config, const T& param) -> glm::mat4
    {
       const float aspect = static_cast<float>(config.res_x) / config.res_y;
-      if (std::holds_alternative<perspective_params>(params))
+      if constexpr (std::same_as<T, perspective_params>)
       {
          constexpr float x_fov = glm::radians(60.0f);
          const float y_fov = x_fov / aspect;
          return glm::perspective(y_fov, aspect, 0.1f, 3000.0f);
       }
-      else if (std::holds_alternative<ortho_params>(params))
+      else if constexpr (std::same_as<T, ortho_params>)
       {
-         const float frustum_width = std::get<ortho_params>(params).width;
+         const float frustum_width = param.width;
          return glm::ortho(
             -0.5f * frustum_width,
             0.5f * frustum_width,
@@ -47,7 +47,6 @@ namespace
             500.0f
          );
       }
-      std::terminate();
    }
 
 
@@ -705,7 +704,10 @@ auto engine::update_mvp_member() -> void
 {
    m_current_mvp.m_cam_pos = get_camera_pos();
    m_current_mvp.m_selected_system_pos = m_universe.m_systems[m_list_selection].m_position;
-   m_current_mvp.m_projection = get_projection_matrix(m_config, m_projection_params);
+   m_current_mvp.m_projection = std::visit(
+      [&](const auto& alternative) {return get_projection_matrix(m_config, alternative); },
+      m_projection_params
+   );
    m_current_mvp.m_view = std::visit(
       [&](const auto& x) {return get_view_matrix(x); },
       m_camera_mode

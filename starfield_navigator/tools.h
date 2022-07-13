@@ -4,6 +4,7 @@
 #include <chrono>
 #include <unordered_map>
 #include <span>
+#include <variant>
 
 #include <s9w_core.h>
 
@@ -129,6 +130,17 @@ namespace sfn
          return m_width * m_height * m_bpp;
       }
    };
+
+   template<typename alternative_type, typename variant_type>
+   struct is_alternative_impl {
+      static_assert(sizeof(alternative_type) < 0, "can't use is_alternative<> with a non-variant");
+   };
+   template<typename alternative_type, typename... variant_alternatives>
+   struct is_alternative_impl<alternative_type, std::variant<variant_alternatives...>>
+      : std::disjunction<std::is_same<alternative_type, variant_alternatives>...>
+   {};
+   template<typename alternative_type, typename variant_type>
+   concept is_alternative = is_alternative_impl<alternative_type, variant_type>::value;
 }
 
 
