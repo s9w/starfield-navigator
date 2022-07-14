@@ -425,6 +425,29 @@ auto sfn::engine::draw_frame() -> void
    {
       std::visit(mouse_movement_visitor{ m_mouse_mover->get_mouse_movement(this->get_window()) }, m_camera_mode);
    }
+   const auto center_tiler = [&]<typename T>(T & mode) {
+      if constexpr (centery<T>)
+      {
+         if (is_button_pressed(this->get_window(), GLFW_KEY_W))
+            mode.vert_angle_offset += 0.01f;
+         if (is_button_pressed(this->get_window(), GLFW_KEY_S))
+            mode.vert_angle_offset -= 0.01f;
+         if (is_button_pressed(this->get_window(), GLFW_KEY_A))
+            mode.horiz_angle_offset -= 0.01f;
+         if (is_button_pressed(this->get_window(), GLFW_KEY_D))
+            mode.horiz_angle_offset += 0.01f;
+      }
+   };
+   std::visit(center_tiler, m_camera_mode);
+
+   const auto pitch_limiter = [&]<typename T>(T & mode) {
+      if constexpr (centery<T>)
+      {
+         constexpr float half_pi = glm::radians(85.0f);
+         mode.vert_angle_offset = std::clamp(mode.vert_angle_offset, -half_pi, half_pi);
+      }
+   };
+   std::visit(pitch_limiter, m_camera_mode);
 
    // calculate things
    update_mvp_member();
@@ -861,22 +884,19 @@ auto sfn::engine::gui_draw() -> void
    {
       normal_imgui_window w(glm::ivec2{ 250, 0 }, glm::ivec2{ 500, 90 }, fmt::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
 
-      const auto is_button_pressed = [&](const int key) -> bool {
-         return glfwGetKey(m_graphics_context->m_window_wrapper.m_window, key) == GLFW_PRESS;
-      };
       if (std::holds_alternative<wasd_mode>(m_camera_mode))
       {
          auto& camera_pos = std::get<wasd_mode>(m_camera_mode).m_camera_pos;
-         if (is_button_pressed(GLFW_KEY_W)) {
+         if (is_button_pressed(this->get_window(), GLFW_KEY_W)) {
             camera_pos += 0.1f * m_universe.m_cam_info.m_cs.m_front;
          }
-         if (is_button_pressed(GLFW_KEY_S)) {
+         if (is_button_pressed(this->get_window(), GLFW_KEY_S)) {
             camera_pos += -0.1f * m_universe.m_cam_info.m_cs.m_front;
          }
-         if (is_button_pressed(GLFW_KEY_A)) {
+         if (is_button_pressed(this->get_window(), GLFW_KEY_A)) {
             camera_pos += -0.1f * m_universe.m_cam_info.m_cs.m_right;
          }
-         if (is_button_pressed(GLFW_KEY_D)) {
+         if (is_button_pressed(this->get_window(), GLFW_KEY_D)) {
             camera_pos += 0.1f * m_universe.m_cam_info.m_cs.m_right;
          }
       }
@@ -927,20 +947,7 @@ auto sfn::engine::gui_draw() -> void
          ImGui::SliderFloat("dropline range", &m_dropline_range, 0.0f, 100.0f);
       }
 
-      const auto center_tiler = [&]<typename T>(T& mode){
-         if constexpr (centery<T>)
-         {
-            if (is_button_pressed(GLFW_KEY_W))
-               mode.vert_angle_offset += 0.01f;
-            if (is_button_pressed(GLFW_KEY_S))
-               mode.vert_angle_offset -= 0.01f;
-            if (is_button_pressed(GLFW_KEY_A))
-               mode.horiz_angle_offset -= 0.01f;
-            if (is_button_pressed(GLFW_KEY_D))
-               mode.horiz_angle_offset += 0.01f;
-         }
-      };
-      std::visit(center_tiler, m_camera_mode);
+      
    }
 
    bool selection_changed = false;

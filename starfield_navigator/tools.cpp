@@ -117,3 +117,9 @@ auto sfn::get_cursor_pos(GLFWwindow* window) -> glm::vec2
    glfwGetCursorPos(window, &new_pos[0], &new_pos[1]);
    return glm::vec2{ new_pos };
 }
+
+
+auto sfn::is_button_pressed(GLFWwindow* window, const int key) -> bool
+{
+   return glfwGetKey(window, key) == GLFW_PRESS;
+}

@@ -135,6 +135,7 @@ namespace sfn
    };
 
    [[nodiscard]] auto get_cursor_pos(GLFWwindow* window) -> glm::vec2;
+   [[nodiscard]] auto is_button_pressed(GLFWwindow* window, const int key) -> bool;
 
    template<typename alternative_type, typename variant_type>
    struct is_alternative_impl {

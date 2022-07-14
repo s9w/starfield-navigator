@@ -1,3 +1,6 @@
+# 0.13
+- In both center modes, view can be rotated with held down right mouse button
+
 # 0.12
 - Added 20 or so speculative systems
 - Bounding box of the confirmed stars can be displayed. This is mostly to help gauge where the missing stars might be
