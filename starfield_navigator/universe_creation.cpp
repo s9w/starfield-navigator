@@ -146,6 +146,7 @@ namespace {
       return trafo;
    }
 
+
    [[nodiscard]] auto get_system_size(const std::string& size_str) -> system_size
    {
       if (size_str == "big")
@@ -153,6 +154,26 @@ namespace {
       if (size_str == "small")
          return system_size::small;
       std::terminate();
+   }
+
+
+   [[nodiscard]] auto get_unexplored_bb(
+      const bb_3D& visible_bb,
+      const glm::vec3& sol_position
+   ) -> bb_3D
+   {
+      bb_3D result = visible_bb;
+
+      // Align left to Sol
+      result.m_min[0] = sol_position[0];
+
+      // Shift to the left
+      const float width = result.get_size()[0];
+      const glm::vec3 shift{ -width, 0, 0 };
+      result.m_min += shift;
+      result.m_max += shift;
+
+      return result;
    }
 
 } // namespace {}
@@ -441,6 +462,7 @@ auto universe_creator::get_finished_result() -> universe
    m_starfield_universe.m_cam_info = get_and_delete_cam_info(m_starfield_universe.m_systems);
    m_starfield_universe.m_trafo = final_transformation;
    m_starfield_universe.m_map_bb = old_coord_bb;
+   m_starfield_universe.m_left_bb = get_unexplored_bb(old_coord_bb, m_starfield_universe.get_position_by_name("SOL"));;
    m_starfield_universe.init();
 
    // {

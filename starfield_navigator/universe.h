@@ -54,6 +54,7 @@ namespace sfn
       float m_max_abs_mag;
       glm::mat4 m_trafo;
       bb_3D m_map_bb;
+      bb_3D m_left_bb;
 
       auto init() -> void;
       [[nodiscard]] auto get_position_by_name(const std::string& name) const->glm::vec3;
