@@ -449,6 +449,21 @@ auto sfn::engine::draw_frame() -> void
    };
    std::visit(pitch_limiter, m_camera_mode);
 
+   if (std::holds_alternative<wasd_mode>(m_camera_mode))
+   {
+      auto& camera_pos = std::get<wasd_mode>(m_camera_mode).m_camera_pos;
+      constexpr float ly_per_sec = 10.0f;
+      const float move_distance = timing_info.m_last_frame_duration * ly_per_sec;
+      if (is_button_pressed(this->get_window(), GLFW_KEY_W))
+         camera_pos += move_distance * m_universe.m_cam_info.m_cs.m_front;
+      if (is_button_pressed(this->get_window(), GLFW_KEY_S))
+         camera_pos += -move_distance * m_universe.m_cam_info.m_cs.m_front;
+      if (is_button_pressed(this->get_window(), GLFW_KEY_A))
+         camera_pos += -move_distance * m_universe.m_cam_info.m_cs.m_right;
+      if (is_button_pressed(this->get_window(), GLFW_KEY_D))
+         camera_pos += move_distance * m_universe.m_cam_info.m_cs.m_right;
+   }
+
    // calculate things
    update_mvp_member();
    if(std::holds_alternative<trailer_mode>(m_camera_mode))
@@ -884,22 +899,7 @@ auto sfn::engine::gui_draw() -> void
    {
       normal_imgui_window w(glm::ivec2{ 250, 0 }, glm::ivec2{ 500, 90 }, fmt::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
 
-      if (std::holds_alternative<wasd_mode>(m_camera_mode))
-      {
-         auto& camera_pos = std::get<wasd_mode>(m_camera_mode).m_camera_pos;
-         if (is_button_pressed(this->get_window(), GLFW_KEY_W)) {
-            camera_pos += 0.1f * m_universe.m_cam_info.m_cs.m_front;
-         }
-         if (is_button_pressed(this->get_window(), GLFW_KEY_S)) {
-            camera_pos += -0.1f * m_universe.m_cam_info.m_cs.m_front;
-         }
-         if (is_button_pressed(this->get_window(), GLFW_KEY_A)) {
-            camera_pos += -0.1f * m_universe.m_cam_info.m_cs.m_right;
-         }
-         if (is_button_pressed(this->get_window(), GLFW_KEY_D)) {
-            camera_pos += 0.1f * m_universe.m_cam_info.m_cs.m_right;
-         }
-      }
+
 
       static int radio_selected = 0;
       const int old_selected = radio_selected;

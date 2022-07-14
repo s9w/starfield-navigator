@@ -1,5 +1,6 @@
 # 0.13
 - In both center modes, view can be rotated with held down right mouse button
+- Movement speed in frontal view is now FPS-independent and faster (10 ly per second)
 
 # 0.12
 - Added 20 or so speculative systems
