@@ -77,6 +77,12 @@ namespace sfn
    struct perspective_params{};
    using projection_params = std::variant<perspective_params, ortho_params>;
 
+   struct mouse_mover {
+      glm::vec2 m_pos{};
+      explicit mouse_mover(GLFWwindow* window);
+      auto get_mouse_movement(GLFWwindow* window) -> glm::vec2;
+   };
+
    struct engine
    {
    private:
@@ -97,6 +103,7 @@ namespace sfn
       projection_params m_projection_params;
       bool m_show_bb = true;
       int m_connection_trafo_count = 0;
+      std::optional<mouse_mover> m_mouse_mover;
 
       camera_mode m_camera_mode = wasd_mode{ m_universe.m_cam_info.m_cam_pos0 };
       buffers m_buffers2;
@@ -129,16 +136,9 @@ namespace sfn
       explicit engine(const config& config, std::unique_ptr<graphics_context>&& gc, universe&& universe);
       [[nodiscard]] auto get_window() const->GLFWwindow*;
 
-      static auto static_resize_callback(
-         GLFWwindow* window,
-         int new_width,
-         int new_height
-      ) -> void;
-      static auto static_scroll_callback(
-         GLFWwindow* window,
-         double xoffset, double yoffset
-      ) -> void;
-
+      static auto static_resize_callback(GLFWwindow* window, int new_width, int new_height) -> void;
+      static auto static_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) -> void;
+      static auto static_mouse_button_callback(GLFWwindow* window, int button, int action, int mods) -> void;
 
 
       
@@ -150,16 +150,9 @@ namespace sfn
       engine& operator=(engine&&) = delete;
 
    private:
-      auto resize_callback(
-         GLFWwindow* window,
-         int new_width,
-         int new_height
-      ) -> void;
-      auto scroll_callback(
-         GLFWwindow* window,
-         double xoffset,
-         double yoffset
-      ) -> void;
+      auto resize_callback(GLFWwindow* window, int new_width, int new_height) -> void;
+      auto scroll_callback(GLFWwindow* window, double xoffset, double yoffset) -> void;
+      auto mouse_button_callback(GLFWwindow* window, int button, int action, int mods) -> void;
 
       auto draw_frame() -> void;
       auto gui_draw() -> void;

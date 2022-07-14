@@ -228,7 +228,42 @@ namespace
       return trafo;
    }
 
+
+   struct mouse_movement_visitor
+   {
+      glm::vec2 m_mouse_movement;
+
+      template<typename T>
+      auto operator()([[maybe_unused]] T& alternative) -> void
+      {
+         
+      }
+
+      template<centery T>
+      auto operator()(T& alternative) -> void
+      {
+         alternative.horiz_angle_offset += -0.005f * m_mouse_movement[0];
+         alternative.vert_angle_offset += 0.005f * m_mouse_movement[1];
+      }
+   };
+
 } // namespace {}
+
+
+mouse_mover::mouse_mover(GLFWwindow* window)
+   : m_pos(get_cursor_pos(window))
+{
+   
+}
+
+
+auto mouse_mover::get_mouse_movement(GLFWwindow* window) -> glm::vec2
+{
+   glm::vec2 new_pos = get_cursor_pos(window);
+   const glm::vec2 dpos = new_pos - m_pos;
+   m_pos = new_pos;
+   return dpos;
+}
 
 
 sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc, universe&& universe)
@@ -252,6 +287,7 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    engine_ptr = this;
    glfwSetFramebufferSizeCallback(get_window(), engine::static_resize_callback);
    glfwSetScrollCallback(get_window(), engine::static_scroll_callback);
+   glfwSetMouseButtonCallback(get_window(), engine::static_mouse_button_callback);
 
    std::vector<segment_type> buffer_layout;
    buffer_layout.emplace_back(ubo_segment(sizeof(mvp_type), "ubo_mvp"));
@@ -312,6 +348,12 @@ auto engine::static_scroll_callback(GLFWwindow* window, double xoffset, double y
 }
 
 
+auto engine::static_mouse_button_callback(GLFWwindow* window, int button, int action, int mods) -> void
+{
+   engine_ptr->mouse_button_callback(window, button, action, mods);
+}
+
+
 auto sfn::engine::resize_callback(
    [[maybe_unused]] GLFWwindow* window,
    int new_width,
@@ -338,10 +380,34 @@ auto sfn::engine::scroll_callback(
       if constexpr (centery<T>)
       {
          mode.distance += -5.0f * static_cast<float>(yoffset);
-         mode.distance = std::clamp(mode.distance, 8.0f, 200.0f);
+         mode.distance = std::clamp(mode.distance, 8.0f, 250.0f);
       }
    };
    std::visit(zoom, m_camera_mode);
+}
+
+
+auto engine::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) -> void
+{
+   imgui_context::mouse_button_callback(window, button, action, mods);
+   
+   constexpr auto is_cursor_in_window = [](GLFWwindow* window){
+      int window_width, window_height;
+      glfwGetWindowSize(window, &window_width, &window_height);
+      const glm::vec2 cursor_pos = get_cursor_pos(window);
+      return cursor_pos[0] >= 0 && cursor_pos[0] < window_width && cursor_pos[1] >= 0 && cursor_pos[1] < window_width;
+   };
+   
+   if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && is_cursor_in_window(window))
+   {
+      if (m_mouse_mover.has_value())
+         std::terminate();
+      m_mouse_mover.emplace(window);
+   }
+   if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+   {
+      m_mouse_mover.reset();
+   }
 }
 
 
@@ -355,6 +421,10 @@ auto sfn::engine::draw_frame() -> void
    m_framebuffers.clear_color(m_main_fb, bg_color, 0);
 
    m_graphics_context->m_imgui_context.frame_begin();
+   if (m_mouse_mover.has_value())
+   {
+      std::visit(mouse_movement_visitor{ m_mouse_mover->get_mouse_movement(this->get_window()) }, m_camera_mode);
+   }
 
    // calculate things
    update_mvp_member();

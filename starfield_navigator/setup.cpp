@@ -87,6 +87,13 @@ sfn::window_wrapper::window_wrapper(const config& config)
 
    if (config.vsync)
       glfwSwapInterval(1);
+
+   if (glfwRawMouseMotionSupported() == false)
+      std::terminate();
+
+   glfwSetInputMode(m_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+   const auto raw_mode = glfwGetInputMode(m_window, GLFW_RAW_MOUSE_MOTION);
+   fmt::print("raw_mode: {}\n", raw_mode);
 }
 
 
@@ -169,6 +176,12 @@ auto imgui_context::scroll_callback(
 ) -> void
 {
    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+}
+
+
+auto imgui_context::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) -> void
+{
+   ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 }
 
 

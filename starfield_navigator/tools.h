@@ -12,6 +12,9 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 
+
+struct GLFWwindow;
+
 namespace sfn
 {
 
@@ -130,6 +133,8 @@ namespace sfn
          return m_width * m_height * m_bpp;
       }
    };
+
+   [[nodiscard]] auto get_cursor_pos(GLFWwindow* window) -> glm::vec2;
 
    template<typename alternative_type, typename variant_type>
    struct is_alternative_impl {

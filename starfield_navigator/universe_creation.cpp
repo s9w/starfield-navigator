@@ -412,11 +412,11 @@ auto universe_creator::get_finished_result() -> universe
          return dist_i < dist_j;
       };
       std::ranges::sort(real_closest, pred);
-      fmt::print("\n");
+      // fmt::print("\n");
       for (int i = 0; i < 3; ++i)
       {
          const float dist = glm::distance(target_pos, m_starfield_universe.m_systems[real_closest[i]].m_position);
-         fmt::print("{}: {:.2f} {}\n", i, dist, m_starfield_universe.m_systems[i].get_name());
+         // fmt::print("{}: {:.2f} {}\n", i, dist, m_starfield_universe.m_systems[i].get_name());
       }
    };
    // candidates_for_real("HIP 91262"); // vega
@@ -427,7 +427,7 @@ auto universe_creator::get_finished_result() -> universe
       const glm::vec3 fiction_pos = m_starfield_universe.get_position_by_name(fictional_name);
       const glm::vec3 real_pos = m_real_universe.get_star_by_cat_id(hip).m_position;
       const float dist = glm::distance(fiction_pos, real_pos);
-      fmt::print("{:<16} deviation: {:>5.2f} LY\n", fictional_name, dist);
+      // fmt::print("{:<16} deviation: {:>5.2f} LY\n", fictional_name, dist);
    };
 
    for (const sfn::system& system : m_starfield_universe.m_systems)

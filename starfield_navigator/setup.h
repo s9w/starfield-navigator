@@ -14,7 +14,7 @@ struct ImGuiTextFilter;
 namespace sfn
 {
 
-   const std::string sfn_version_string = "0.12";
+   const std::string sfn_version_string = "0.13";
 
    struct config {
       int res_x = 1280;
@@ -69,6 +69,7 @@ namespace sfn
       auto frame_begin() const -> void;
       auto frame_end() const -> void;
       static auto scroll_callback(GLFWwindow* window, double, double) -> void;
+      static auto mouse_button_callback(GLFWwindow* window, int button, int action, int mods) -> void;
 
       imgui_context(const imgui_context&) = delete;
       imgui_context& operator=(const imgui_context&) = delete;

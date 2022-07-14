@@ -1,6 +1,9 @@
 #include "tools.h"
 
+#pragma warning(push, 0)
+#include <GLFW/glfw3.h> // after glad
 #include <glm/trigonometric.hpp>
+#pragma warning(pop)
 
 
 auto sfn::galactic_coord::get_cartesian() const -> glm::vec3
@@ -105,4 +108,12 @@ auto sfn::get_aad(const std::vector<float>& vec) -> float
    for (const float value : vec)
       deviation_sum += std::abs(value - average);
    return deviation_sum / std::ssize(vec);
+}
+
+
+auto sfn::get_cursor_pos(GLFWwindow* window) -> glm::vec2
+{
+   glm::dvec2 new_pos;
+   glfwGetCursorPos(window, &new_pos[0], &new_pos[1]);
+   return glm::vec2{ new_pos };
 }
