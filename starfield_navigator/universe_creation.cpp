@@ -254,8 +254,10 @@ universe_creator::universe_creator()
    enum class read_mode{tracking, naming, speculative};
    read_mode mode = read_mode::tracking;
    std::unordered_map<std::string, glm::vec3> read_data;
+   int line_number = 0;
    for (std::string line; getline(input, line); )
    {
+      ++line_number;
       {
          const size_t comment_begin = line.find('#');
          if (comment_begin != std::string::npos)
@@ -443,7 +445,7 @@ auto universe_creator::get_finished_result() -> universe
       }
    };
    // candidates_for_real("HIP 91262"); // vega
-   candidates_for_fictional("ADP", position_mode::reconstructed);
+   // candidates_for_fictional("XXX", position_mode::reconstructed);
 
    const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
    {
@@ -483,8 +485,11 @@ auto universe_creator::get_finished_result() -> universe
    // Save real coordinates
    for(system& sys : m_starfield_universe.m_systems)
    {
-      if (sys.m_name == "SOL")
-         sys.m_catalog_position = glm::vec3{};
+      if (sys.m_catalog_lookup.empty())
+      {
+         sys.m_catalog_position = sys.m_reconstructed_position;
+         continue;
+      }
       else
          sys.m_catalog_position = m_real_universe.get_star_by_cat_id(sys.m_catalog_lookup).m_position;
    }
