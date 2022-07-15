@@ -40,7 +40,7 @@ namespace sfn
    struct window_wrapper
    {
       static inline GLFWwindow* m_window = nullptr;
-      explicit window_wrapper(const config& config);
+      explicit window_wrapper(config& config);
       ~window_wrapper();
 
       window_wrapper(const window_wrapper&) = delete;
@@ -84,7 +84,7 @@ namespace sfn
       glad_wrapper m_glad_wrapper;
       imgui_context m_imgui_context;
 
-      explicit graphics_context(const config& config);
+      explicit graphics_context(config& config);
       graphics_context(graphics_context&&) = default;
       graphics_context& operator=(graphics_context&&) = default;
       graphics_context(const graphics_context&) = delete;

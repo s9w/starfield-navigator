@@ -71,14 +71,18 @@ sfn::glfw_wrapper::~glfw_wrapper()
 }
 
 
-sfn::window_wrapper::window_wrapper(const config& config)
+sfn::window_wrapper::window_wrapper(config& config)
 {
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, config.opengl_major_version);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, config.opengl_minor_version);
-   glfwWindowHint(GLFW_SAMPLES, 8);
+   glfwWindowHint(GLFW_MAXIMIZED, true);
+   glfwWindowHint(GLFW_SAMPLES, 4);
    constexpr GLFWmonitor* monitor = nullptr;
    constexpr GLFWwindow* shared_window = nullptr;
+   const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
    m_window = glfwCreateWindow(config.res_x, config.res_y, config.window_title.c_str(), monitor, shared_window);
+   glfwGetWindowSize(m_window, &config.res_x, &config.res_y);
    if (m_window == nullptr)
    {
       throw std::exception{ "glfwCreateWindow error" };
@@ -185,7 +189,7 @@ auto imgui_context::mouse_button_callback(GLFWwindow* window, int button, int ac
 }
 
 
-graphics_context::graphics_context(const config& config)
+graphics_context::graphics_context(config& config)
    : m_glfw()
    , m_window_wrapper(config)
    , m_glad_wrapper(config)
