@@ -854,19 +854,16 @@ auto sfn::engine::gui_draw() -> void
    {
       normal_imgui_window w(glm::ivec2{ 250, 0 }, glm::ivec2{ 500, 60 }, fmt::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
 
-
-
-      static int radio_selected = 0;
-      const int old_selected = radio_selected;
+      const auto old_index = m_camera_mode.index();
       ImGui::AlignTextToFramePadding();
 
-      if(ImGui::RadioButton("Frontal", &radio_selected, 0))
+      if(ImGui::RadioButton("Frontal", std::holds_alternative<wasd_mode>(m_camera_mode)))
       {
          m_camera_mode = wasd_mode{.m_camera_pos = m_universe.m_cam_info.m_cam_pos0};
       }
       tooltip("WASD to move");
       ImGui::SameLine();
-      if (ImGui::RadioButton("Center selection", &radio_selected, 1))
+      if (ImGui::RadioButton("Center selection", std::holds_alternative<circle_mode>(m_camera_mode)))
       {
          m_camera_mode = circle_mode{
             .m_planet = m_list_selection,
@@ -878,7 +875,7 @@ auto sfn::engine::gui_draw() -> void
       tooltip("WASD to rotate\nMouse wheel to change distance");
 
       ImGui::SameLine();
-      if (ImGui::RadioButton("Center selection (galactic)", &radio_selected, 2))
+      if (ImGui::RadioButton("Center selection (galactic)", std::holds_alternative<galactic_circle_mode>(m_camera_mode)))
       {
          m_camera_mode = galactic_circle_mode{
             .m_planet = m_list_selection,
@@ -890,11 +887,11 @@ auto sfn::engine::gui_draw() -> void
       tooltip("Galactic coordinates.\nWASD to rotate\nMouse wheel to change distance");
 
       ImGui::SameLine();
-      if (ImGui::RadioButton("Like reveal", &radio_selected, 3))
+      if (ImGui::RadioButton("Like reveal", std::holds_alternative<trailer_mode>(m_camera_mode)))
       {
          m_camera_mode = trailer_mode{};
       }
-      view_mode_changed = old_selected != radio_selected;
+      view_mode_changed = old_index != m_camera_mode.index();
       tooltip("Replays the camera movement from the reveal video");
 
       
