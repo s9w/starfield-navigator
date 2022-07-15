@@ -139,7 +139,6 @@ namespace sfn
       id m_star_vbo_id{ no_init{} };
       id m_jump_lines_vbo_id{ no_init{} };
       id m_indicator_vbo_id{ no_init{} };
-      id m_drops_vbo_id{ no_init{} };
       id m_cylinder_vbo_id{ no_init{} };
       id m_star_ssbo_id{ no_init{} };
       binding_point_man m_binding_point_man;
@@ -148,7 +147,6 @@ namespace sfn
       shader_program m_shader_stars;
       shader_program m_shader_lines;
       shader_program m_shader_indicator;
-      shader_program m_shader_droplines;
       shader_program m_shader_bb;
       shader_program m_shader_connection;
       texture_manager m_textures{};
@@ -157,7 +155,6 @@ namespace sfn
       std::optional<vao> m_vao_jump_lines;
       std::optional<vao> m_vao_connection_lines;
       std::optional<vao> m_vao_indicator;
-      std::optional<vao> m_vao_drops;
       std::optional<vao> m_vao_bb;
 
       explicit engine(const config& config, std::unique_ptr<graphics_context>&& gc, universe&& universe);

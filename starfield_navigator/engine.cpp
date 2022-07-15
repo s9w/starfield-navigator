@@ -52,35 +52,6 @@ namespace
    }
 
 
-   auto get_drop_mesh(
-      const universe& universe,
-      const float z_base,
-      const position_mode mode
-   ) -> std::vector<position_vertex_data>
-   {
-      constexpr auto get_z_nulled = [&](const glm::vec3& vec){
-         glm::vec3 result = vec;
-         result[2] = z_base;
-         return result;
-      };
-      std::vector<position_vertex_data> result;
-      result.reserve(2*universe.m_systems.size());
-      for (const sfn::system& sys : universe.m_systems)
-      {
-         result.push_back(position_vertex_data{ .m_position = sys.get_position(mode) });
-         const glm::vec3 plane_position = get_z_nulled(sys.get_position(mode));
-         result.push_back(position_vertex_data{ .m_position = plane_position });
-
-         constexpr float cross_size = 0.5f;
-         result.push_back(position_vertex_data{ .m_position = plane_position - cross_size * glm::vec3{1, 0, 0} });
-         result.push_back(position_vertex_data{ .m_position = plane_position + cross_size * glm::vec3{1, 0, 0} });
-         result.push_back(position_vertex_data{ .m_position = plane_position - cross_size * glm::vec3{0, 1, 0} });
-         result.push_back(position_vertex_data{ .m_position = plane_position + cross_size * glm::vec3{0, 1, 0} });
-      }
-      return result;
-   }
-
-
    [[nodiscard]] auto get_indicator_mesh(
       const glm::vec3& center,
       const cs& cs
@@ -174,7 +145,6 @@ namespace
 
    std::vector<line_vertex_data> jump_line_mesh;
    std::vector<position_vertex_data> indicator_mesh;
-   std::vector<position_vertex_data> drops_mesh;
 
 
    // written so it yields (0, -1, 0) for 0, 0, 1 parameters, which is how the geometry is set up
@@ -275,7 +245,6 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    , m_shader_stars("star_shader")
    , m_shader_lines("line_shader")
    , m_shader_indicator("indicator_shader")
-   , m_shader_droplines("droplines_shader")
    , m_shader_bb("bb_shader")
    , m_shader_connection("connection_shader")
    , m_framebuffers(m_textures)
@@ -293,12 +262,10 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    std::vector<segment_type> buffer_layout;
    buffer_layout.emplace_back(ubo_segment(sizeof(mvp_type), "ubo_mvp"));
 
-   drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].get_position(m_position_mode)[2], m_position_mode);
    buffer_layout.emplace_back(get_soa_vbo_segment(sphere_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<position_vertex_data>(128));
    buffer_layout.emplace_back(ssbo_segment(m_star_props_ssbo.get_byte_count(), "star_ssbo"));
-   buffer_layout.emplace_back(get_soa_vbo_segment(drops_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment(cylinder_mesh));
    const std::vector<id> segment_ids = m_buffers2.create_buffer(std::move(buffer_layout), usage_pattern::dynamic_draw);
    m_mvp_ubo_id = segment_ids[0];
@@ -306,8 +273,7 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    m_jump_lines_vbo_id = segment_ids[2];
    m_indicator_vbo_id = segment_ids[3];
    m_star_ssbo_id = segment_ids[4];
-   m_drops_vbo_id = segment_ids[5];
-   m_cylinder_vbo_id = segment_ids[6];
+   m_cylinder_vbo_id = segment_ids[5];
 
    m_binding_point_man.add(m_mvp_ubo_id);
    m_binding_point_man.add(m_star_ssbo_id);
@@ -316,10 +282,8 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    const buffer& buffer_ref = m_buffers2.get_single_buffer_ref();
    bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_stars);
    bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_lines);
-   bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_droplines);
    bind_ubo("ubo_mvp", buffer_ref, m_mvp_ubo_id, m_shader_connection);
    bind_ssbo("star_ssbo", buffer_ref, m_star_ssbo_id, m_shader_stars);
-   bind_ssbo("star_ssbo", buffer_ref, m_star_ssbo_id, m_shader_droplines);
    bind_ssbo("star_ssbo", buffer_ref, m_star_ssbo_id, m_shader_connection);
    bind_ssbo("star_ssbo", buffer_ref, m_star_ssbo_id, m_shader_bb);
 
@@ -327,7 +291,6 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    m_vao_jump_lines.emplace(m_buffers2, m_jump_lines_vbo_id, m_shader_lines);
    m_vao_connection_lines.emplace(m_buffers2, m_cylinder_vbo_id, m_shader_connection);
    m_vao_indicator.emplace(m_buffers2, m_indicator_vbo_id, m_shader_indicator);
-   m_vao_drops.emplace(m_buffers2, m_drops_vbo_id, m_shader_droplines);
    m_vao_bb.emplace(m_buffers2, m_cylinder_vbo_id, m_shader_bb);
 }
 
@@ -524,13 +487,6 @@ auto sfn::engine::draw_frame() -> void
       m_shader_indicator.use();
       glDisable(GL_DEPTH_TEST);
       glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(indicator_mesh.size()));
-      glEnable(GL_DEPTH_TEST);
-
-      m_vao_drops->bind();
-      m_shader_droplines.use();
-      m_shader_droplines.set_uniform("range", m_dropline_range);
-      glDisable(GL_DEPTH_TEST);
-      glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(drops_mesh.size()));
       glEnable(GL_DEPTH_TEST);
 
       const glm::vec3 system_pos = m_universe.m_systems[m_list_selection].get_position(m_position_mode);
@@ -823,7 +779,6 @@ auto engine::gpu_upload() const -> void
    m_buffers2.upload_vbo(m_star_vbo_id, as_bytes(sphere_mesh));
    m_buffers2.upload_vbo(m_jump_lines_vbo_id, as_bytes(jump_line_mesh));
    m_buffers2.upload_vbo(m_indicator_vbo_id, as_bytes(indicator_mesh));
-   m_buffers2.upload_vbo(m_drops_vbo_id, as_bytes(drops_mesh));
    m_buffers2.upload_vbo(m_cylinder_vbo_id, as_bytes(cylinder_mesh));
 
    m_buffers2.upload_ssbo(m_star_ssbo_id, as_bytes(m_star_props_ssbo), 0);
@@ -897,7 +852,7 @@ auto sfn::engine::gui_draw() -> void
 {
    bool view_mode_changed = false;
    {
-      normal_imgui_window w(glm::ivec2{ 250, 0 }, glm::ivec2{ 500, 90 }, fmt::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
+      normal_imgui_window w(glm::ivec2{ 250, 0 }, glm::ivec2{ 500, 60 }, fmt::format("Camera {}", (const char*)ICON_FA_VIDEO).c_str());
 
 
 
@@ -941,11 +896,6 @@ auto sfn::engine::gui_draw() -> void
       }
       view_mode_changed = old_selected != radio_selected;
       tooltip("Replays the camera movement from the reveal video");
-
-      if(std::holds_alternative<galactic_circle_mode>(m_camera_mode))
-      {
-         ImGui::SliderFloat("dropline range", &m_dropline_range, 0.0f, 100.0f);
-      }
 
       
    }
@@ -1032,7 +982,6 @@ auto sfn::engine::gui_draw() -> void
    }
    if(selection_changed || view_mode_changed)
    {
-      drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].get_position(m_position_mode)[2], m_position_mode);
 
       const auto center_updater = [&]<typename T>(T& alternative){
          if constexpr(centery<T>)
