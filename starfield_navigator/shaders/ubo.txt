@@ -4,6 +4,7 @@ layout (std140) uniform ubo_mvp
     vec3 selected_system_pos;
     mat4 view;
     mat4 projection;
+    int selected_index;
 };
 
 struct star_prop_element{

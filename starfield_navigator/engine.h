@@ -18,6 +18,7 @@ namespace sfn
       alignas(sizeof(glm::vec4)) glm::vec3 m_selected_system_pos;
       alignas(sizeof(glm::vec4)) glm::mat4 m_view{ 1.0f };
       alignas(sizeof(glm::vec4)) glm::mat4 m_projection{ 1.0f };
+      int selected_index;
    };
 
    struct alignas(4 * sizeof(float)) star_prop_element{
@@ -193,7 +194,6 @@ namespace sfn
       auto build_connection_mesh_from_graph(const graph& connection_graph) -> void;
       auto build_neighbor_connection_mesh(const universe& universe, const int center_system) const -> std::vector<line_vertex_data>;
       auto draw_text(const std::string& text, const glm::vec3& pos, const glm::vec2& center_offset, const glm::vec4& color) const -> void;
-      auto draw_circle(const glm::vec3& pos, const float radius, const glm::vec4& color) const -> void;
       [[nodiscard]] auto get_cs() const -> cs;
       auto update_ssbo_colors_and_positions(const float abs_threshold) -> void;
       auto update_ssbo_bb() -> void;

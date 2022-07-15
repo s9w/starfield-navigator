@@ -502,19 +502,9 @@ auto sfn::engine::draw_frame() -> void
       }
    }
 
-
-
-   if(std::holds_alternative<wasd_mode>(m_camera_mode))
-   {
-      const glm::vec3 system_pos = m_universe.m_systems[m_list_selection].get_position(m_position_mode);
-      const float distance_from_cam = glm::distance(this->get_camera_pos(), system_pos);
-      const float pointsize = 500 / distance_from_cam;
-      const float planet_radius = 0.5f * pointsize;
-      draw_circle(system_pos, planet_radius + 4.0f, glm::vec4{1, 1, 1, 0.7f});
-   }
-
    m_vao_stars->bind();
    m_shader_stars.use();
+   m_shader_stars.set_uniform("time", timing_info.m_steady_time);
    glEnable(GL_DEPTH_TEST);
    glDepthMask(true);
    glDrawArraysInstanced(GL_TRIANGLES, 0, static_cast<GLsizei>(sphere_mesh.size()), static_cast<GLsizei>(m_universe.m_systems.size()));
@@ -787,6 +777,7 @@ auto engine::gpu_upload() const -> void
 
 auto engine::update_mvp_member() -> void
 {
+   m_current_mvp.selected_index = m_list_selection;
    m_current_mvp.m_cam_pos = get_camera_pos();
    m_current_mvp.m_selected_system_pos = m_universe.m_systems[m_list_selection].get_position(m_position_mode);
    m_current_mvp.m_projection = std::visit(
@@ -1103,21 +1094,6 @@ auto engine::draw_text(
 }
 
 
-auto engine::draw_circle(const glm::vec3& pos, const float radius, const glm::vec4& color) const -> void
-{
-   glm::vec4 screen_pos = m_current_mvp.m_projection * m_current_mvp.m_view * glm::vec4{ pos, 1.0f };
-   if (screen_pos[3] < 0)
-      return;
-   screen_pos /= screen_pos[3];
-
-   glm::vec2 imgui_draw_pos = 0.5f * (glm::vec2(screen_pos) + 1.0f);
-   imgui_draw_pos[1] = 1.0f - imgui_draw_pos[1];
-   imgui_draw_pos *= glm::vec2{ m_config.res_x, m_config.res_y };
-   const auto imgui_color = ImColor(color[0], color[1], color[2], color[3]);
-   ImGui::GetBackgroundDrawList()->AddCircle(ImVec2(imgui_draw_pos[0], imgui_draw_pos[1]), radius, imgui_color);
-}
-
-
 auto engine::get_cs() const -> cs
 {
    if(std::holds_alternative<galactic_circle_mode>(m_camera_mode))
@@ -1135,6 +1111,11 @@ auto engine::update_ssbo_colors_and_positions(const float abs_threshold) -> void
 {
    constexpr glm::vec3 speculative_color{ 1, 1, 0 };
 
+
+   for (int i = 0; i < m_universe.m_systems.size(); ++i)
+   {
+      m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].get_position(m_position_mode);
+   }
    
 
    if (m_star_color_mode == star_color_mode::big_small)
@@ -1146,7 +1127,6 @@ auto engine::update_ssbo_colors_and_positions(const float abs_threshold) -> void
          m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_size == system_size::small) ? red : green;
          if (m_universe.m_systems[i].m_speculative)
             m_star_props_ssbo.m_stars[i].color = speculative_color;
-         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].get_position(m_position_mode);
       }
    }
    else if (m_star_color_mode == star_color_mode::abs_mag)
@@ -1155,7 +1135,6 @@ auto engine::update_ssbo_colors_and_positions(const float abs_threshold) -> void
       {
          constexpr glm::vec3 bright{ 1.0f };
          constexpr glm::vec3 faint{ 0.5f };
-         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].get_position(m_position_mode);
          m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_abs_mag < abs_threshold) ? bright : faint;
          if (m_universe.m_systems[i].m_speculative)
             m_star_props_ssbo.m_stars[i].color = speculative_color;
