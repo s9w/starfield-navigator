@@ -907,6 +907,9 @@ auto sfn::engine::gui_draw() -> void
    }
    {
       normal_imgui_window w(glm::ivec2{ 0, 500 }, glm::ivec2{ 350, m_config.res_y-500 }, "Options");
+
+      ImGui::Checkbox("Show star names", &m_show_star_labels);
+      ImGui::Checkbox("Show bounding box", &m_show_bb);
       {
          static int radio_selected = 0;
          const int old_selected = radio_selected;
@@ -939,7 +942,7 @@ auto sfn::engine::gui_draw() -> void
             this->update_ssbo_colors_and_positions(m_abs_mag_threshold);
          }
       }
-      ImGui::Checkbox("Show star names", &m_show_star_labels);
+      
 
       {
          ImGui::AlignTextToFramePadding();
@@ -962,7 +965,6 @@ auto sfn::engine::gui_draw() -> void
          }
       }
 
-      ImGui::Checkbox("Show bounding box", &m_show_bb);
 
       ImGui::Text("Star positions:");
       ImGui::SameLine();
