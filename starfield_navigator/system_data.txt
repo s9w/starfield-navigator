@@ -159,9 +159,32 @@ AEG:big;;Vega_HIP 91262;Lyra
 # Note that this preferences HIP over GJ entries - just look for which one exists
 # Note that this will file be overwritten when downloading new versions. Backup if necessary
 Epsilon Eridani;HIP 16537
-Vega;HIP 91262
 Beta Hydri;HIP 2021 # maybe too low?
 Sigma Draconis;HIP 96100 # maybe too far up?
+Fomalhaut;HIP 113368
+Denebola;HIP 57632 # this is visible in the video, but swallowed by the reconstructor. too few frames probably
+Delta Capricorni;HIP 107556
+Beta Aquilae;HIP 98036
+Alpha Corvi;HIP 59199
+Iota Piscium;HIP 116771
+Pi3 Orionis;HIP 22449
+Delta Eridani;HIP 17378
+Chi Draconis;HIP 89937
+Xi Ursae Majoris;HIP 55203
+HD 176051;HIP 93017
+Gamma Pavonis;HIP 105858
+Alpha Fornacis;HIP 14879 # maybe too far below
+Alpha Comae Berenices;GLIESE 501B # not sure if visible
+Beta Comae Berenices;HIP 64394
+Iota Persei;HIP 14632 # probably too high up
+10 Tauri;HIP 16852 # probably too far in front
+Iota Pegasi;HIP 109176 # maybe too high up
+# ------------------
+# HD 10307;HIP 7918 # too high up
+# 171 Puppis ;HIP 37853 # too far in front
+# 26 Draconis;HIP 86036 # too high up
+# 20 Leonis Minoris;HIP 49081 # too high up
+# Zeta Trianguli Australis;HIP 80686 # too low
 # Mizar;HIP 65378 # too far out probably
 # Regulus;HIP 49669 # too far out probably
 # Capella;HIP 24608 # too far up probably
@@ -172,48 +195,25 @@ Sigma Draconis;HIP 96100 # maybe too far up?
 # Gliese 649;HIP 83043 # not in!
 # Pollux;HIP 37826 # probably too far up
 # Alpha Cephei;HIP 105199 # probably too far up
-Fomalhaut;HIP 113368
-Denebola;HIP 57632 # this is visible in the video, but swallowed by the reconstructor. too few frames probably
+# Zeta Doradus;HIP 23693 # too far below
 # Iota Ursae Majoris;HIP 44127 # probably too far up
 # Beta Trianguli Australis;HIP 77952 # too far down? just barely
 # Gamma Cephei;HIP 116727 # probably too far up
-Delta Capricorni;HIP 107556
 # Theta Ursae Majoris;HIP 46853 # probably too far up
 # Eta Cephei;HIP 102422 # probably too far up
 # Eta Leporis;HIP 28103 # probably too far in front
-Beta Aquilae;HIP 98036
-Alpha Fornacis;HIP 14879 # maybe too far below
-Alpha Corvi;HIP 59199
 # Theta Bootis;HIP 70497 # probably too far up
 # Psi Capricorni;HIP 102485 # not visible in showcase
-Iota Pegasi;HIP 109176 # maybe too high up
-Iota Piscium;HIP 116771
 # Upsilon Andromedae;HIP 7513 # probably too far up
-10 Tauri;HIP 16852 # probably too far in front
 # Gamma Serpentis;HIP 78072 # not in!
-Pi3 Orionis;HIP 22449
 # Tau1 Eridani;HIP 12843 # probably too far in front
-Delta Eridani;HIP 17378
 # Theta Persei;HIP 12777 # probably too high up
-Iota Persei;HIP 14632 # probably too high up
 # 19 Draconis;HIP 82860 # probably too high up
-Chi Draconis;HIP 89937
 # HD 84117;HIP 47592 # too far in front
 # 5862;HIP 5862 # too far down
 # 24813;HIP 24813 # too high up
 # 111 Tauri;HIP 25278 # too far in front
-Xi Ursae Majoris;HIP 55203
 # 31 Aquilae;HIP 95447 # I think it's not visible in the showcased
 # 36 Ursae Majoris;HIP 51459 # too high up
 # 47 Ursae Majoris;HIP 53721 # probably too high up
-HD 176051;HIP 93017
 # 44 Bootis;HIP 73695 # too high up
-Gamma Pavonis;HIP 105858
-# Zeta Doradus;HIP 23693 # too far below
-Alpha Comae Berenices;GLIESE 501B # not sure if visible
-Beta Comae Berenices;HIP 64394
-# HD 10307;HIP 7918 # too high up
-# 171 Puppis ;HIP 37853 # too far in front
-# 26 Draconis;HIP 86036 # too high up
-# 20 Leonis Minoris;HIP 49081 # too high up
-# Zeta Trianguli Australis;HIP 80686 # too low
