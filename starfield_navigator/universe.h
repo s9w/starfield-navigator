@@ -14,12 +14,14 @@ namespace sfn
 
    enum class factions { uc, freestar, crimson };
    enum class system_size{big, small};
+   enum class position_mode{reconstructed, from_catalog};
 
    struct system {
       std::string m_name;
       std::string m_astronomic_name;
       std::string m_catalog_lookup;
-      glm::vec3 m_position;
+      glm::vec3 m_reconstructed_position;
+      glm::vec3 m_catalog_position;
       system_size m_size = system_size::big;
       float m_abs_mag;
       bool m_speculative = false;
@@ -27,6 +29,7 @@ namespace sfn
       [[nodiscard]] auto get_useful_name() const -> std::optional<std::string>;
       [[nodiscard]] auto get_name() const -> std::string;
       [[nodiscard]] auto get_starfield_name() const -> std::optional<std::string>;
+      [[nodiscard]] auto get_position(const position_mode mode) const -> glm::vec3;
 
       explicit system(const glm::vec3& pos, const std::string& name, const std::string& astronomic_name, const std::string& catalog, const system_size size, const float abs_mag, const bool speculative);
    };
@@ -57,18 +60,15 @@ namespace sfn
       bb_3D m_left_bb;
 
       auto init() -> void;
-      [[nodiscard]] auto get_position_by_name(const std::string& name) const->glm::vec3;
+      [[nodiscard]] auto get_position_by_name(const std::string& name, const position_mode mode) const -> glm::vec3;
       [[nodiscard]] auto get_index_by_name(const std::string& name) const -> int;
-      [[nodiscard]] auto get_distance(const int a, const int b) const -> float;
-      [[nodiscard]] auto get_closest(const int system_index) const->std::vector<int>;
-      auto print_info() const -> void;
+      [[nodiscard]] auto get_distance(const int a, const int b, const position_mode mode) const -> float;
    };
 
    struct graph;
    auto get_graph_from_universe(const universe& universe, const float jump_range) -> graph;
 
-   [[nodiscard]] auto get_min_jump_dist(const universe& universe, const int start_index, const int dest_index) -> float;
-   [[nodiscard]] auto get_absolute_min_jump_range(const universe& universe) -> float;
-   [[nodiscard]] auto get_closest_distances_for_all(const universe& universe)->std::vector<float>;
+   [[nodiscard]] auto get_min_jump_dist(const universe& universe, const int start_index, const int dest_index, const position_mode mode) -> float;
+   [[nodiscard]] auto get_absolute_min_jump_range(const universe& universe, const position_mode mode) -> float;
 
 }

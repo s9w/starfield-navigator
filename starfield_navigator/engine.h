@@ -67,7 +67,31 @@ namespace sfn
    template<typename T>
    concept centery = std::same_as<T, circle_mode> || std::same_as<T, galactic_circle_mode>;
 
-   enum class gui_mode{jumps, connections, game};
+   // struct connection_jumprange{ float value = 0.0f; };
+   // struct jump_jumprange{ float value = 0.0f; };
+   // using jump_range_type = std::variant<connection_jumprange, jump_jumprange>;
+
+   // enum class gui_mode{jumps, connections, game};
+
+   struct jumps_mode
+   {
+      float jumprange = 0.0f;
+   };
+   struct connections_mode
+   {
+      float jumprange = 0.0f;
+   };
+   struct gui_mode : std::variant<jumps_mode, connections_mode>
+   {
+      [[nodiscard]] constexpr auto get_jumprange() -> float&
+      {
+         constexpr auto visitor = []<typename T>(T& alternative) -> float&
+         {
+            return alternative.jumprange;
+         };
+         return std::visit(visitor, *this);
+      }
+   };
    enum class star_color_mode{big_small, abs_mag};
 
    struct ortho_params
@@ -96,7 +120,7 @@ namespace sfn
       int m_list_selection = m_universe.get_index_by_name("SOL");
       int m_source_index = m_universe.get_index_by_name("SOL");
       int m_destination_index = m_universe.get_index_by_name("PORRIMA");
-      gui_mode m_gui_mode = gui_mode::connections;
+      gui_mode m_gui_mode = connections_mode{};
       star_color_mode m_star_color_mode = star_color_mode::big_small;
       float m_dropline_range = 20.0f;
       bool m_show_star_labels = true;
@@ -104,6 +128,9 @@ namespace sfn
       bool m_show_bb = true;
       int m_connection_trafo_count = 0;
       std::optional<mouse_mover> m_mouse_mover;
+      float m_abs_mag_threshold = 0.0f;
+      graph m_starfield_graph = get_graph_from_universe(m_universe, 20.0f);
+      position_mode m_position_mode = position_mode::reconstructed;
 
       camera_mode m_camera_mode = wasd_mode{ m_universe.m_cam_info.m_cam_pos0 };
       buffers m_buffers2;
@@ -171,7 +198,7 @@ namespace sfn
       auto draw_text(const std::string& text, const glm::vec3& pos, const glm::vec2& center_offset, const glm::vec4& color) const -> void;
       auto draw_circle(const glm::vec3& pos, const float radius, const glm::vec4& color) const -> void;
       [[nodiscard]] auto get_cs() const -> cs;
-      auto update_ssbo_colors(const float abs_threshold) -> void;
+      auto update_ssbo_colors_and_positions(const float abs_threshold) -> void;
       auto update_ssbo_bb() -> void;
    };
 }

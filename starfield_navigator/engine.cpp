@@ -54,7 +54,8 @@ namespace
 
    auto get_drop_mesh(
       const universe& universe,
-      const float z_base
+      const float z_base,
+      const position_mode mode
    ) -> std::vector<position_vertex_data>
    {
       constexpr auto get_z_nulled = [&](const glm::vec3& vec){
@@ -66,8 +67,8 @@ namespace
       result.reserve(2*universe.m_systems.size());
       for (const sfn::system& sys : universe.m_systems)
       {
-         result.push_back(position_vertex_data{ .m_position = sys.m_position });
-         const glm::vec3 plane_position = get_z_nulled(sys.m_position);
+         result.push_back(position_vertex_data{ .m_position = sys.get_position(mode) });
+         const glm::vec3 plane_position = get_z_nulled(sys.get_position(mode));
          result.push_back(position_vertex_data{ .m_position = plane_position });
 
          constexpr float cross_size = 0.5f;
@@ -280,7 +281,7 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    , m_framebuffers(m_textures)
 {
    update_ssbo_bb();
-   update_ssbo_colors(0.0f);
+   update_ssbo_colors_and_positions(0.0f);
 
    if (engine_ptr != nullptr)
       std::terminate();
@@ -292,7 +293,7 @@ sfn::engine::engine(const config& config, std::unique_ptr<graphics_context>&& gc
    std::vector<segment_type> buffer_layout;
    buffer_layout.emplace_back(ubo_segment(sizeof(mvp_type), "ubo_mvp"));
 
-   drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].m_position[2]);
+   drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].get_position(m_position_mode)[2], m_position_mode);
    buffer_layout.emplace_back(get_soa_vbo_segment(sphere_mesh));
    buffer_layout.emplace_back(get_soa_vbo_segment<line_vertex_data>(100*100));
    buffer_layout.emplace_back(get_soa_vbo_segment<position_vertex_data>(128));
@@ -488,7 +489,7 @@ auto sfn::engine::draw_frame() -> void
       glEnable(GL_DEPTH_TEST);
    }
 
-   if (m_gui_mode == gui_mode::jumps)
+   if (std::holds_alternative<jumps_mode>(m_gui_mode))
    {
       m_vao_connection_lines->bind();
       m_shader_connection.use();
@@ -501,7 +502,7 @@ auto sfn::engine::draw_frame() -> void
       m_shader_lines.set_uniform("time", timing_info.m_steady_time);
       glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(jump_line_mesh.size()));
    }
-   else if (m_gui_mode == gui_mode::connections)
+   else if (std::holds_alternative<connections_mode>(m_gui_mode))
    {
       m_vao_connection_lines->bind();
       m_shader_connection.use();
@@ -532,7 +533,7 @@ auto sfn::engine::draw_frame() -> void
       glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(drops_mesh.size()));
       glEnable(GL_DEPTH_TEST);
 
-      const glm::vec3 system_pos = m_universe.m_systems[m_list_selection].m_position;
+      const glm::vec3 system_pos = m_universe.m_systems[m_list_selection].get_position(m_position_mode);
       const float distance = glm::distance(system_pos, this->get_camera_pos());
       if (distance < 50.0f)
       {
@@ -549,7 +550,7 @@ auto sfn::engine::draw_frame() -> void
 
    if(std::holds_alternative<wasd_mode>(m_camera_mode))
    {
-      const glm::vec3 system_pos = m_universe.m_systems[m_list_selection].m_position;
+      const glm::vec3 system_pos = m_universe.m_systems[m_list_selection].get_position(m_position_mode);
       const float distance_from_cam = glm::distance(this->get_camera_pos(), system_pos);
       const float pointsize = 500 / distance_from_cam;
       const float planet_radius = 0.5f * pointsize;
@@ -609,7 +610,7 @@ auto sfn::engine::draw_list() -> bool
          ImGui::TableSetColumnIndex(0);
          right_align_text(fmt::format("{}", i));
 
-         const galactic_coord gc = get_galactic(m_universe.m_systems[i].m_position);
+         const galactic_coord gc = get_galactic(m_universe.m_systems[i].get_position(m_position_mode));
 
          std::string tooltip_str = fmt::format(
             "Original name: {}\nGalactic coord:\nl: {:.1f} deg\nb: {:.1f} deg\ndist: {:.1f} LY",
@@ -656,12 +657,11 @@ auto sfn::engine::draw_list() -> bool
 
 auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
 {
-   static float jump_range = 20.0f;
-   static graph starfield_graph = get_graph_from_universe(m_universe, jump_range);
+   // static float jump_range = 20.0f;
    static std::optional<jump_path> path;
 
    static bool first_plot = true;
-   bool course_changed = first_plot;
+   bool course_changed = first_plot || switched_into_tab;
    first_plot = false;
 
 
@@ -681,7 +681,7 @@ auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
 
    ImGui::Text(fmt::format(
       "Direct distance: {:.1f} LY",
-      m_universe.get_distance(m_source_index, m_destination_index)
+      m_universe.get_distance(m_source_index, m_destination_index, m_position_mode)
    ).c_str());
 
    static float slider_min = 0.0f;
@@ -689,22 +689,22 @@ auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
    
    if (course_changed)
    {
-      slider_min = get_min_jump_dist(m_universe, m_source_index, m_destination_index) + 0.001f;
-      slider_max = m_universe.get_distance(m_source_index, m_destination_index) + 0.001f;
-      jump_range = slider_min;
+      slider_min = get_min_jump_dist(m_universe, m_source_index, m_destination_index, m_position_mode) + 0.001f;
+      slider_max = m_universe.get_distance(m_source_index, m_destination_index, m_position_mode) + 0.001f;
+      m_gui_mode.get_jumprange() = slider_min;
    }
 
-   course_changed |= ImGui::SliderFloat("jump range", &jump_range, slider_min, slider_max);
+   course_changed |= ImGui::SliderFloat("jump range", &m_gui_mode.get_jumprange(), slider_min, slider_max);
 
    static std::vector<std::string> path_strings;
    // Graph and path update
    if (course_changed || switched_into_tab)
    {
-      starfield_graph = get_graph_from_universe(m_universe, jump_range);
-      build_connection_mesh_from_graph(starfield_graph);
+      m_starfield_graph = get_graph_from_universe(m_universe, m_gui_mode.get_jumprange());
+      build_connection_mesh_from_graph(m_starfield_graph);
 
-      const auto distance_getter = [&](const int i, const int j) {return m_universe.get_distance(i, j); };
-      path = starfield_graph.get_jump_path(m_source_index, m_destination_index, distance_getter);
+      const auto distance_getter = [&](const int i, const int j) {return m_universe.get_distance(i, j, m_position_mode); };
+      path = m_starfield_graph.get_jump_path(m_source_index, m_destination_index, distance_getter);
 
       if (path.has_value())
       {
@@ -715,8 +715,8 @@ auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
             const int this_stop_system = path->m_stops[i];
             const int next_stop_system = path->m_stops[i + 1];
             const float dist = glm::distance(
-               m_universe.m_systems[this_stop_system].m_position,
-               m_universe.m_systems[next_stop_system].m_position
+               m_universe.m_systems[this_stop_system].get_position(m_position_mode),
+               m_universe.m_systems[next_stop_system].get_position(m_position_mode)
             );
             travelled_distance += dist;
 
@@ -739,20 +739,20 @@ auto sfn::engine::draw_jump_calculations(const bool switched_into_tab) -> void
             const int this_stop_system = path->m_stops[i];
             const int next_stop_system = path->m_stops[i + 1];
             const float dist = glm::distance(
-               m_universe.m_systems[this_stop_system].m_position,
-               m_universe.m_systems[next_stop_system].m_position
+               m_universe.m_systems[this_stop_system].get_position(m_position_mode),
+               m_universe.m_systems[next_stop_system].get_position(m_position_mode)
             );
 
             jump_line_mesh.push_back(
                line_vertex_data{
-                  .m_position = m_universe.m_systems[this_stop_system].m_position,
+                  .m_position = m_universe.m_systems[this_stop_system].get_position(m_position_mode),
                   .m_progress = travelled_distance
                }
             );
             travelled_distance += dist;
             jump_line_mesh.push_back(
                line_vertex_data{
-                  .m_position = m_universe.m_systems[next_stop_system].m_position,
+                  .m_position = m_universe.m_systems[next_stop_system].get_position(m_position_mode),
                   .m_progress = travelled_distance
                }
             );
@@ -833,7 +833,7 @@ auto engine::gpu_upload() const -> void
 auto engine::update_mvp_member() -> void
 {
    m_current_mvp.m_cam_pos = get_camera_pos();
-   m_current_mvp.m_selected_system_pos = m_universe.m_systems[m_list_selection].m_position;
+   m_current_mvp.m_selected_system_pos = m_universe.m_systems[m_list_selection].get_position(m_position_mode);
    m_current_mvp.m_projection = std::visit(
       [&](const auto& alternative) {return get_projection_matrix(m_config, alternative); },
       m_projection_params
@@ -859,7 +859,7 @@ auto engine::get_camera_pos() const -> glm::vec3
       else if constexpr (centery<T>)
       {
          const glm::vec3 offset = get_cartesian_from_spherical(mode.horiz_angle_offset, mode.vert_angle_offset, mode.distance, get_cs());
-         return m_universe.m_systems[mode.m_planet].m_position + offset;
+         return m_universe.m_systems[mode.m_planet].get_position(m_position_mode) + offset;
       }
    };
    return std::visit(visitor, m_camera_mode);
@@ -885,8 +885,8 @@ auto sfn::engine::build_connection_mesh_from_graph(
       if (i >= std::ssize(m_star_props_ssbo.connection_trafos))
          return;
 
-      const glm::vec3& p0 = m_universe.m_systems[con.m_node_index0].m_position;
-      const glm::vec3& p1 = m_universe.m_systems[con.m_node_index1].m_position;
+      const glm::vec3& p0 = m_universe.m_systems[con.m_node_index0].get_position(m_position_mode);
+      const glm::vec3& p1 = m_universe.m_systems[con.m_node_index1].get_position(m_position_mode);
       m_star_props_ssbo.connection_trafos[i] = get_obj_trafo_between_points(p0, p1, 0.05f);
       ++i;
    }
@@ -959,7 +959,6 @@ auto sfn::engine::gui_draw() -> void
       normal_imgui_window w(glm::ivec2{ 0, 500 }, glm::ivec2{ 350, m_config.res_y-500 }, "Options");
       {
          static int radio_selected = 0;
-         static float abs_mag_threshold = 0.0f;
          const int old_selected = radio_selected;
          ImGui::AlignTextToFramePadding();
          ImGui::Text("Star coloring:");
@@ -977,9 +976,9 @@ auto sfn::engine::gui_draw() -> void
          if (m_star_color_mode == star_color_mode::abs_mag)
          {
             ImGui::PushItemWidth(-FLT_MIN);
-            if (ImGui::SliderFloat("", &abs_mag_threshold, 0.0f, 20.0f))
+            if (ImGui::SliderFloat("", &m_abs_mag_threshold, 0.0f, 20.0f))
             {
-               this->update_ssbo_colors(abs_mag_threshold);
+               this->update_ssbo_colors_and_positions(m_abs_mag_threshold);
             }
             ImGui::PopItemWidth();
             tooltip("Stars with magnitude higher than this (=darker) are dimmed");
@@ -987,7 +986,7 @@ auto sfn::engine::gui_draw() -> void
 
          if (radio_selected != old_selected)
          {
-            this->update_ssbo_colors(abs_mag_threshold);
+            this->update_ssbo_colors_and_positions(m_abs_mag_threshold);
          }
       }
       ImGui::Checkbox("Show star names", &m_show_star_labels);
@@ -1014,10 +1013,26 @@ auto sfn::engine::gui_draw() -> void
       }
 
       ImGui::Checkbox("Show bounding box", &m_show_bb);
+
+      ImGui::Text("Star positions:");
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Reconstructed", m_position_mode==position_mode::reconstructed))
+      {
+         m_position_mode = position_mode::reconstructed;
+         this->update_ssbo_colors_and_positions(m_abs_mag_threshold);
+         this->build_connection_mesh_from_graph(m_starfield_graph);
+      }
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Accurate", m_position_mode == position_mode::from_catalog))
+      {
+         m_position_mode = position_mode::from_catalog;
+         this->update_ssbo_colors_and_positions(m_abs_mag_threshold);
+         this->build_connection_mesh_from_graph(m_starfield_graph);
+      }
    }
    if(selection_changed || view_mode_changed)
    {
-      drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].m_position[2]);
+      drops_mesh = get_drop_mesh(m_universe, m_universe.m_systems[m_list_selection].get_position(m_position_mode)[2], m_position_mode);
 
       const auto center_updater = [&]<typename T>(T& alternative){
          if constexpr(centery<T>)
@@ -1027,7 +1042,7 @@ auto sfn::engine::gui_draw() -> void
       };
       std::visit(center_updater, m_camera_mode);
 
-      indicator_mesh = get_indicator_mesh(m_universe.m_systems[m_list_selection].m_position, this->get_cs());
+      indicator_mesh = get_indicator_mesh(m_universe.m_systems[m_list_selection].get_position(m_position_mode), this->get_cs());
    }
 
    {
@@ -1040,17 +1055,17 @@ auto sfn::engine::gui_draw() -> void
          ImGui::PushStyleColor(ImGuiCol_TabHovered, (ImVec4)ImColor::HSV(0.0f, 0.5f, 0.8f));
          ImGui::PushStyleColor(ImGuiCol_TabActive, (ImVec4)ImColor::HSV(0.0f, 0.5f, 0.9f));
 
-         static gui_mode old_gui_mode = gui_mode::connections;
+         static auto old_gui_index = m_gui_mode.index();
          if (ImGui::BeginTabItem("Show connections"))
          {
-            m_gui_mode = gui_mode::connections;
-            static float connections_jump_range = 15.0f;
-            static graph connection_graph = get_graph_from_universe(m_universe, connections_jump_range);
-            bool changed = m_gui_mode != old_gui_mode;
-            changed |= ImGui::SliderFloat("jump range", &connections_jump_range, 0, 30);
+            if(std::holds_alternative<connections_mode>(m_gui_mode) == false)
+               m_gui_mode = gui_mode{ connections_mode{ m_gui_mode.get_jumprange() } };
+            static graph connection_graph = get_graph_from_universe(m_universe, m_gui_mode.get_jumprange());
+            bool changed = m_gui_mode.index() != old_gui_index;
+            changed |= ImGui::SliderFloat("jump range", &m_gui_mode.get_jumprange(), 0, 30);
             if(changed || m_connection_trafo_count == 0)
             {
-               connection_graph = get_graph_from_universe(m_universe, connections_jump_range);
+               connection_graph = get_graph_from_universe(m_universe, m_gui_mode.get_jumprange());
                build_connection_mesh_from_graph(connection_graph);
             }
             ImGui::EndTabItem();
@@ -1058,11 +1073,12 @@ auto sfn::engine::gui_draw() -> void
 
          if (ImGui::BeginTabItem("Jump calculations"))
          {
-            m_gui_mode = gui_mode::jumps;
-            draw_jump_calculations(m_gui_mode != old_gui_mode);
+            if (std::holds_alternative<jumps_mode>(m_gui_mode) == false)
+               m_gui_mode = gui_mode{ jumps_mode{ m_gui_mode.get_jumprange() } };
+            draw_jump_calculations(m_gui_mode.index() != old_gui_index);
             ImGui::EndTabItem();
          }
-         old_gui_mode = m_gui_mode;
+         old_gui_index = m_gui_mode.index();
 
          // if (ImGui::BeginTabItem("game"))
          // {
@@ -1105,7 +1121,7 @@ auto engine::get_camera_target(const camera_mode& mode) const -> glm::vec3
 {
    const auto visitor = [&]<typename T>(const T& alternative) {
       if constexpr(centery<T>)
-         return m_universe.m_systems[alternative.m_planet].m_position;
+         return m_universe.m_systems[alternative.m_planet].get_position(m_position_mode);
       else if constexpr(std::same_as<T, wasd_mode> || std::same_as<T, trailer_mode>)
          return this->get_camera_pos() + m_universe.m_cam_info.m_cs.m_front;
    };
@@ -1167,7 +1183,7 @@ auto engine::get_cs() const -> cs
 }
 
 
-auto engine::update_ssbo_colors(const float abs_threshold) -> void
+auto engine::update_ssbo_colors_and_positions(const float abs_threshold) -> void
 {
    constexpr glm::vec3 speculative_color{ 1, 1, 0 };
 
@@ -1182,7 +1198,7 @@ auto engine::update_ssbo_colors(const float abs_threshold) -> void
          m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_size == system_size::small) ? red : green;
          if (m_universe.m_systems[i].m_speculative)
             m_star_props_ssbo.m_stars[i].color = speculative_color;
-         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
+         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].get_position(m_position_mode);
       }
    }
    else if (m_star_color_mode == star_color_mode::abs_mag)
@@ -1191,7 +1207,7 @@ auto engine::update_ssbo_colors(const float abs_threshold) -> void
       {
          constexpr glm::vec3 bright{ 1.0f };
          constexpr glm::vec3 faint{ 0.5f };
-         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].m_position;
+         m_star_props_ssbo.m_stars[i].position = m_universe.m_systems[i].get_position(m_position_mode);
          m_star_props_ssbo.m_stars[i].color = (m_universe.m_systems[i].m_abs_mag < abs_threshold) ? bright : faint;
          if (m_universe.m_systems[i].m_speculative)
             m_star_props_ssbo.m_stars[i].color = speculative_color;
@@ -1220,7 +1236,7 @@ auto engine::draw_system_labels() const -> void
       if (system.get_useful_name().has_value() == false)
          continue;
 
-      const float distance_from_cam = glm::distance(cam_pos, system.m_position);
+      const float distance_from_cam = glm::distance(cam_pos, system.get_position(m_position_mode));
       const float pointsize = 500 / distance_from_cam;
       const float planet_radius = 0.5f * pointsize;
       const glm::vec2 offset{0, planet_radius + 8.0f };
@@ -1230,6 +1246,6 @@ auto engine::draw_system_labels() const -> void
       glm::vec4 color = system.get_starfield_name().has_value() ? normal_color : speculation_color;
       if (system.m_speculative)
          color = glm::vec4{1, 1, 0, 1};
-      this->draw_text(system.get_useful_name().value(), system.m_position, offset, color);
+      this->draw_text(system.get_useful_name().value(), system.get_position(m_position_mode), offset, color);
    }
 }

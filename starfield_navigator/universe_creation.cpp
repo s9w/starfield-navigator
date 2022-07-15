@@ -10,6 +10,7 @@
 #include <glm/vec3.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <biteopt.h>
+#include <complex>
 #pragma warning(pop)
 
 namespace {
@@ -27,7 +28,7 @@ namespace {
          const auto it = std::ranges::find_if(systems, camera_pred);
          if (it == std::end(systems))
             std::terminate();
-         const glm::vec3 copy = it->m_position;
+         const glm::vec3 copy = it->m_reconstructed_position;
          systems.erase(it);
          return copy;
       };
@@ -105,7 +106,7 @@ namespace {
       const std::string& hip
    ) -> float
    {
-      const glm::vec3 fiction_pos = fiction.get_position_by_name(fictional_name);
+      const glm::vec3 fiction_pos = fiction.get_position_by_name(fictional_name, position_mode::reconstructed);
       const glm::vec3 real_pos = real.get_star_by_cat_id(hip).m_position;
       return glm::distance(fiction_pos, real_pos);
    };
@@ -234,7 +235,7 @@ double sfn::CTestOpt::optcost(const double* const p)
    const glm::mat4 trafo = get_trafo_from_vector(p);
    for (sfn::system& elem : transformed_universe.m_systems)
    {
-      elem.m_position = apply_trafo(trafo, elem.m_position);
+      elem.m_reconstructed_position = apply_trafo(trafo, elem.m_reconstructed_position);
    }
    return static_cast<double>(get_metric(transformed_universe, *real_ref));
 }
@@ -311,7 +312,6 @@ universe_creator::universe_creator()
          const glm::vec3 pos = read_data.at(name);
          if (starfield_name.empty() == false)
             name = starfield_name;
-         float mag = 999.0f;
          float abs_mag = 999.0f;
          if (catalog_entry.empty() == false)
          {
@@ -333,7 +333,7 @@ universe_creator::universe_creator()
    }
    // Sort from left to right before transformation is applied
    const auto pred = [](const sfn::system& a, const sfn::system& b) {
-      return a.m_position.x < b.m_position.x;
+      return a.m_reconstructed_position.x < b.m_reconstructed_position.x;
    };
    std::ranges::sort(m_starfield_universe.m_systems, pred);
 
@@ -373,14 +373,16 @@ auto sfn::universe_creator::get() -> creator_result
 
 auto universe_creator::get_finished_result() -> universe
 {
-   printf("IterCount: %i\n", i);
-   printf("BestCost: %f\n", opt.getBestCost());
-   for (int p = 0; p < 9; ++p)
-      fmt::print("best params {}: {:.2f}\n", p, opt.getBestParams()[p]);
+   // printf("IterCount: %i\n", i);
+   // printf("BestCost: %f\n", opt.getBestCost());
+   // for (int p = 0; p < 9; ++p)
+   //    fmt::print("best params {}: {:.2f}\n", p, opt.getBestParams()[p]);
 
-   const auto no_speculative_or_cam = [](const auto& vertex)
+   const auto no_speculative_or_cam = [&](const auto& vertex) -> std::optional<glm::vec3>
    {
-      return vertex.m_speculative == false && vertex.m_name.starts_with("cam") == false;
+      if (vertex.m_speculative || vertex.m_name.starts_with("cam"))
+         return std::nullopt;
+      return vertex.get_position(position_mode::reconstructed);
    };
    const bb_3D old_coord_bb = get_bb(m_starfield_universe.m_systems, no_speculative_or_cam);
 
@@ -390,14 +392,14 @@ auto universe_creator::get_finished_result() -> universe
    {
       if (sys.m_speculative == true)
          continue;
-      sys.m_position = apply_trafo(final_transformation, sys.m_position);
+      sys.m_reconstructed_position = apply_trafo(final_transformation, sys.m_reconstructed_position);
    }
    fmt::print("metric with optimized trafo: {:.2f} LY\n", get_metric(m_starfield_universe, m_real_universe));
 
 
-   const auto candidates_for_fictional = [&](const std::string& fictional_name)
+   const auto candidates_for_fictional = [&](const std::string& fictional_name, const position_mode mode)
    {
-      const glm::vec3 pos0 = m_starfield_universe.get_position_by_name(fictional_name);
+      const glm::vec3 pos0 = m_starfield_universe.get_position_by_name(fictional_name, mode);
       std::vector<catalog_id> real_closest;
       for (const auto& [key, value] : m_real_universe.m_stars)
       {
@@ -428,24 +430,24 @@ auto universe_creator::get_finished_result() -> universe
          real_closest.push_back(i);
       const auto pred = [&](const int i, const int j)
       {
-         const float dist_i = glm::distance(target_pos, m_starfield_universe.m_systems[i].m_position);
-         const float dist_j = glm::distance(target_pos, m_starfield_universe.m_systems[j].m_position);
+         const float dist_i = glm::distance(target_pos, m_starfield_universe.m_systems[i].m_reconstructed_position);
+         const float dist_j = glm::distance(target_pos, m_starfield_universe.m_systems[j].m_reconstructed_position);
          return dist_i < dist_j;
       };
       std::ranges::sort(real_closest, pred);
       // fmt::print("\n");
       for (int i = 0; i < 3; ++i)
       {
-         const float dist = glm::distance(target_pos, m_starfield_universe.m_systems[real_closest[i]].m_position);
+         const float dist = glm::distance(target_pos, m_starfield_universe.m_systems[real_closest[i]].m_reconstructed_position);
          // fmt::print("{}: {:.2f} {}\n", i, dist, m_starfield_universe.m_systems[i].get_name());
       }
    };
    // candidates_for_real("HIP 91262"); // vega
-   candidates_for_fictional("ADP");
+   candidates_for_fictional("ADP", position_mode::reconstructed);
 
    const auto error_report = [&](const std::string& fictional_name, const std::string& hip)
    {
-      const glm::vec3 fiction_pos = m_starfield_universe.get_position_by_name(fictional_name);
+      const glm::vec3 fiction_pos = m_starfield_universe.get_position_by_name(fictional_name, position_mode::reconstructed);
       const glm::vec3 real_pos = m_real_universe.get_star_by_cat_id(hip).m_position;
       const float dist = glm::distance(fiction_pos, real_pos);
       // fmt::print("{:<16} deviation: {:>5.2f} LY\n", fictional_name, dist);
@@ -462,8 +464,30 @@ auto universe_creator::get_finished_result() -> universe
    m_starfield_universe.m_cam_info = get_and_delete_cam_info(m_starfield_universe.m_systems);
    m_starfield_universe.m_trafo = final_transformation;
    m_starfield_universe.m_map_bb = old_coord_bb;
-   m_starfield_universe.m_left_bb = get_unexplored_bb(old_coord_bb, m_starfield_universe.get_position_by_name("SOL"));;
+   m_starfield_universe.m_left_bb = get_unexplored_bb(old_coord_bb, m_starfield_universe.get_position_by_name("SOL", position_mode::reconstructed));;
    m_starfield_universe.init();
+
+   // std::vector<std::string> mu_herculis_ids{ "HIP 86974", "GLIESE 695B", "GLIESE 695C" };
+   // std::vector<std::string> zet_herculis_ids{ "HIP 81693", "GLIESE 635B" };
+   // for(const auto& mu : mu_herculis_ids)
+   // {
+   //    for(const auto& zet : zet_herculis_ids)
+   //    {
+   //       const auto pos0 = m_real_universe.get_star_by_cat_id(mu).m_position;
+   //       const auto pos1 = m_real_universe.get_star_by_cat_id(zet).m_position;
+   //       const float dist = glm::distance(pos0, pos1);
+   //       fmt::print("dist: {:.1f} ly\n", dist);
+   //    }
+   // }
+
+   // Save real coordinates
+   for(system& sys : m_starfield_universe.m_systems)
+   {
+      if (sys.m_name == "SOL")
+         sys.m_catalog_position = glm::vec3{};
+      else
+         sys.m_catalog_position = m_real_universe.get_star_by_cat_id(sys.m_catalog_lookup).m_position;
+   }
 
    // {
    //    const float sufficient_jump_range = get_absolute_min_jump_range(starfield_universe);
@@ -476,7 +500,6 @@ auto universe_creator::get_finished_result() -> universe
    //    fmt::print("max of closest: {:.2f}\n", *std::ranges::max_element(closest));
    // }
 
-   m_starfield_universe.print_info();
    return m_starfield_universe;
 }
 

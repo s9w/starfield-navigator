@@ -15,22 +15,6 @@ namespace
 {
    using namespace sfn;
 
-   auto get_bb(
-      const std::vector<complete_obj_vertex_info>& vertices
-   ) -> bb_3D
-   {
-      glm::vec3 min = vertices.front().m_position;
-      glm::vec3 max = vertices.front().m_position;
-      for (const complete_obj_vertex_info& vertex : vertices)
-      {
-         min = glm::min(min, vertex.m_position);
-         max = glm::max(max, vertex.m_position);
-      }
-      return bb_3D{ .m_min = min, .m_max = max };
-   }
-
-   
-
 
    template<typename vec_type>
    auto get_vec_from_line(const std::string& line) -> vec_type
@@ -257,7 +241,11 @@ namespace
       }
    }
 
-   result.m_vertex_bb = get_bb(result.m_vertices);
+   const auto accessor = [](const complete_obj_vertex_info& in)
+   {
+      return std::optional<glm::vec3>(in.m_position);
+   };
+   result.m_vertex_bb = get_bb(result.m_vertices, accessor);
    {
       const glm::vec3 size = result.m_vertex_bb.get_size();
       fmt::print(

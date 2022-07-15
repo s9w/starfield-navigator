@@ -40,9 +40,7 @@ namespace sfn
    };
 
    template<typename T>
-   [[nodiscard]] auto get_bb(const std::vector<T>& vertices, const auto& pred) -> bb_3D;
-   template<typename T>
-   [[nodiscard]] auto get_bb(const std::vector<T>& vertices) -> bb_3D;
+   [[nodiscard]] auto get_bb(const std::vector<T>& vertices, const auto& accessor) -> bb_3D;
 
    [[nodiscard]] constexpr auto c4d_convert(const glm::vec3& in) -> glm::vec3
    {
@@ -203,7 +201,7 @@ constexpr auto sfn::sfn_assert(const bool condition) -> void
 template<typename T>
 auto sfn::get_bb(
    const std::vector<T>& vertices,
-   const auto& pred
+   const auto& accessor
 ) -> bb_3D
 {
    bool init = false;
@@ -211,32 +209,20 @@ auto sfn::get_bb(
    glm::vec3 max{};
    for (const T& vertex : vertices)
    {
-      if (pred(vertex) == false)
+      const std::optional<glm::vec3> value = accessor(vertex);
+      if (value.has_value() == false)
          continue;
       if(init == false)
       {
-         min = vertex.m_position;
-         max = vertex.m_position;
+         min = *value;
+         max = *value;
          init = true;
       }
       else
       {
-         min = glm::min(min, vertex.m_position);
-         max = glm::max(max, vertex.m_position);
+         min = glm::min(min, *value);
+         max = glm::max(max, *value);
       }
    }
    return bb_3D{ .m_min = min, .m_max = max };
-}
-
-
-template<typename T>
-auto sfn::get_bb(
-   const std::vector<T>& vertices
-) -> bb_3D
-{
-   const auto always_true = []([[maybe_unused]] const T& in)
-   {
-      return true;
-   };
-   return get_bb(vertices, always_true);
 }

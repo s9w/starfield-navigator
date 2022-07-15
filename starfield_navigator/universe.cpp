@@ -71,6 +71,15 @@ auto sfn::system::get_starfield_name() const -> std::optional<std::string>
 }
 
 
+auto sfn::system::get_position(const position_mode mode) const -> glm::vec3
+{
+   if (mode == position_mode::from_catalog)
+      return m_catalog_position;
+   else
+      return m_reconstructed_position;
+}
+
+
 sfn::system::system(
    const glm::vec3& pos,
    const std::string& name,
@@ -83,7 +92,7 @@ sfn::system::system(
    : m_name(name)
    , m_astronomic_name(astronomic_name)
    , m_catalog_lookup(catalog)
-   , m_position(pos)
+   , m_reconstructed_position(pos)
    , m_size(size)
    , m_abs_mag(abs_mag)
    , m_speculative(speculative)
@@ -120,9 +129,9 @@ auto universe::init() -> void
    }
 }
 
-auto sfn::universe::get_position_by_name(const std::string& name) const -> glm::vec3
+auto sfn::universe::get_position_by_name(const std::string& name, const position_mode mode) const -> glm::vec3
 {
-   return m_systems[get_index_by_name(name)].m_position;
+   return m_systems[get_index_by_name(name)].get_position(mode);
 }
 
 
@@ -137,51 +146,14 @@ auto sfn::universe::get_index_by_name(const std::string& name) const -> int
 }
 
 
-auto universe::get_distance(const int a, const int b) const -> float
+auto universe::get_distance(const int a, const int b, const position_mode mode) const -> float
 {
    return glm::distance(
-      m_systems[a].m_position,
-      m_systems[b].m_position
+      m_systems[a].get_position(mode),
+      m_systems[b].get_position(mode)
    );
 }
 
-
-auto sfn::universe::print_info() const -> void
-{
-   glm::vec3 min = m_systems[0].m_position;
-   glm::vec3 max = m_systems[0].m_position;
-   for (const system& system : m_systems)
-   {
-      min = glm::min(min, system.m_position);
-      max = glm::max(max, system.m_position);
-   }
-}
-
-
-auto sfn::universe::get_closest(const int system_index) const -> std::vector<int>
-{
-   const glm::vec3 source_pos = m_systems[system_index].m_position;
-
-   std::vector<int> closest;
-   closest.reserve(m_systems.size());
-
-   for (int i = 0; i < m_systems.size(); ++i)
-   {
-      closest.push_back(i);
-   }
-
-   const auto pred = [&](const int a, const int b)
-   {
-      const glm::vec3 a_pos = m_systems[a].m_position;
-      const glm::vec3 b_pos = m_systems[b].m_position;
-      const float a_dist2 = glm::distance2(source_pos, a_pos);
-      const float b_dist2 = glm::distance2(source_pos, b_pos);
-      return a_dist2 < b_dist2;
-   };
-   std::ranges::sort(closest, pred);
-
-   return closest;
-}
 
 
 auto sfn::get_graph_from_universe(const universe& universe, const float jump_range) -> graph
@@ -206,7 +178,7 @@ auto sfn::get_graph_from_universe(const universe& universe, const float jump_ran
    {
       for (int j = i + 1; j < universe.m_systems.size(); ++j)
       {
-         const float distance2 = glm::distance2(universe.m_systems[i].m_position, universe.m_systems[j].m_position);
+         const float distance2 = glm::distance2(universe.m_systems[i].get_position(position_mode::reconstructed), universe.m_systems[j].get_position(position_mode::reconstructed));
          if (distance2 > jump_range2)
             continue;
 
@@ -238,12 +210,13 @@ auto sfn::get_graph_from_universe(const universe& universe, const float jump_ran
 auto sfn::get_min_jump_dist(
    const universe& universe,
    const int start_index,
-   const int dest_index
+   const int dest_index,
+   const position_mode mode
 ) -> float
 {
    const float total_dist = glm::distance(
-      universe.m_systems[start_index].m_position,
-      universe.m_systems[dest_index].m_position
+      universe.m_systems[start_index].get_position(mode),
+      universe.m_systems[dest_index].get_position(mode)
    );
 
    // Initialize the graph with the total distance. That is guaranteed to work
@@ -255,7 +228,7 @@ auto sfn::get_min_jump_dist(
    {
       // Plot a course through that graph
       // If no jump is possible, the previously calculated longest jump is the minimum required range
-      const auto distance_getter = [&](const int i, const int j) {return universe.get_distance(i, j); };
+      const auto distance_getter = [&](const int i, const int j) {return universe.get_distance(i, j, mode); };
       const std::optional<jump_path> plot = minimum_graph.get_jump_path(start_index, dest_index, distance_getter);
       if (plot.has_value() == false || plot->m_stops.size() == 1)
       {
@@ -266,8 +239,8 @@ auto sfn::get_min_jump_dist(
       for (int i = 0; i < plot->m_stops.size() - 1; ++i)
       {
          const float dist = glm::distance(
-            universe.m_systems[plot->m_stops[i]].m_position,
-            universe.m_systems[plot->m_stops[i + 1]].m_position
+            universe.m_systems[plot->m_stops[i]].get_position(mode),
+            universe.m_systems[plot->m_stops[i + 1]].get_position(mode)
          );
          longest_jump = std::max(longest_jump, dist);
       }
@@ -297,7 +270,10 @@ auto sfn::get_min_jump_dist(
 }
 
 
-auto sfn::get_absolute_min_jump_range(const universe& universe) -> float
+auto sfn::get_absolute_min_jump_range(
+   const universe& universe,
+   const position_mode mode
+) -> float
 {
    timer t;
    std::vector<std::pair<int, int>> connections;
@@ -319,35 +295,9 @@ auto sfn::get_absolute_min_jump_range(const universe& universe) -> float
       std::begin(results),
       [&](const std::pair<int, int>& ppp)
       {
-         return get_min_jump_dist(universe, ppp.first, ppp.second);
+         return get_min_jump_dist(universe, ppp.first, ppp.second, mode);
       }
    );
 
    return *std::ranges::max_element(results);
-}
-
-
-auto sfn::get_closest_distances_for_all(const universe& universe) -> std::vector<float>
-{
-   std::vector<float> result;
-   result.reserve(universe.m_systems.size());
-
-   for (int i = 0; i < std::size(universe.m_systems); ++i)
-   {
-      float closest = std::numeric_limits<float>::max();
-      for (int j = 0; j < std::size(universe.m_systems); ++j)
-      {
-         if (i == j)
-            continue;
-
-         const float dist = glm::distance(
-            universe.m_systems[i].m_position,
-            universe.m_systems[j].m_position
-         );
-         closest = std::min(closest, dist);
-      }
-      result.push_back(closest);
-   }
-
-   return result;
 }
