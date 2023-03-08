@@ -1,3 +1,6 @@
+# 0.14
+- Update after Launch Date announcement: Added visible new systems in yellow
+
 # 0.13
 - Program now starts maximized
 - In both center modes, view can be rotated with held down right mouse button
