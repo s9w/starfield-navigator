@@ -1,11 +1,11 @@
 # Starfield Navigator
 
-On 2022-06-12, Bethesda released the [first ingame footage](https://www.youtube.com/watch?v=zmb2FJGvnAw) of **Starfield**. Around 13:30 in the video, the starmap is visible for ~6 seconds. That scene was used to reconstruct the ingame map. The **Starfield Navigator** is a small program uses that data in a couple of ways. This site contains the source of the program, a downloadable version as well as discussion of the method, current efforts and findings.
+On 2022-06-12, Bethesda released the [first ingame footage](https://www.youtube.com/watch?v=zmb2FJGvnAw) of **Starfield**. Around 13:30 in the video, the starmap is visible for ~6 seconds. That scene was used to reconstruct parts of the ingame starmap. The **Starfield Navigator** is a small program uses that data in a couple of ways. This site contains the source of the program, a downloadable version as well as discussion of the method, current efforts and findings.
 
 https://user-images.githubusercontent.com/6044318/177479550-c8bf36b0-9571-4ade-a45a-d1f4a05bc733.mp4
 
 ## Launch Date Announcement Video
-In the [Launch Date Announcement](https://www.youtube.com/watch?v=raWbElTCea8), two more existing stars could be seen: Tau Ceti and Cassiopeiae. For "Cassiopeiae" it's hard to know which star in the large constellation they refer to. Therefore from v0.14 on, all relevant options for Cassiopeiae as well as Tau Ceti are now added to the navigator as yellow entries.
+In the [Launch Date Announcement](https://www.youtube.com/watch?v=raWbElTCea8) on 2023-03-08, two more existing star names could be seen: *Tau Ceti* and *Cassiopeiae*. "Cassiopeiae" is a huge star constellation and we can't know which one they refer to. Therefore from v0.14 on, the most likely (i.e. close and bright) stars of Cassiopeiae as well as Tau Ceti are now added to the navigator as **yellow entries**.
 
 <br/><br/>
 
