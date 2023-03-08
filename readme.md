@@ -4,6 +4,9 @@ On 2022-06-12, Bethesda released the [first ingame footage](https://www.youtube.
 
 https://user-images.githubusercontent.com/6044318/177479550-c8bf36b0-9571-4ade-a45a-d1f4a05bc733.mp4
 
+## Launch Date Announcement Video
+In the [Launch Date Announcement](https://www.youtube.com/watch?v=raWbElTCea8), two more existing stars could be seen: Tau Ceti and Cassiopeiae. For "Cassiopeiae" it's hard to know which star in the large constellation they refer to. Therefore from v0.14 on, all relevant options for Cassiopeiae as well as Tau Ceti are now added to the navigator as yellow entries.
+
 <br/><br/>
 
 :arrow_down: :floppy_disk: [**Download current version**](https://github.com/s9w/starfield-navigator/releases/latest/download/starfield_navigator.zip) :floppy_disk: :arrow_down:

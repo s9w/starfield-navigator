@@ -158,27 +158,32 @@ AEG:big;;Vega_HIP 91262;Lyra
 # For possible catalog entries, see cc_hyg.txt. Just with space instead of underscores.
 # Note that this preferences HIP over GJ entries - just look for which one exists
 # Note that this will file be overwritten when downloading new versions. Backup if necessary
-Epsilon Eridani;HIP 16537
-Beta Hydri;HIP 2021 # maybe too low?
-Sigma Draconis;HIP 96100 # maybe too far up?
-Fomalhaut;HIP 113368
-Denebola;HIP 57632 # this is visible in the video, but swallowed by the reconstructor. too few frames probably
-Delta Capricorni;HIP 107556
-Beta Aquilae;HIP 98036
-Alpha Corvi;HIP 59199
-Iota Piscium;HIP 116771
-Pi3 Orionis;HIP 22449
-Delta Eridani;HIP 17378
-Chi Draconis;HIP 89937
-Xi Ursae Majoris;HIP 55203
-HD 176051;HIP 93017
-Gamma Pavonis;HIP 105858
-Alpha Fornacis;HIP 14879 # maybe too far below
-Alpha Comae Berenices;GLIESE 501B # not sure if visible
-Beta Comae Berenices;HIP 64394
-Iota Persei;HIP 14632 # probably too high up
-10 Tauri;HIP 16852 # probably too far in front
-Iota Pegasi;HIP 109176 # maybe too high up
+Tau Ceti;HIP 8102
+Eta Cassiopeiae;HIP 3821
+Mu Cassiopeiae;HIP 5336
+V547 Cassiopeiae;HIP 2552
+Beta Cassiopeiae;HIP 746
+#Epsilon Eridani;HIP 16537
+#Beta Hydri;HIP 2021 # maybe too low?
+#Sigma Draconis;HIP 96100 # maybe too far up?
+#Fomalhaut;HIP 113368
+#Denebola;HIP 57632 # this is visible in the video, but swallowed by the reconstructor. too few frames probably
+#Delta Capricorni;HIP 107556
+#Beta Aquilae;HIP 98036
+#Alpha Corvi;HIP 59199
+#Iota Piscium;HIP 116771
+#Pi3 Orionis;HIP 22449
+#Delta Eridani;HIP 17378
+#Chi Draconis;HIP 89937
+#Xi Ursae Majoris;HIP 55203
+#HD 176051;HIP 93017
+#Gamma Pavonis;HIP 105858
+#Alpha Fornacis;HIP 14879 # maybe too far below
+#Alpha Comae Berenices;GLIESE 501B # not sure if visible
+#Beta Comae Berenices;HIP 64394
+#Iota Persei;HIP 14632 # probably too high up
+#10 Tauri;HIP 16852 # probably too far in front
+#Iota Pegasi;HIP 109176 # maybe too high up
 # ------------------
 # HD 10307;HIP 7918 # too high up
 # 171 Puppis ;HIP 37853 # too far in front
