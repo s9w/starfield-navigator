@@ -17,17 +17,15 @@ In the [Launch Date Announcement](https://www.youtube.com/watch?v=raWbElTCea8) o
 
 <br/><br/>
 
-## Current effort
-100% of the visible stars were identified. For some, identification is tricky because it's unknown how exactly they deal with multiple-star systems and the time difference (for example Xi Scorpii).
+## Details and analysis
+In the first showcase, we get a ~6 second shot of the camera moving in the starmap. With 3D Tracking software, the location of all 75 visible stars was extracted. These positions are arbitrary and only correct in relation to each other. Of the stars that had names, there were three stars that exist IRL: Sol, Alpha Centauri and Porrima. The *real* position of those stars was used to align those arbitrary reconstructed positions to their actual coordinates. In three dimensions, three posisions are luckily enough. It was then discovered that the positions of the other (unlabeled) stars also seem to match known stars. At that point, publicly accessible star catalogues were used to programmatically find the most probably ID for all the stars visible in the showcase. For most stars, there's a very good match. With those good matches in hand, original estimates for the FOV of the camera footage and other assumptions could be used to further calibrate the measurements so that all stars could be matched to an error of about 0.1 LY.
 
-Next up will be tools to help reconstruct the non-visible stars.
+There are some astronomically tricky parts left: We know for example that they don't always use realistic data for multiple-star systems. Particularly, Alpha Centauri was shown as a single-star system. Yet there are systems like Xi Scorpii that are quintuple with a hugely complex mechanics which was visible as two stars. Also they seem to be optimistic about the number of planets in systems, at least compared to current findings.
 
-## Insights
-A couple of insights were gained from the data:
-- Of the "over 100" stars announced for the final game, 75 were visible. Seven were labeled, three of them match real stars in position, name and other properties
-- The game uses [Gliese numbers](https://en.wikipedia.org/wiki/Gliese_Catalogue_of_Nearby_Stars) and the known systems had correct relations to each other. Therefore it's likely that all stars are real, some of them renamed
-- Over ten other unlabeled systems have been identified
-- The systems with unknown labels (NARION, VOLII, CHEYENNE, JAFFA) are renames of real systems
-- Of the 7 named systems in the trailer, the 5 leftmost ones had their name on the right side of the planet. The rightmost ones had their name on the left side. Barring other explanations, this might imply that the horizontal center of the map is somewhere between JAFFA and VOLII
+With 100% of the stars identified, some rough analysis is possible. In the reconstructed parts of the universe, not all known stars were included. A first guess to what was considered good candidates might be brightness, usually inversely quantified by "absolute magnitude". If we limit the analysis to stars closer than 150 ly (that's the furthest reconstructed star) and further than 30 ly (near-earth stars might have story priority), we can plot a histogram of what stars exist and were used:
 
-The visible map is mostly to the right of SOL. In [this video](https://www.youtube.com/watch?v=xaNwtw7bhyk), it says "Our game is set [...] in an area that extends outward from our solar system for approximately 50 light years". That weakly implies that sol is somewhat centered. This collides with the observed fact that we already saw stars pretty far out of a 50 LY sphere around sol. But while the video is official, it's pretty questionable overall: The video animation doesn't match what the spoken description. Also the settled systems are called an "area of **our** solar system", which almost certainly is not correct.
+![magnitude_analysis](https://user-images.githubusercontent.com/6044318/178492776-1e03e154-78f6-4fc3-b839-d6bc883c482c.png)
+
+That suggests a preference for low magnitudes/bright stars. If we look closer to earth, me may have a clue to another factor: Both Gliese 667 and Wolf 359 are included. They're really dim stars but have notoriety (Star Trek and Alien vs Predator).
+
+A star that would fit all three criteria is **Epsilon Eridani**. It's close to earth, is popular in fiction and reality, and while not particularly bright - is of the most popular brightness otherwise included. Looking at the place where Epsilon Eridani is expected, we can see nothing: It's occluded by some interface element in the showcase. This may be one of the safer bets for stars that might be in the game.
