@@ -7,7 +7,7 @@ https://user-images.githubusercontent.com/6044318/177479550-c8bf36b0-9571-4ade-a
 ## Launch Date Announcement Video
 In the [Launch Date Announcement](https://www.youtube.com/watch?v=raWbElTCea8) on 2023-03-08, two more existing star names could be seen: *Tau Ceti* and *Cassiopeiae*. "Cassiopeiae" is a huge star constellation and we can't know which one they refer to. Therefore from v0.14 on, the most likely (i.e. close and bright) stars of Cassiopeiae as well as Tau Ceti are now added to the navigator as **yellow entries**.
 
-<br/><br/>
+## Download
 
 :arrow_down: :floppy_disk: [**Download current version**](https://github.com/s9w/starfield-navigator/releases/latest/download/starfield_navigator.zip) :floppy_disk: :arrow_down:
 
@@ -15,12 +15,18 @@ In the [Launch Date Announcement](https://www.youtube.com/watch?v=raWbElTCea8) o
 
 (If you get a dll error, you're missing a recent [C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe))
 
-<br/><br/>
+## Usage
+- In the (default) *frontal* camera mode, use WASD to mov along the map
+- The *center selection* mode centers the selected System. Selection can be done with the *System selector*. You can pivot around the system with right mouse button or WASD
+- The galactic center mode is the same, but in [galactic coordinates](https://en.wikipedia.org/wiki/Galactic_coordinate_system)
+- The reveal mode replays the scene from the [official Gameplay Reveal](https://youtu.be/zmb2FJGvnAw?t=810). This is not perfect as the aspect ratio is not strictly controlled
+
+Also note the tool window in the upper right. It can show connections between systems with different jump ranges. It can also calculate the optimal route between two system and show the individual jumps.
 
 ## Details and analysis
-In the first showcase, we get a ~6 second shot of the camera moving in the starmap. With 3D Tracking software, the location of all 75 visible stars was extracted. These positions are arbitrary and only correct in relation to each other. Of the stars that had names, there were three stars that exist IRL: Sol, Alpha Centauri and Porrima. The *real* position of those stars was used to align those arbitrary reconstructed positions to their actual coordinates. In three dimensions, three posisions are luckily enough. It was then discovered that the positions of the other (unlabeled) stars also seem to match known stars. At that point, publicly accessible star catalogues were used to programmatically find the most probably ID for all the stars visible in the showcase. For most stars, there's a very good match. With those good matches in hand, original estimates for the FOV of the camera footage and other assumptions could be used to further calibrate the measurements so that all stars could be matched to an error of about 0.1 LY.
+In the first showcase, we get a ~6 second shot of the camera moving in the starmap. With 3D Tracking software, the location of all 75 visible stars was extracted. These positions are arbitrary and only correct in relation to each other. Of the stars that had names, there were three stars that exist IRL: Sol, Alpha Centauri and Porrima. The *real* position of those stars was used to align those arbitrary reconstructed positions to their actual coordinates. In three dimensions, three positions are luckily enough. It was then discovered that the positions of the other (unlabelled) stars also seem to match known stars. At that point, publicly accessible star catalogues were used to programmatically find the most probably ID for all the stars visible in the showcase. For most stars, there's a very good match. With those good matches in hand, original estimates for the FOV of the camera footage and other assumptions could be used to further calibrate the measurements so that all stars could be matched to an error of about 0.1 ly.
 
-There are some astronomically tricky parts left: We know for example that they don't always use realistic data for multiple-star systems. Particularly, Alpha Centauri was shown as a single-star system. Yet there are systems like Xi Scorpii that are quintuple with a hugely complex mechanics which was visible as two stars. Also they seem to be optimistic about the number of planets in systems, at least compared to current findings.
+There are some astronomically tricky parts left: We know for example that they don't always use realistic data for multiple-star systems. Particularly, Alpha Centauri was shown as a single-star system. Yet there are systems like Xi Scorpii that are quintuple with hugely complex mechanics which was visible as two stars. Also they seem to be optimistic about the number of planets in systems, at least compared to current findings.
 
 With 100% of the stars identified, some rough analysis is possible. In the reconstructed parts of the universe, not all known stars were included. A first guess to what was considered good candidates might be brightness, usually inversely quantified by "absolute magnitude". If we limit the analysis to stars closer than 150 ly (that's the furthest reconstructed star) and further than 30 ly (near-earth stars might have story priority), we can plot a histogram of what stars exist and were used:
 
