@@ -8,6 +8,7 @@ https://user-images.githubusercontent.com/6044318/177479550-c8bf36b0-9571-4ade-a
 In the [Launch Date Announcement](https://www.youtube.com/watch?v=raWbElTCea8) on 2023-03-08, two more existing star names could be seen: *Tau Ceti* and *Cassiopeiae*. "Cassiopeiae" is a huge star constellation and we can't know which one they refer to. Therefore from v0.14 on, the most likely (i.e. close and bright) stars of Cassiopeiae as well as Tau Ceti are now added to the navigator as **yellow entries**.
 
 ## Download
+(Note that starfield navigator is a windows program)
 
 :arrow_down: :floppy_disk: [**Download current version**](https://github.com/s9w/starfield-navigator/releases/latest/download/starfield_navigator.zip) :floppy_disk: :arrow_down:
 
