@@ -220,10 +220,9 @@ function update_rings(center)
 }
 
 
-function update_path(new_range)
+function update_path()
 {
     path_group.clear();
-    
 
     let jump_graph = graph.Dijkstra("Sol", "Porrima");
     for (let i = 0; i < jump_graph.length-1; i++) {
@@ -245,8 +244,6 @@ function update_path(new_range)
 
 function range_changed(new_range)
 {
-    
-    
     graph = new WeightedGraph();
     for (let i = 0; i < json_data.length; i++)
     {
@@ -257,18 +254,18 @@ function range_changed(new_range)
         for (let j = 0; j < json_data.length; j++)
         {
             if(i==j)
-            continue;
+                continue;
             let v0 = new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]); 
             let v1 = new THREE.Vector3(json_data[j]["pos"][0], json_data[j]["pos"][1], json_data[j]["pos"][2]); 
             let dist = v0.distanceTo(v1);
             if(dist > new_range)
-            continue;
+                continue;
             graph.addEdge(json_data[i]["name"], json_data[j]["name"], dist);
         }
     }
 
     update_connections(new_range);
-    update_path(new_range);
+    update_path();
 }
 
 function update_connections(new_range)
@@ -280,11 +277,11 @@ function update_connections(new_range)
         for (let j = 0; j < json_data.length; j++)
         {
             if(i==j)
-            continue;
+                continue;
             let v0 = new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]); 
             let v1 = new THREE.Vector3(json_data[j]["pos"][0], json_data[j]["pos"][1], json_data[j]["pos"][2]); 
             let dist = v0.distanceTo(v1);
-            if(dist > new_range)
+                if(dist > new_range)
             continue;
             
             let line_points = [];
@@ -303,7 +300,7 @@ function init() {
     camera.position.add(front_vec);
     camera.position.multiplyScalar(-20.0);
     camera.lookAt(0, 0, 0);
-    document.querySelector("#jump_range").addEventListener("change", (event) => {
+    document.querySelector("#jump_range").addEventListener("input", (event) => {
         range_changed(event.target.value);
     });
     
