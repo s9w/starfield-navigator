@@ -171,7 +171,7 @@ const up_vec = new THREE.Vector3(-0.484225601, 0.746894360, 0.455712944);
 const right_vec = new THREE.Vector3(0.0548099577, -0.493931174, 0.867771626);
 const front_vec = new THREE.Vector3(0.873337090, 0.445001483, 0.198131084);
 
-let connections_obj;
+let connections_group = new THREE.Group();
 let path_obj;
 let ring_group = new THREE.Group();
 
@@ -199,7 +199,7 @@ function add_ring(center, radius)
     }
     let line_geometry = new LineGeometry();
     line_geometry.setPositions( line_points );
-    let rings_obj = new Line2( line_geometry, new LineMaterial({color: 0x808080, linewidth: 0.005}) );
+    let rings_obj = new Line2( line_geometry, new LineMaterial({color: 0x808080, linewidth: 0.002}) );
     ring_group.add(rings_obj)
     
 }
@@ -264,8 +264,9 @@ function range_changed(new_range)
 
 function update_connections(new_range)
 {
-    scene.remove(connections_obj);
-    let line_points = [];
+    scene.remove(connections_group);
+    connections_group.clear();
+    
     for (let i = 0; i < json_data.length; i++)
     {
         for (let j = 0; j < json_data.length; j++)
@@ -278,14 +279,16 @@ function update_connections(new_range)
             if(dist > new_range)
             continue;
             
-            line_points.push(new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]));
-            line_points.push(new THREE.Vector3(json_data[j]["pos"][0], json_data[j]["pos"][1], json_data[j]["pos"][2]));
+            let line_points = [];
+            line_points.push(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]);
+            line_points.push(json_data[j]["pos"][0], json_data[j]["pos"][1], json_data[j]["pos"][2]);
+            let line_geometry = new LineGeometry();
+            line_geometry.setPositions( line_points );
+            let rings_obj = new Line2( line_geometry, new LineMaterial({color: 0x3b7b3b, linewidth: 0.001}) );
+            connections_group.add(rings_obj)
         }
     }
-    
-    const line_geometry = new THREE.BufferGeometry().setFromPoints( line_points );
-    connections_obj = new THREE.LineSegments( line_geometry, new THREE.LineBasicMaterial({color: 0x3b7b3b}) );
-    scene.add( connections_obj );
+    scene.add( connections_group );
 }
 
 function init() {
