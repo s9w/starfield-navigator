@@ -225,6 +225,13 @@ function update_path()
     path_group.clear();
 
     let jump_graph = graph.Dijkstra("Sol", "Porrima");
+    // console.log(jump_graph);
+
+    if(jump_graph.length == 1)
+        document.querySelector('#no_path').style = "";
+    else
+        document.querySelector('#no_path').style = "visibility: hidden;";
+
     for (let i = 0; i < jump_graph.length-1; i++) {
         let line_points = [];
         
@@ -255,12 +262,13 @@ function range_changed(new_range)
         {
             if(i==j)
                 continue;
-            let v0 = new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]); 
-            let v1 = new THREE.Vector3(json_data[j]["pos"][0], json_data[j]["pos"][1], json_data[j]["pos"][2]); 
-            let dist = v0.distanceTo(v1);
-            if(dist > new_range)
+            let dx = json_data[i]["pos"][0] - json_data[j]["pos"][0];
+            let dy = json_data[i]["pos"][1] - json_data[j]["pos"][1];
+            let dz = json_data[i]["pos"][2] - json_data[j]["pos"][2];
+            let dist2 = dx*dx + dy*dy + dz*dz;
+            if(dist2 > (new_range*new_range))
                 continue;
-            graph.addEdge(json_data[i]["name"], json_data[j]["name"], dist);
+            graph.addEdge(json_data[i]["name"], json_data[j]["name"], Math.sqrt(dist2));
         }
     }
 
@@ -272,24 +280,27 @@ function update_connections(new_range)
 {
     connections_group.clear();
     
+    const mat = new LineMaterial({color: 0x3b7b3b, linewidth: 0.001});
     for (let i = 0; i < json_data.length; i++)
     {
         for (let j = 0; j < json_data.length; j++)
         {
             if(i==j)
                 continue;
-            let v0 = new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]); 
-            let v1 = new THREE.Vector3(json_data[j]["pos"][0], json_data[j]["pos"][1], json_data[j]["pos"][2]); 
-            let dist = v0.distanceTo(v1);
-                if(dist > new_range)
-            continue;
+
+            let dx = json_data[i]["pos"][0] - json_data[j]["pos"][0];
+            let dy = json_data[i]["pos"][1] - json_data[j]["pos"][1];
+            let dz = json_data[i]["pos"][2] - json_data[j]["pos"][2];
+            let dist2 = dx*dx + dy*dy + dz*dz;
+            if(dist2 > (new_range*new_range))
+                continue;
             
             let line_points = [];
             line_points.push(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]);
             line_points.push(json_data[j]["pos"][0], json_data[j]["pos"][1], json_data[j]["pos"][2]);
             let line_geometry = new LineGeometry();
             line_geometry.setPositions( line_points );
-            let rings_obj = new Line2( line_geometry, new LineMaterial({color: 0x3b7b3b, linewidth: 0.001}) );
+            let rings_obj = new Line2( line_geometry, mat );
             connections_group.add(rings_obj)
         }
     }
@@ -300,9 +311,10 @@ function init() {
     camera.position.add(front_vec);
     camera.position.multiplyScalar(-20.0);
     camera.lookAt(0, 0, 0);
-    document.querySelector("#jump_range").addEventListener("input", (event) => {
+    document.querySelector("#jump_range").addEventListener("change", (event) => {
         range_changed(event.target.value);
     });
+    
     
     const material = new THREE.MeshBasicMaterial( { color: 0xffffff } );
     // scene.add( new THREE.Mesh( new THREE.SphereGeometry( 0.2, 32, 16 ).translate(1, 0, 0), new THREE.MeshBasicMaterial( { color: 0xff0000 } ) ) );
@@ -333,6 +345,7 @@ function init() {
         position_lookup[json_data[i]["name"]] = new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]);
     }
     
+    range_changed(document.getElementById("jump_range").value);
     update_rings(new THREE.Vector3(0, 0, 0));
     update_connections(document.querySelector("#jump_range").value);
     

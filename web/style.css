@@ -4,6 +4,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background-color: slategray;
 }
 html,body {
     height:100%;
@@ -17,4 +18,8 @@ body >:not(#glContainer){
 #glContainer {
     flex-grow: 1;
     position: relative;
+}
+#no_path{
+    color: red;
+    margin-left: 1em;
 }
