@@ -3,6 +3,14 @@
 	<head>
 		<meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1"/>
+        <script type="importmap">
+            {
+              "imports": {
+                "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
+              }
+            }
+          </script>
          <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
 		<title>Starfield Navigator</title>
 		<style>
@@ -14,14 +22,7 @@
 		</style>
         <link rel="stylesheet" type="text/css" href="style.css" />
         <script async defer src="https://buttons.github.io/buttons.js"></script>
-        <script type="importmap">
-            {
-              "imports": {
-                "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
-              }
-            }
-          </script>
+        
           <script src="json_payload.js"></script>
         <script type="module" src="script.js"></script>
 	</head>
@@ -42,6 +43,6 @@
             import {init} from './script.js';
             init();
 		</script>
-        <script async defer src="https://buttons.github.io/buttons.js"></script>
+        <!-- <script async defer src="https://buttons.github.io/buttons.js"></script> -->
 	</body>
 </html>
