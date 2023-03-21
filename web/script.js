@@ -6,10 +6,13 @@ let container = document.getElementById('glContainer');
 let camera = new THREE.PerspectiveCamera( 90, container.clientWidth / container.clientHeight, 0.1, 1000 );
 let renderer = new THREE.WebGLRenderer({antialias: true});
 let labelRenderer = new CSS2DRenderer();
+let scene = new THREE.Scene();
 
 const up_vec = new THREE.Vector3(-0.484225601, 0.746894360, 0.455712944);
 const right_vec = new THREE.Vector3(0.0548099577, -0.493931174, 0.867771626);
 const front_vec = new THREE.Vector3(0.873337090, 0.445001483, 0.198131084);
+
+let rings_obj;
 
 function get_line_segment(center, angle, radius)
 {
@@ -34,9 +37,21 @@ function add_ring(line_points, center, radius)
     }
 }
 
+function update_rings(center)
+{
+    scene.remove(rings_obj);
+    let line_points = [];
+    add_ring(line_points, center, 10.0);
+    add_ring(line_points, center, 20.0);
+    add_ring(line_points, center, 30.0);
+    add_ring(line_points, center, 40.0);
+    add_ring(line_points, center, 50.0);
+    const line_geometry = new THREE.BufferGeometry().setFromPoints( line_points );
+    rings_obj = new THREE.LineSegments( line_geometry, new THREE.LineBasicMaterial({color: 0x808080}) );
+    scene.add( rings_obj );
+}
+
 function init() {
-    const scene = new THREE.Scene();
-    
     camera.up = up_vec;
     camera.position.add(front_vec);
     camera.position.multiplyScalar(-20.0);
@@ -65,18 +80,8 @@ function init() {
         mesh.position.set( element["pos"][0], element["pos"][1], element["pos"][2] );
         scene.add( mesh );
     }
-
-    // lines
-    const line_points = [];
-    let center = new THREE.Vector3(0, 0, 0);
-    add_ring(line_points, center, 10.0);
-    add_ring(line_points, center, 20.0);
-    add_ring(line_points, center, 30.0);
-    add_ring(line_points, center, 40.0);
-    add_ring(line_points, center, 50.0);
-    const line_geometry = new THREE.BufferGeometry().setFromPoints( line_points );
-    const line = new THREE.LineSegments( line_geometry, new THREE.LineBasicMaterial({color: 0x808080}) );
-    scene.add( line );
+    
+    update_rings(new THREE.Vector3(0, 0, 0));
 
     
     renderer.setSize( container.clientWidth, container.clientHeight );
