@@ -3,12 +3,10 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 function init() {
-    // import * as THREE from 'three';
-    // import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-    // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    let container = document.getElementById('glContainer');
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    const camera = new THREE.PerspectiveCamera( 90, container.clientWidth / container.clientHeight, 0.1, 1000 );
     camera.up.set(0, 0, 1);
     camera.position.x = 0;
     camera.position.y = -20;
@@ -47,14 +45,14 @@ function init() {
     }
 
     const renderer = new THREE.WebGLRenderer();
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( renderer.domElement );
+    renderer.setSize( container.clientWidth, container.clientHeight );
+    container.appendChild( renderer.domElement );
     
     let labelRenderer = new CSS2DRenderer();
-    labelRenderer.setSize( window.innerWidth, window.innerHeight );
+    labelRenderer.setSize( container.clientWidth, container.clientHeight );
     labelRenderer.domElement.style.position = 'absolute';
     labelRenderer.domElement.style.top = '0px';
-    document.body.appendChild( labelRenderer.domElement );
+    container.appendChild( labelRenderer.domElement );
 
     const controls = new OrbitControls( camera, labelRenderer.domElement  );
     controls.minDistance = 20;
