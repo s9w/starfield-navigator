@@ -2,22 +2,19 @@ import * as THREE from 'three';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-function init() {
-    let container = document.getElementById('glContainer');
+let container = document.getElementById('glContainer');
+let camera = new THREE.PerspectiveCamera( 90, container.clientWidth / container.clientHeight, 0.1, 1000 );
+let renderer = new THREE.WebGLRenderer();
+let labelRenderer = new CSS2DRenderer();
 
+function init() {
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera( 90, container.clientWidth / container.clientHeight, 0.1, 1000 );
+    
     camera.up.set(0, 0, 1);
     camera.position.x = 0;
     camera.position.y = -20;
     camera.position.z = 0;
     camera.lookAt(0, 0, 0);
-
-    
-
-    
-
-    
 
     const material = new THREE.MeshBasicMaterial( { color: 0xffffff } );
     // scene.add( new THREE.Mesh( new THREE.SphereGeometry( 0.2, 32, 16 ).translate(1, 0, 0), new THREE.MeshBasicMaterial( { color: 0xff0000 } ) ) );
@@ -44,11 +41,11 @@ function init() {
         scene.add( mesh );
     }
 
-    const renderer = new THREE.WebGLRenderer();
+    
     renderer.setSize( container.clientWidth, container.clientHeight );
     container.appendChild( renderer.domElement );
     
-    let labelRenderer = new CSS2DRenderer();
+    
     labelRenderer.setSize( container.clientWidth, container.clientHeight );
     labelRenderer.domElement.style.position = 'absolute';
     labelRenderer.domElement.style.top = '0px';
@@ -64,7 +61,17 @@ function init() {
         labelRenderer.render( scene, camera );
     }
     animate();
+    window.addEventListener( 'resize', onWindowResize, false );
 }
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    labelRenderer.setSize( window.innerWidth, window.innerHeight );
+}
+
 
 
 export {init};
