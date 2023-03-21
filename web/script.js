@@ -9,11 +9,9 @@ let labelRenderer = new CSS2DRenderer();
 
 function init() {
     const scene = new THREE.Scene();
-    
-    camera.up.set(-0.484225601, 0.746894360, 0.455712944);
-    camera.position.x = 0;
-    camera.position.y = -20;
-    camera.position.z = 0;
+    const up_vec = new THREE.Vector3(-0.484225601, 0.746894360, 0.455712944);
+    camera.up = up_vec;
+    camera.position.set(0, -20, 0);
     camera.lookAt(0, 0, 0);
 
     const material = new THREE.MeshBasicMaterial( { color: 0xffffff } );
@@ -34,7 +32,8 @@ function init() {
         moonDiv.textContent = element["name"];
         moonDiv.style.marginTop = '-0.5em';
         const moonLabel = new CSS2DObject( moonDiv );
-        moonLabel.position.set( 0, 0, star_radius );
+        moonLabel.position.set( up_vec.x*star_radius, up_vec.y*star_radius, up_vec.z*star_radius );
+        console.log(up_vec.x);
         mesh.add( moonLabel );
         mesh.position.set( element["pos"][0], element["pos"][1], element["pos"][2] );
 
