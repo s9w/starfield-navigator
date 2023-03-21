@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+import { Line2 } from 'three/addons/lines/Line2.js';
+import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 
 
 //helper class for PriorityQueue
@@ -167,11 +171,11 @@ const up_vec = new THREE.Vector3(-0.484225601, 0.746894360, 0.455712944);
 const right_vec = new THREE.Vector3(0.0548099577, -0.493931174, 0.867771626);
 const front_vec = new THREE.Vector3(0.873337090, 0.445001483, 0.198131084);
 
-let rings_obj;
 let connections_obj;
 let path_obj;
+let ring_group = new THREE.Group();
 
-function get_line_segment(center, angle, radius)
+function add_ring_point(center, angle, radius, line_points)
 {
     let point = center.clone();
     let front_shift = front_vec.clone();
@@ -180,34 +184,38 @@ function get_line_segment(center, angle, radius)
     let right_shift = right_vec.clone();
     right_shift.multiplyScalar(radius * Math.sin(angle));
     point.add(right_shift);
-    return point;
+    line_points.push(point.x, point.y, point.z);
 }
 
 
-function add_ring(line_points, center, radius)
+function add_ring(center, radius)
 {
     const n = 32;
-    for (let i = 0; i < n; i++) {
-        const angle0 = 1.0*i/n*2.0*Math.PI;
-        const angle1 = 1.0*(i+1)/n*2.0*Math.PI;
-        line_points.push(get_line_segment(center, angle0, radius));
-        line_points.push(get_line_segment(center, angle1, radius));
+    let line_points = [];
+    for (let i = 0; i < n; i++)
+    {
+        const angle = 1.0*i/(n-1)*2.0*Math.PI;
+        add_ring_point(center, angle, radius, line_points);
     }
+    let line_geometry = new LineGeometry();
+    line_geometry.setPositions( line_points );
+    let rings_obj = new Line2( line_geometry, new LineMaterial({color: 0x808080, linewidth: 0.005}) );
+    ring_group.add(rings_obj)
+    
 }
 
 
 function update_rings(center)
 {
-    scene.remove(rings_obj);
-    let line_points = [];
-    add_ring(line_points, center, 10.0);
-    add_ring(line_points, center, 20.0);
-    add_ring(line_points, center, 30.0);
-    add_ring(line_points, center, 40.0);
-    add_ring(line_points, center, 50.0);
-    const line_geometry = new THREE.BufferGeometry().setFromPoints( line_points );
-    rings_obj = new THREE.LineSegments( line_geometry, new THREE.LineBasicMaterial({color: 0x808080}) );
-    scene.add( rings_obj );
+    scene.remove(ring_group);
+    ring_group.clear();
+
+    add_ring(center, 10.0);
+    add_ring(center, 20.0);
+    add_ring(center, 30.0);
+    add_ring(center, 40.0);
+    add_ring(center, 50.0);
+    scene.add( ring_group );
 }
 
 
