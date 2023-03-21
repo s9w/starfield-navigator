@@ -177,6 +177,35 @@ namespace {
       return result;
    }
 
+   auto create_web_payload(const universe& m_universe) -> void
+   {
+      std::ofstream file("../web/json_payload.js");
+      
+      std::vector<std::string> entries;
+      for (const auto& m_system : m_universe.m_systems)
+      {
+         const glm::vec3 pos = m_system.get_position(position_mode::from_catalog);
+         std::string safe_name = m_system.m_astronomic_name;
+         const auto it = safe_name.find('\'');
+         if (it != std::string::npos)
+            safe_name = safe_name.replace(it, 1, "");
+         entries.push_back(fmt::format(R"(   {{ "name": "{}", "pos": [{},{},{}] }})", safe_name, pos.x, pos.y, pos.z));
+      }
+      std::ranges::sort(entries);
+
+      std::string str;
+      str += "const json_data = [\n";
+      for (int i = 0; i < entries.size(); ++i)
+      {
+         str += entries[i];
+         if (i < entries.size()-1)
+            str += ", ";
+         str += '\n';
+      }
+      str += "]\n";
+      file << str;
+   }
+
 } // namespace {}
 
 
@@ -504,6 +533,8 @@ auto universe_creator::get_finished_result() -> universe
    //    fmt::print("avg of closest: {:.2f}\n", get_average(closest));
    //    fmt::print("max of closest: {:.2f}\n", *std::ranges::max_element(closest));
    // }
+
+   create_web_payload(m_starfield_universe);
 
    return m_starfield_universe;
 }
