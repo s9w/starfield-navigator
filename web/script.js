@@ -172,8 +172,11 @@ const right_vec = new THREE.Vector3(0.0548099577, -0.493931174, 0.867771626);
 const front_vec = new THREE.Vector3(0.873337090, 0.445001483, 0.198131084);
 
 let connections_group = new THREE.Group();
-let path_obj;
+let path_group = new THREE.Group();
 let ring_group = new THREE.Group();
+scene.add( ring_group );
+scene.add( connections_group );
+scene.add( path_group );
 
 function add_ring_point(center, angle, radius, line_points)
 {
@@ -207,7 +210,6 @@ function add_ring(center, radius)
 
 function update_rings(center)
 {
-    scene.remove(ring_group);
     ring_group.clear();
 
     add_ring(center, 10.0);
@@ -215,24 +217,35 @@ function update_rings(center)
     add_ring(center, 30.0);
     add_ring(center, 40.0);
     add_ring(center, 50.0);
-    scene.add( ring_group );
 }
 
 
-function update_path()
+function update_path(new_range)
 {
-    scene.remove(path_obj);
-    let line_points = [];
+    path_group.clear();
     
-    const line_geometry = new THREE.BufferGeometry().setFromPoints( line_points );
-    path_obj = new THREE.LineSegments( line_geometry, new THREE.LineBasicMaterial({color: 0x3b7b3b}) );
-    scene.add( path_obj );
+
+    let jump_graph = graph.Dijkstra("Sol", "Porrima");
+    for (let i = 0; i < jump_graph.length-1; i++) {
+        let line_points = [];
+        
+        let pos0 = position_lookup[jump_graph[i]];
+        let pos1 = position_lookup[jump_graph[i+1]];
+        line_points.push(pos0.x, pos0.y, pos0.z);
+        line_points.push(pos1.x, pos1.y, pos1.z);
+        // let dist = pos0.distanceTo(pos1);
+
+        let line_geometry = new LineGeometry();
+        line_geometry.setPositions( line_points );
+        let path_obj = new Line2( line_geometry, new LineMaterial({color: 0xff2020, linewidth: 0.005}) );
+        path_group.add(path_obj)
+    }
 }
 
 
 function range_changed(new_range)
 {
-    update_connections(new_range);
+    
     
     graph = new WeightedGraph();
     for (let i = 0; i < json_data.length; i++)
@@ -253,18 +266,13 @@ function range_changed(new_range)
             graph.addEdge(json_data[i]["name"], json_data[j]["name"], dist);
         }
     }
-    let jump_graph = graph.Dijkstra("Sol", "Porrima");
-    for (let i = 0; i < jump_graph.length-1; i++) {
-        let pos0 = position_lookup[jump_graph[i]];
-        let pos1 = position_lookup[jump_graph[i+1]];
-        let dist = pos0.distanceTo(pos1);
-        console.log("%s to %s: %f", jump_graph[i], jump_graph[i+1], dist);
-    }
+
+    update_connections(new_range);
+    update_path(new_range);
 }
 
 function update_connections(new_range)
 {
-    scene.remove(connections_group);
     connections_group.clear();
     
     for (let i = 0; i < json_data.length; i++)
@@ -288,7 +296,6 @@ function update_connections(new_range)
             connections_group.add(rings_obj)
         }
     }
-    scene.add( connections_group );
 }
 
 function init() {
