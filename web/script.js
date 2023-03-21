@@ -10,7 +10,7 @@ let labelRenderer = new CSS2DRenderer();
 function init() {
     const scene = new THREE.Scene();
     
-    camera.up.set(0, 0, 1);
+    camera.up.set(-0.484225601, 0.746894360, 0.455712944);
     camera.position.x = 0;
     camera.position.y = -20;
     camera.position.z = 0;
