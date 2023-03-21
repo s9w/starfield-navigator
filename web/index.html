@@ -22,13 +22,18 @@
 		</style>
         <link rel="stylesheet" type="text/css" href="style.css" />
         <script async defer src="https://buttons.github.io/buttons.js"></script>
-        
-          <script src="json_payload.js"></script>
+        <script src="json_payload.js"></script>
         <script type="module" src="script.js"></script>
 	</head>
 	<body>
         <a class="github-button" href="https://github.com/s9w/starfield-navigator" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star s9w/starfield-navigator on GitHub">Star</a>
         
+        <div style="display: flex;">
+          <label for="jump_range:">Jump Range</label>
+          <input type="range" id="jump_range" name="jump_range" min="1" max="30" oninput="this.nextElementSibling.value = this.value">
+          <output>15</output>
+        </div>
+
         <div>
             <label for="from-select">From:</label>
             <select name="from_systems" id="from-select"></select>

@@ -161,7 +161,7 @@ let renderer = new THREE.WebGLRenderer({antialias: true});
 let labelRenderer = new CSS2DRenderer();
 let scene = new THREE.Scene();
 let graph = new WeightedGraph();
-let jump_range = 14.069;
+// let jump_range = 14.069;
 let position_lookup = Object();
 
 const up_vec = new THREE.Vector3(-0.484225601, 0.746894360, 0.455712944);
@@ -169,6 +169,7 @@ const right_vec = new THREE.Vector3(0.0548099577, -0.493931174, 0.867771626);
 const front_vec = new THREE.Vector3(0.873337090, 0.445001483, 0.198131084);
 
 let rings_obj;
+let connections_obj;
 
 function get_line_segment(center, angle, radius)
 {
@@ -207,11 +208,73 @@ function update_rings(center)
     scene.add( rings_obj );
 }
 
+function range_changed(new_range)
+{
+  console.log("range_changed", new_range);
+  update_connections(new_range);
+
+  graph = new WeightedGraph();
+  for (let i = 0; i < json_data.length; i++)
+  {
+    graph.addVertex(json_data[i]["name"]);
+  }
+  for (let i = 0; i < json_data.length; i++)
+  {
+    for (let j = 0; j < json_data.length; j++)
+    {
+      if(i==j)
+        continue;
+      let v0 = new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]); 
+      let v1 = new THREE.Vector3(json_data[j]["pos"][0], json_data[j]["pos"][1], json_data[j]["pos"][2]); 
+      let dist = v0.distanceTo(v1);
+      if(dist > new_range)
+        continue;
+      graph.addEdge(json_data[i]["name"], json_data[j]["name"], dist);
+    }
+  }
+  let jump_graph = graph.Dijkstra("Sol", "Porrima");
+  for (let i = 0; i < jump_graph.length-1; i++) {
+    let pos0 = position_lookup[jump_graph[i]];
+    let pos1 = position_lookup[jump_graph[i+1]];
+    let dist = pos0.distanceTo(pos1);
+    console.log("%s to %s: %f", jump_graph[i], jump_graph[i+1], dist);
+  }
+}
+
+function update_connections(new_range)
+{
+    scene.remove(connections_obj);
+    let line_points = [];
+    for (let i = 0; i < json_data.length; i++)
+    {
+      for (let j = 0; j < json_data.length; j++)
+      {
+        if(i==j)
+          continue;
+        let v0 = new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]); 
+        let v1 = new THREE.Vector3(json_data[j]["pos"][0], json_data[j]["pos"][1], json_data[j]["pos"][2]); 
+        let dist = v0.distanceTo(v1);
+        if(dist > new_range)
+          continue;
+
+        line_points.push(new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]));
+        line_points.push(new THREE.Vector3(json_data[j]["pos"][0], json_data[j]["pos"][1], json_data[j]["pos"][2]));
+      }
+    }
+
+    const line_geometry = new THREE.BufferGeometry().setFromPoints( line_points );
+    connections_obj = new THREE.LineSegments( line_geometry, new THREE.LineBasicMaterial({color: 0x3b7b3b}) );
+    scene.add( connections_obj );
+}
+
 function init() {
     camera.up = up_vec;
     camera.position.add(front_vec);
     camera.position.multiplyScalar(-20.0);
     camera.lookAt(0, 0, 0);
+    document.querySelector("#jump_range").addEventListener("change", (event) => {
+      range_changed(event.target.value);
+    });
 
     const material = new THREE.MeshBasicMaterial( { color: 0xffffff } );
     // scene.add( new THREE.Mesh( new THREE.SphereGeometry( 0.2, 32, 16 ).translate(1, 0, 0), new THREE.MeshBasicMaterial( { color: 0xff0000 } ) ) );
@@ -240,34 +303,10 @@ function init() {
         document.getElementById('to-select').appendChild(option_el.cloneNode(true));
 
         position_lookup[json_data[i]["name"]] = new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]);
-        graph.addVertex(json_data[i]["name"]);
-    }
-
-
-    for (let i = 0; i < json_data.length; i++)
-    {
-      for (let j = 0; j < json_data.length; j++)
-      {
-        if(i==j)
-          continue;
-        let v0 = new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]); 
-        let v1 = new THREE.Vector3(json_data[j]["pos"][0], json_data[j]["pos"][1], json_data[j]["pos"][2]); 
-        let dist = v0.distanceTo(v1);
-        if(dist > jump_range)
-          continue;
-        graph.addEdge(json_data[i]["name"], json_data[j]["name"], dist);
-      }
-    }
-    let jump_graph = graph.Dijkstra("Sol", "Porrima");
-    for (let i = 0; i < jump_graph.length-1; i++) {
-      let pos0 = position_lookup[jump_graph[i]];
-      let pos1 = position_lookup[jump_graph[i+1]];
-      let dist = pos0.distanceTo(pos1);
-      console.log("%s to %s: %f", jump_graph[i], jump_graph[i+1], dist);
     }
 
     update_rings(new THREE.Vector3(0, 0, 0));
-
+    update_connections(document.querySelector("#jump_range").value);
     
     renderer.setSize( container.clientWidth, container.clientHeight );
     container.appendChild( renderer.domElement );
