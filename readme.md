@@ -2,6 +2,8 @@
 
 On 2022-06-12, Bethesda released the [first ingame footage](https://www.youtube.com/watch?v=zmb2FJGvnAw) of **Starfield**. Around 13:30 in the video, the starmap is visible for ~6 seconds. That scene was used to reconstruct parts of the ingame starmap. The **Starfield Navigator** is a small program uses that data in a couple of ways. This site contains the source of the program, a downloadable version as well as discussion of the method, current efforts and findings.
 
+There is a web version in (early) development: [s9w.io/starfield_navigator](https://www.s9w.io/starfield_navigator/)
+
 https://user-images.githubusercontent.com/6044318/177479550-c8bf36b0-9571-4ade-a45a-d1f4a05bc733.mp4
 
 ## Launch Date Announcement Video
