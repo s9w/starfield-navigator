@@ -79,8 +79,14 @@ function init() {
         mesh.add( moonLabel );
         mesh.position.set( element["pos"][0], element["pos"][1], element["pos"][2] );
         scene.add( mesh );
+
+        let option_el = document.createElement("option");
+        option_el.text = element["name"];
+        option_el.value = element["name"];
+        document.getElementById('from-select').appendChild(option_el.cloneNode(true));
+        document.getElementById('to-select').appendChild(option_el.cloneNode(true));
     }
-    
+
     update_rings(new THREE.Vector3(0, 0, 0));
 
     

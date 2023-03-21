@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1"/>
          <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
 		<title>Starfield Navigator</title>
 		<style>
@@ -25,7 +26,15 @@
 	</head>
 	<body>
         <a class="github-button" href="https://github.com/s9w/starfield-navigator" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star s9w/starfield-navigator on GitHub">Star</a>
-        <div><span>some_text</span></div>
+        
+        <div>
+            <label for="from-select">From:</label>
+            <select name="from_systems" id="from-select"></select>
+
+            <label for="to-select">To:</label>
+            <select name="from_systems" id="to-select"></select>
+        </div>
+
         <div id="glContainer"></div>
 
 		<script type="module">
