@@ -160,7 +160,7 @@ class PriorityQueue {
     
     
 let container = document.getElementById('glContainer');
-let camera = new THREE.PerspectiveCamera( 90, container.clientWidth / container.clientHeight, 0.1, 1000 );
+let camera = new THREE.PerspectiveCamera( 80, container.clientWidth / container.clientHeight, 0.1, 1000 );
 let renderer = new THREE.WebGLRenderer({antialias: true});
 let labelRenderer = new CSS2DRenderer();
 let controls;

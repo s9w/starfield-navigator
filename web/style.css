@@ -11,7 +11,7 @@ html,body {
 }
 
 body >:not(#glContainer){
-    margin: 1em;
+    /* margin: 1em; */
     flex-grow: 0;
     margin-bottom: 0.5em;
 }
@@ -25,4 +25,7 @@ body >:not(#glContainer){
 }
 div.label:hover{
     color:aqua;
+}
+.text_label{
+    font-weight: bold;
 }
