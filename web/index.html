@@ -30,17 +30,17 @@
         
         <div style="display: flex; align-items: center;">
           <label for="jump_range:">Jump Range</label>
-          <input type="range" id="jump_range" name="jump_range" min="1.0" max="30.0" step="0.1" oninput="this.nextElementSibling.value = Number(this.value).toFixed(1)">
-          <output>15.0</output>
+          <input type="range" id="jump_range" name="jump_range" min="1.0" max="30.0", value="14.9" step="0.1" oninput="this.nextElementSibling.value = Number(this.value).toFixed(1)">
+          <output>14.9</output>
           <span id="no_path" style="visibility: hidden;">NO PATH (jump range too small)</span>
         </div>
 
         <div>
             <div>
-                <span>From:</span><span id="from"></span>
+                <span>From:</span><span id="from">Sol</span>
             </div>
             <div>
-                <span>To:</span><span id="to"></span>
+                <span>To:</span><span id="to">Tau Bootis</span>
             </div>
         </div>
 
@@ -50,8 +50,11 @@
             <input type="radio" id="orbit" name="drone" value="orbit" checked>
             <label for="orbit">orbit</label>
 
-            <input type="radio" id="selection" name="drone" value="selection">
-            <label for="selection">selection</label>
+            <input type="radio" id="select_from" name="drone" value="select_from">
+            <label for="select_from">Select "from"</label>
+
+            <input type="radio" id="select_to" name="drone" value="select_to">
+            <label for="select_to">Select "to"</label>
         </fieldset>
 
         <div id="glContainer"></div>

@@ -167,7 +167,6 @@ let controls;
 let scene = new THREE.Scene();
 let graph = new WeightedGraph();
 let position_lookup = Object();
-let set_count = 0;
 let mode = "orbit";
 
 const up_vec = new THREE.Vector3(-0.484225601, 0.746894360, 0.455712944);
@@ -227,8 +226,7 @@ function update_path()
 {
     path_group.clear();
 
-    let jump_graph = graph.Dijkstra("Sol", "Porrima");
-    // console.log(jump_graph);
+    let jump_graph = graph.Dijkstra(document.getElementById('from').innerHTML, document.getElementById('to').innerHTML);
 
     if(jump_graph.length == 1)
         document.querySelector('#no_path').style = "";
@@ -279,6 +277,7 @@ function range_changed(new_range)
     update_path();
 }
 
+
 function update_connections(new_range)
 {
     connections_group.clear();
@@ -313,7 +312,9 @@ function update_connections(new_range)
 function on_mode_change(e)
 {
     mode = e.target.value;
-    if(mode == "selection")
+    if(mode == "select_from")
+        controls.enabled = false;
+    if(mode == "select_to")
         controls.enabled = false;
     if(mode == "orbit")
         controls.enabled = true;
@@ -324,13 +325,12 @@ function on_label_click(name)
 {
     if(mode == "orbit")
         return;
-
-    if(set_count%2==0)
+    if(mode == "select_from")
         document.getElementById('from').innerHTML = name;
-    else
+    if(mode == "select_to")
         document.getElementById('to').innerHTML = name;
 
-    set_count += 1;
+    update_path();
 }
 
 
@@ -371,7 +371,7 @@ function init() {
     
     range_changed(document.getElementById("jump_range").value);
     update_rings(new THREE.Vector3(0, 0, 0));
-    update_connections(document.querySelector("#jump_range").value);
+    // update_connections(document.querySelector("#jump_range").value);
     
     labelRenderer.setSize( container.clientWidth, container.clientHeight );
     labelRenderer.domElement.style.position = 'absolute';
@@ -394,7 +394,8 @@ function init() {
     window.addEventListener( 'resize', onWindowResize, false );
 
     document.getElementById('orbit').addEventListener( 'change', on_mode_change );
-    document.getElementById('selection').addEventListener( 'change', on_mode_change );
+    document.getElementById('select_from').addEventListener( 'change', on_mode_change );
+    document.getElementById('select_to').addEventListener( 'change', on_mode_change );
 }
 
 
