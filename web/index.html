@@ -36,12 +36,23 @@
         </div>
 
         <div>
-            <label for="from-select">From:</label>
-            <select name="from_systems" id="from-select"></select>
-
-            <label for="to-select">To:</label>
-            <select name="from_systems" id="to-select"></select>
+            <div>
+                <span>From:</span><span id="from"></span>
+            </div>
+            <div>
+                <span>To:</span><span id="to"></span>
+            </div>
         </div>
+
+        <fieldset>
+            <legend>Mode:</legend>
+
+            <input type="radio" id="orbit" name="drone" value="orbit" checked>
+            <label for="orbit">orbit</label>
+
+            <input type="radio" id="selection" name="drone" value="selection">
+            <label for="selection">selection</label>
+        </fieldset>
 
         <div id="glContainer"></div>
 

@@ -163,9 +163,12 @@ let container = document.getElementById('glContainer');
 let camera = new THREE.PerspectiveCamera( 90, container.clientWidth / container.clientHeight, 0.1, 1000 );
 let renderer = new THREE.WebGLRenderer({antialias: true});
 let labelRenderer = new CSS2DRenderer();
+let controls;
 let scene = new THREE.Scene();
 let graph = new WeightedGraph();
 let position_lookup = Object();
+let set_count = 0;
+let mode = "orbit";
 
 const up_vec = new THREE.Vector3(-0.484225601, 0.746894360, 0.455712944);
 const right_vec = new THREE.Vector3(0.0548099577, -0.493931174, 0.867771626);
@@ -306,6 +309,31 @@ function update_connections(new_range)
     }
 }
 
+
+function on_mode_change(e)
+{
+    mode = e.target.value;
+    if(mode == "selection")
+        controls.enabled = false;
+    if(mode == "orbit")
+        controls.enabled = true;
+}
+
+
+function on_label_click(name)
+{
+    if(mode == "orbit")
+        return;
+
+    if(set_count%2==0)
+        document.getElementById('from').innerHTML = name;
+    else
+        document.getElementById('to').innerHTML = name;
+
+    set_count += 1;
+}
+
+
 function init() {
     camera.up = up_vec;
     camera.position.add(front_vec);
@@ -327,6 +355,8 @@ function init() {
         let mesh =new THREE.Mesh( new THREE.SphereGeometry( star_radius, 8, 8 ), material );
         
         const moonDiv = document.createElement( 'div' );
+        moonDiv.addEventListener('click', function(){on_label_click(json_data[i]["name"])} );
+
         moonDiv.className = 'label';
         moonDiv.textContent = json_data[i]["name"];
         moonDiv.style.marginTop = '-0.5em';
@@ -336,12 +366,6 @@ function init() {
         mesh.position.set( json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2] );
         scene.add( mesh );
         
-        let option_el = document.createElement("option");
-        option_el.text = json_data[i]["name"];
-        option_el.value = json_data[i]["name"];
-        document.getElementById('from-select').appendChild(option_el.cloneNode(true));
-        document.getElementById('to-select').appendChild(option_el.cloneNode(true));
-        
         position_lookup[json_data[i]["name"]] = new THREE.Vector3(json_data[i]["pos"][0], json_data[i]["pos"][1], json_data[i]["pos"][2]);
     }
     
@@ -349,16 +373,15 @@ function init() {
     update_rings(new THREE.Vector3(0, 0, 0));
     update_connections(document.querySelector("#jump_range").value);
     
-    renderer.setSize( container.clientWidth, container.clientHeight );
-    container.appendChild( renderer.domElement );
-    
-    
     labelRenderer.setSize( container.clientWidth, container.clientHeight );
     labelRenderer.domElement.style.position = 'absolute';
     labelRenderer.domElement.style.top = '0px';
     container.appendChild( labelRenderer.domElement );
+
+    renderer.setSize( container.clientWidth, container.clientHeight );
+    container.appendChild( renderer.domElement );
     
-    const controls = new OrbitControls( camera, labelRenderer.domElement  );
+    controls = new OrbitControls( camera, labelRenderer.domElement  );
     controls.minDistance = 20;
     controls.maxDistance = 150;
     
@@ -369,6 +392,9 @@ function init() {
     }
     animate();
     window.addEventListener( 'resize', onWindowResize, false );
+
+    document.getElementById('orbit').addEventListener( 'change', on_mode_change );
+    document.getElementById('selection').addEventListener( 'change', on_mode_change );
 }
 
 

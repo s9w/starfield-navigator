@@ -23,3 +23,6 @@ body >:not(#glContainer){
     color: red;
     margin-left: 1em;
 }
+div.label:hover{
+    color:aqua;
+}
