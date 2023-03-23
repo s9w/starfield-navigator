@@ -337,7 +337,10 @@ function on_label_click(name)
 function init() {
     camera.up = up_vec;
     camera.position.add(front_vec);
-    camera.position.multiplyScalar(-20.0);
+    
+    camera.position.add(right_vec);
+    camera.position.add(up_vec);
+    camera.position.multiplyScalar(15.0);
     camera.lookAt(0, 0, 0);
     document.querySelector("#jump_range").addEventListener("change", (event) => {
         range_changed(event.target.value);
