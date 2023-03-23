@@ -382,7 +382,7 @@ function init() {
     container.appendChild( renderer.domElement );
     
     controls = new OrbitControls( camera, labelRenderer.domElement  );
-    controls.minDistance = 20;
+    controls.minDistance = 10;
     controls.maxDistance = 150;
     
     function animate() {

@@ -1,6 +1,5 @@
 #main {
     margin: 0;
-    font-family: "Helvetica Neue",Helvetica,"Segoe UI",Arial,freesans,sans-serif;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -8,11 +7,15 @@
 }
 html, body, #main {
     height:100%;
+    font-family: "Helvetica Neue",Helvetica,"Segoe UI",Arial,freesans,sans-serif;
+    /* font-family: "Segoe UI"; */
 }
 body{
     padding: 1em;
     background-color: slategray;
-    font-family: "Segoe UI";
+}
+h1, ul{
+    margin: 0;
 }
 
 #main >:not(#glContainer){
