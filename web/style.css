@@ -12,6 +12,7 @@ html, body, #main {
 body{
     padding: 1em;
     background-color: slategray;
+    font-family: "Segoe UI";
 }
 
 #main >:not(#glContainer){
@@ -31,4 +32,24 @@ div.label:hover{
 }
 .text_label{
     font-weight: bold;
+}
+p>video, p>img{
+    max-width: 100%;
+    padding-left: 1em;
+    padding-right: 1em;
+    box-sizing: border-box;
+}
+#explanation{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#explanation > ul{
+    align-self: baseline;
+}
+a{
+    color: black;
+}
+a:hover{
+    color: brown;
 }

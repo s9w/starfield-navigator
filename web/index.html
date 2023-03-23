@@ -26,12 +26,13 @@
         <script type="module" src="script.js"></script>
 	</head>
 	<body>
+        <h1>Starfield Navigator</h1>
         <div id="main">
             <a class="github-button" href="https://github.com/s9w/starfield-navigator" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star s9w/starfield-navigator on GitHub">Star</a>
             
             <div style="display: flex; align-items: center;">
             <label class="text_label" for="jump_range:">Jump Range</label>
-            <input type="range" id="jump_range" name="jump_range" min="1.0" max="30.0", value="14.9" step="0.1" oninput="this.nextElementSibling.value = Number(this.value).toFixed(1)">
+            <input type="range" id="jump_range" style="flex-grow: 1;"  name="jump_range" min="1.0" max="30.0", value="14.9" step="0.1" oninput="this.nextElementSibling.value = Number(this.value).toFixed(1)">
             <output>14.9</output>
             <span id="no_path" style="visibility: hidden;">NO PATH (jump range too small)</span>
             </div>
@@ -59,7 +60,7 @@
             </fieldset>
 
             <div>
-                <span class="text_label">↓ Scroll down for context ↓</span>
+                <span class="text_label">↓ Scroll down for explanation ↓</span>
             </div>
 
             <div id="glContainer"></div>
@@ -69,12 +70,58 @@
                 init();
             </script>
         </div>
-        <div>
-            <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Est quae non tempore deleniti minima unde corrupti commodi molestiae laudantium? Consequatur incidunt expedita molestias corporis consectetur fuga alias harum sint assumenda?</p>
-            <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Est quae non tempore deleniti minima unde corrupti commodi molestiae laudantium? Consequatur incidunt expedita molestias corporis consectetur fuga alias harum sint assumenda?</p>
-            <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Est quae non tempore deleniti minima unde corrupti commodi molestiae laudantium? Consequatur incidunt expedita molestias corporis consectetur fuga alias harum sint assumenda?</p>
-            <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Est quae non tempore deleniti minima unde corrupti commodi molestiae laudantium? Consequatur incidunt expedita molestias corporis consectetur fuga alias harum sint assumenda?</p>
-            <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Est quae non tempore deleniti minima unde corrupti commodi molestiae laudantium? Consequatur incidunt expedita molestias corporis consectetur fuga alias harum sint assumenda?</p>
+        <div id="explanation">
+            <h2>Explanation</h2>
+            <p>
+                On 2022-06-12, the <a href="https://www.youtube.com/watch?v=zmb2FJGvnAw">first gameplay footage</a> of the upcoming space RPG <a href="https://en.wikipedia.org/wiki/Starfield_(video_game)">Starfield</a> was released. It revealed that the game features "over 100 star systems" alongside with this ~6 second video of the galaxy map of the game:</p>
+            <p>
+                <video muted loop autoplay controls>
+                    <source src="https://user-images.githubusercontent.com/6044318/227121796-ccb92104-8fd7-443b-b487-56c56c13a26f.mp4" type="video/mp4">
+                </video>
+            </p>
+            <p>
+                About ~75 stars systems were visible, some of them with names. Among those, three star names were "real": Sol, Alpha Centauri and Porrima. That implied that the world of Starfield is based on the Milky Way. This project is the attempt to reconstruct the ingame galaxy map from that video.
+            </p>
+            <p>
+                Stars can be approximated as not moving, at least within the 6 second timeframe. Therefore we used the pixel tracking feature of 3D programs (Cinema 4D in this case) to track the movement of the stars during that scene.
+            </p>
+            <p>
+                <img src="https://user-images.githubusercontent.com/6044318/227130555-cccc910a-7577-4d8f-9da0-0ac9b2100857.png">
+            </p>
+            <p>
+                The program can then attempt to reconstruct 3D positions. Those are a best guess to their relation to each other, but can't possibly be correct in regard to their absolute position in the game.
+            </p>
+            <p>
+                <video muted loop autoplay controls>
+                    <source src="https://user-images.githubusercontent.com/6044318/227131381-242a2a47-6703-4a13-a1e4-1354e61e58f4.mp4" type="video/mp4">
+                </video>
+            </p>
+            <p>
+                Star positions can be represented in <a href="https://en.wikipedia.org/wiki/Galactic_coordinate_system">galactic coordinates</a>, which are basically cartesian coordinates in a special frame of reference. A linear transformation from the arbitrary reconstructed coordinates to galactic coordinates was the key to advance the process. Luckily, in three dimensions we need exactly three positions to perfectly construct such a transformation. We used the positions of the three known stars to do so.
+            </p>
+            <p>
+                Next up was the process to identify all the other unlabeled systems. Databases of all known stars are readily available and were used to choose the closest match for each star. It was apparent that in most cases, that was unambiguous - the second best match being a much worse fit. With that process, almost all stars were identified.
+            </p>
+            <p>
+                With the stars identified, the original constraint of Sol, Alpha Centauri and Porrima being exact matches was no longer required as we can just use common optimization algorithms to find a more general transformation to minimize the errors on <emph>all</emph> stars. That further reduced the position errors. A last optimization was to use that error as a metric to calibrate parameters for the original position reconstruction in Cinema 4D, in particular the assumed camera FOV. With all that, the position errors were less than 0.1 LY among a distance of ~100 LY. That puts a high confidence on the reconstruction.
+            </p>
+            <p>
+                On 2023-03-08, Bethesda Softworks released more <a href="https://www.youtube.com/watch?v=raWbElTCea8">video footage</a>. It contained two additional names of real stars: <a href="https://en.wikipedia.org/wiki/Tau_Ceti">Tau Ceti</a> and <a href="https://en.wikipedia.org/wiki/Cassiopeia_(constellation)">Cassiopeiae</a>. Tau Ceti is unambiguous and is positioned inside in the cluster of stars previously discovered, further confirming our method. Cassiopeia is a constellation of many stars, spanning among a considerable distance. It's unknown which one the game refers to, therefore a few of the brightest were added to this program. Note that only one of them is correct.
+            </p>
+            <p>
+                It's known that the game will use a jump mechanic to traverse between star systems. The video footage also showed ships with jump ranges between 15 LY and 30 LY. With a galacy map spanning at least 100 LY, multiple jumps will be required to move to farther points in the map. Chosing an optimal path is solved by <a href="https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra's algorithm</a>. This site has a routing functionality that plots such an optimal path between two points. If the final game requires that manual plotting is yet unknown. Other interesting facts learned:
+            </p>
+            <p>
+                <ul>
+                    <li>Some stars seem to be renamed in the game. <a href="https://en.wikipedia.org/wiki/70_Ophiuchi">70 Ophiuchi</a> is called Narion, <a href="https://en.wikipedia.org/wiki/Xi_Bo%C3%B6tis">Xi Boötis</a> is called Cheyenne, <a href="https://en.wikipedia.org/wiki/18_Scorpii">18 Scorpii</a> is called Jaffa, <a href="https://en.wikipedia.org/wiki/61_Virginis">61 Virginis</a> is called Vol II.</li>
+                    <li>The game simplifies a few aspects. In particular, multiple-star systems seem as they're represented by a single star in the map. Also the number of planets per systems seems to be quite high.</li>
+                    <li>The camera seems to move left, right, front and back. But within the tolerance of the reconstruction, no up/down movement was seen.</li>
+                    <li>The slice of the universe we've seen is not aligned to galactic coordinates. It's rotated quite dramatically.</li>
+                </ul>
+            </p>
+            <p>
+                The original starfield navigator is a C++ program written as a tool for the identification process. This web version is more accessible and will probably switch to the ingame map once the game is released. It might transition into a companion tool depending on how details pan out. Both tools are open-source and the repository located at <a href="https://github.com/s9w/starfield-navigator">github.com/s9w/starfield-navigator</a>.
+            </p>
         </div>
 	</body>
 </html>
