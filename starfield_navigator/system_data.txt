@@ -158,11 +158,22 @@ AEG:big;;Vega_HIP 91262;Lyra
 # For possible catalog entries, see cc_hyg.txt. Just with space instead of underscores.
 # Note that this preferences HIP over GJ entries - just look for which one exists
 # Note that this will file be overwritten when downloading new versions. Backup if necessary
+#Tau Ceti;HIP 8102
+#Eta Cassiopeiae;HIP 3821
+#Mu Cassiopeiae;HIP 5336
+#V547 Cassiopeiae;HIP 2552
+#Beta Cassiopeiae;HIP 746
+ALCHIBA;HIP 59199
+ALGORAB;HIP 60965
+ALTAIR;HIP 97649
+RASALHAGUE;HIP 86032
+SYRMA;HIP 69701
 Tau Ceti;HIP 8102
 Eta Cassiopeiae;HIP 3821
 Mu Cassiopeiae;HIP 5336
 V547 Cassiopeiae;HIP 2552
 Beta Cassiopeiae;HIP 746
+ARANAE/OLYMP;HIP 73184
 #Epsilon Eridani;HIP 16537
 #Beta Hydri;HIP 2021 # maybe too low?
 #Sigma Draconis;HIP 96100 # maybe too far up?
